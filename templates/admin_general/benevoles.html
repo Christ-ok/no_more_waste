@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bénévoles — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Général</span>
+
+    <nav class="sidebar-nav">
+      <a href="/admin" class="nav-item">Tableau de bord</a>
+      <a href="#" class="nav-item">Agences</a>
+      <a href="#" class="nav-item">Collectes</a>
+      <a href="#" class="nav-item">Stocks</a>
+      <a href="#" class="nav-item">Tournées de distribution</a>
+      <a href="/admin/benevoles" class="nav-item is-active">Bénévoles</a>
+      <a href="#" class="nav-item">Commerçants</a>
+      <a href="#" class="nav-item">Adhérents</a>
+      <a href="#" class="nav-item">Associations bénéficiaires</a>
+      <a href="#" class="nav-item">Services</a>
+      <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration générale</span>
+        <h1>Bénévoles</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez l'ensemble des bénévoles inscrits sur toutes les agences, et leur statut de candidature.</p>
+
+      <form class="table-toolbar" action="/admin/benevoles" method="GET">
+        <input
+          type="text"
+          name="searchBenevole"
+          class="table-search"
+          placeholder="Rechercher un bénévole par nom..."
+          value="{{.BenevoleRecherche}}"
+        >
+        <button type="submit" class="btn btn-primary">Rechercher</button>
+      </form>
+
+      <a href="/admin/benevoles/creer" class="btn btn-success">
+        <i class="fa-solid fa-plus">
+          Nouveau bénévole
+        </i>
+      </a>
+
+      <div class="panel panel-table">
+        {{if .Benevoles}}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Adresse</th>
+              <th>Ville</th>
+              <th>Pays</th>
+              <th>Statut</th>
+              <th>Modifier</th>
+              <th>Supprimer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Benevoles}}
+            <tr>
+              <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
+              <td>{{.Email}}</td>
+              <td>{{if .Telephone}}{{.Telephone}}{{else}}—{{end}}</td>
+              <td>{{if .Adresse}}{{.Adresse}}{{else}}—{{end}}</td>
+              <td>{{if .Ville}}{{.Ville}}{{else}}—{{end}}</td>
+              <td>{{if .Pays}}{{.Pays}}{{else}}—{{end}}</td>
+              <td>
+                {{if eq .Statut "VALIDE"}}
+                  <span class="badge badge-success">Validé</span>
+                {{else if eq .Statut "EN_ATTENTE"}}
+                  <span class="badge badge-pending">En attente</span>
+                {{else if eq .Statut "REFUSE"}}
+                  <span class="badge badge-refused">Refusé</span>
+                {{else}}
+                  <span class="badge">{{.Statut}}</span>
+                {{end}}
+              </td>
+              <td>
+                <a href="/admin/benevoles/modifier?id={{.IDUtilisateur}}" class="icon-btn" title="Modifier">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </td>
+
+              <td>
+                <button type="button" class="icon-btn" onclick="BenevoleDelete('{{.IDUtilisateur}}')" title="Supprimer">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun bénévole ne correspond à votre recherche.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<script>
+  function BenevoleDelete(id) {
+    if (!confirm("Supprimer ce bénévoel ?")) return;
+
+    fetch("/admin/benevoles/supprimer?id=" + id, {
+      method: "DELETE",
+      credentials: "include",
+    }).then(res => {
+      if (res.ok) {
+        location.reload();
+      } else {
+        res.text().then(text => alert("Erreur Suppression : " + text));
+      }
+    }).catch(err => {
+      console.error(err);
+      alert("Erreur réseau lors de la suppression");
+    });
+  }
+</script>
+
+</body>
+</html>
