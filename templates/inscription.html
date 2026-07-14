@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="auth.css">
+</head>
+<body class="auth-body">
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo">
+      <span class="logo-mark">NMW</span>
+      <span class="logo-text">NO MORE WASTE</span>
+    </a>
+    <div class="header-actions">
+      <span class="header-hint">Déjà inscrit ?</span>
+      <a href="/connexion" class="btn btn-ghost">Connexion</a>
+    </div>
+  </div>
+</header>
+
+<main class="auth-main">
+  <div class="auth-wrap">
+
+    <!-- Panneau image -->
+    <aside class="auth-side">
+      <img src="https://images.pexels.com/photos/6995201/pexels-photo-6995201.jpeg?auto=compress&cs=tinysrgb&w=1000"
+           alt="Bénévoles triant des denrées alimentaires données pour l'association">
+      <div class="auth-side-copy">
+        <span class="tag">Rejoindre l'association</span>
+        <h2>Un compte,<br>plusieurs façons d'agir.</h2>
+        <p>Bénévole, commerçant, adhérent ou association relais :
+        chacun trouve sa place chez NO MORE WASTE.</p>
+      </div>
+    </aside>
+
+    <!-- Formulaire -->
+    <section class="auth-card">
+      <span class="tag">Inscription</span>
+      <h1>Créer mon compte</h1>
+      <p class="auth-lead">Quelques informations suffisent pour commencer.</p>
+
+      <form class="auth-form" action="/inscription" method="POST">
+
+        <div class="field-row">
+          <div class="field">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" name="prenom" placeholder="Camille" required>
+          </div>
+          <div class="field">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" name="nom" placeholder="Martin" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="email">Adresse e-mail</label>
+          <input type="email" id="email" name="email" placeholder="camille.martin@email.com" required>
+        </div>
+
+        <div class="field">
+          <label for="telephone">Téléphone</label>
+          <input type="tel" id="telephone" name="telephone" placeholder="06 12 34 56 78">
+        </div>
+
+        <div class="field">
+          <label for="adresse">Adresse</label>
+          <input type="text" id="adresse" name="adresse" placeholder="12 rue des Lilas">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="ville">Ville</label>
+            <input type="text" id="ville" name="ville" placeholder="Paris">
+          </div>
+          <div class="field">
+            <label for="code_postal">Code postal</label>
+            <input type="text" id="code_postal" name="code_postal" placeholder="75000">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pays">Pays</label>
+          <input type="text" id="pays" name="pays" placeholder="France" value="France">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="mot_de_passe">Mot de passe</label>
+            <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="8 caractères minimum" minlength="8" required>
+          </div>
+          <div class="field">
+            <label for="confirmation">Confirmation</label>
+            <input type="password" id="confirmation" name="confirmation" placeholder="Retapez le mot de passe" minlength="8" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="role">Je m'inscris en tant que</label>
+          <select id="role" name="role" required>
+            <option value="" disabled selected>Choisir un profil</option>
+            <option value="BENEVOLE">Bénévole</option>
+            <option value="COMMERCANT">Commerçant</option>
+            <option value="ADHERENT">Adhérent</option>
+            <option value="ASSOCIATION">Association bénéficiaire</option>
+          </select>
+        </div>
+
+        <!-- ---- Champs spécifiques : Bénévole ---- -->
+        <div class="role-fields" data-role="BENEVOLE" hidden>
+          <label class="checkbox-field">
+            <input type="checkbox" name="permis">
+            <span>Je possède le permis de conduire.</span>
+          </label>
+
+          <div class="field">
+            <span class="field-label-standalone">Compétences</span>
+            <div class="competence-grid">
+              {{range .Competences}}
+              <label class="checkbox-field">
+                <input type="checkbox" name="competences" value="{{.IDCompetence}}">
+                <span>{{.Nom}}</span>
+              </label>
+              {{end}}
+            </div>
+          </div>
+
+          <p class="role-fields-note">Vous pourrez renseigner vos disponibilités depuis votre espace bénévole une fois votre compte créé.</p>
+        </div>
+
+        <!-- ---- Champs spécifiques : Commerçant ---- -->
+        <div class="role-fields" data-role="COMMERCANT" hidden>
+          <div class="field">
+            <label for="nom_entreprise">Nom de l'entreprise</label>
+            <input type="text" id="nom_entreprise" name="nom_entreprise" placeholder="Boulangerie du Marché" data-required="true">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="type_commerce">Type de commerce</label>
+              <input type="text" id="type_commerce" name="type_commerce" placeholder="Boulangerie">
+            </div>
+            <div class="field">
+              <label for="numero_siret">Numéro SIRET</label>
+              <input type="text" id="numero_siret" name="numero_siret" placeholder="14 chiffres" data-required="true">
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- Champs spécifiques : Association bénéficiaire ---- -->
+        <div class="role-fields" data-role="ASSOCIATION" hidden>
+          <div class="field-row">
+            <div class="field">
+              <label for="nom_responsable">Nom du responsable</label>
+              <input type="text" id="nom_responsable" name="nom_responsable" placeholder="Prénom Nom" data-required="true">
+            </div>
+            <div class="field">
+              <label for="nom_association">Nom de l'association</label>
+              <input type="text" id="nom_association" name="nom_association" placeholder="Ex : Restos du Cœur" data-required="true">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="type_association">Type d'association</label>
+              <input type="text" id="type_association" name="type_association" placeholder="Ex : aide alimentaire">
+            </div>
+            <div class="field">
+              <label for="nombre_beneficiaires">Nombre de bénéficiaires</label>
+              <input type="number" id="nombre_beneficiaires" name="nombre_beneficiaires" min="0" placeholder="Ex : 50">
+            </div>
+          </div>
+        </div>
+
+        <!-- L'adhérent ne nécessite aucun champ supplémentaire au-delà du tronc commun -->
+
+        <label class="checkbox-field">
+          <input type="checkbox" name="cgu" required>
+          <span>J'accepte les conditions d'utilisation de NO MORE WASTE.</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Créer mon compte</button>
+      </form>
+
+      <script>
+        // Affiche uniquement les champs correspondant au rôle sélectionné,
+        // et ne rend "required" que les champs visibles (sinon le navigateur
+        // bloquerait la soumission sur des champs cachés).
+        const selectRole = document.getElementById("role");
+        const blocsRole = document.querySelectorAll(".role-fields");
+
+        function appliquerRole() {
+          const roleChoisi = selectRole.value;
+
+          blocsRole.forEach((bloc) => {
+            const estConcerne = bloc.dataset.role === roleChoisi;
+            bloc.hidden = !estConcerne;
+
+            bloc.querySelectorAll("input").forEach((champ) => {
+              if (champ.dataset.required === "true") {
+                champ.required = estConcerne;
+              }
+            });
+          });
+        }
+
+        selectRole.addEventListener("change", appliquerRole);
+        appliquerRole();
+      </script>
+
+      <p class="auth-switch">
+        Déjà membre ? <a href="/connexion">Se connecter</a>
+      </p>
+    </section>
+
+  </div>
+</main>
+
+</body>
+</html>

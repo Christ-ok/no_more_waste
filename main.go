@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 	db "no_more_waste/database"
+	"no_more_waste/routes"
+	"no_more_waste/session"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -15,28 +17,35 @@ func main() {
 
 	db.Init(".env")
 	fmt.Println("Connexion à la base de données réussie")
-
 	db.DB.Exec("SET timezone TO 'Europe/Paris'")
 
-	rows, err := db.DB.Query("SELECT id_role, nom FROM role")
-	if err != nil {
-		log.Fatalf("Erreur lors de la requête: %v", err)
+	session.Init()
+
+	fs := http.FileServer(http.Dir("./templates"))
+	http.Handle("/", fs)
+
+	http.HandleFunc("GET /inscription", PageInscription(db.DB))
+	http.HandleFunc("POST /inscription", Signin(db.DB))
+	http.HandleFunc("GET /connexion", PageConnexion)
+	http.HandleFunc("POST /connexion", Login(db.DB))
+
+	http.HandleFunc("GET /admin", PageAdminGeneral)
+	http.HandleFunc("GET /admin-agence", PageAdminAgence)
+	http.HandleFunc("GET /commercant", PageCommercant)
+	http.HandleFunc("GET /benevole", PageBenevole)
+	http.HandleFunc("GET /association", PageAssociation)
+	http.HandleFunc("GET /adherent", PageAdherent)
+	http.HandleFunc("GET /admin/benevoles/creer", routes.PageCreerBenevole)
+
+	http.HandleFunc("GET /admin/benevoles", routes.DashboardAdministrateurBenevoles(db.DB))
+	http.HandleFunc("POST /admin/benevoles/creer", routes.CreateBenevole(db.DB))
+	http.HandleFunc("GET /admin/benevoles/modifier", routes.FormModifyBenevole(db.DB))
+	http.HandleFunc("POST /admin/benevoles/modifier", routes.ModifyBenevole(db.DB))
+	http.HandleFunc("DELETE /admin/benevoles/supprimer", routes.DeleteBenevole(db.DB))
+
+	fmt.Println("Serveur lancé")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		fmt.Println("Erreur :", err)
 	}
-	defer rows.Close()
 
-	fmt.Println("Voici la table role :")
-	for rows.Next() {
-		var idRole int
-		var nom string
-
-		if err := rows.Scan(&idRole, &nom); err != nil {
-			log.Fatalf("Erreur lors du scan: %v", err)
-		}
-
-		fmt.Printf("id_role: %d | nom: %s\n", idRole, nom)
-	}
-
-	if err := rows.Err(); err != nil {
-		log.Fatalf("Erreur après itération: %v", err)
-	}
 }

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer un bénévole — NO MORE WASTE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+    <aside class="sidebar">
+
+        <a href="/" class="sidebar-logo">
+            <span class="sidebar-logo-mark">NMW</span>
+            <span class="sidebar-logo-text">NO MORE WASTE</span>
+        </a>
+
+        <span class="sidebar-space">Back-office — Général</span>
+
+        <nav class="sidebar-nav">
+            <a href="/admin" class="nav-item">Tableau de bord</a>
+            <a href="#" class="nav-item">Agences</a>
+            <a href="#" class="nav-item">Collectes</a>
+            <a href="#" class="nav-item">Stocks</a>
+            <a href="#" class="nav-item">Tournées</a>
+            <a href="/admin/benevoles" class="nav-item is-active">Bénévoles</a>
+            <a href="#" class="nav-item">Commerçants</a>
+            <a href="#" class="nav-item">Adhérents</a>
+            <a href="#" class="nav-item">Associations</a>
+            <a href="#" class="nav-item">Services</a>
+            <a href="#" class="nav-item">Statistiques</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+        </div>
+
+    </aside>
+
+    <div class="dash-main">
+
+        <header class="dash-topbar">
+
+            <div>
+                <span class="tag">Administration générale</span>
+                <h1>Créer un bénévole</h1>
+            </div>
+
+            <div class="topbar-user">
+                <span>Bonjour !</span>
+            </div>
+
+        </header>
+
+        <main class="dash-content">
+
+            <p class="dash-subtitle">
+                Complétez les informations ci-dessous afin d'ajouter un nouveau bénévole.
+            </p>
+
+            <div class="panel">
+
+                <form action="/admin/benevoles/creer" method="POST" class="form-grid">
+
+                    <div class="form-group">
+                        <label>Nom *</label>
+                        <input type="text" name="nom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Prénom *</label>
+                        <input type="text" name="prenom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mot de passe initial *</label>
+                        <input type="password" name="mot_de_passe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="text" name="telephone">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Adresse</label>
+                        <input type="text" name="adresse">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ville</label>
+                        <input type="text" name="ville">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Code postal</label>
+                        <input type="text" name="code_postal">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <input type="text" name="pays" value="France">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Disponibilité</label>
+
+                        <select name="disponibilite">
+                            <option value="">-- Choisir --</option>
+                            <option value="SEMAINE">Semaine</option>
+                            <option value="WEEKEND">Week-end</option>
+                            <option value="TOUJOURS">Toujours</option>
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Statut</label>
+
+                        <select name="statut">
+                            <option value="EN_ATTENTE" selected>En attente</option>
+                            <option value="VALIDE">Validé</option>
+                            <option value="REFUSE">Refusé</option>
+                        </select>
+
+                    </div>
+
+                    <div class="form-group checkbox-group">
+
+                        <label>
+                            <input type="checkbox" name="permis">
+                            Possède le permis B
+                        </label>
+
+                    </div>
+
+                    <div class="form-actions">
+
+                        <a href="/admin/benevoles" class="btn btn-ghost">
+                            Annuler
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+                            Créer le bénévole
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>
