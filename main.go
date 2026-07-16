@@ -36,12 +36,19 @@ func main() {
 	http.HandleFunc("GET /association", PageAssociation)
 	http.HandleFunc("GET /adherent", PageAdherent)
 	http.HandleFunc("GET /admin/benevoles/creer", routes.PageCreerBenevole)
+	http.HandleFunc("GET /admin/commercants/creer", routes.PageCreerCommercant)
 
 	http.HandleFunc("GET /admin/benevoles", routes.DashboardAdministrateurBenevoles(db.DB))
 	http.HandleFunc("POST /admin/benevoles/creer", routes.CreateBenevole(db.DB))
 	http.HandleFunc("GET /admin/benevoles/modifier", routes.FormModifyBenevole(db.DB))
 	http.HandleFunc("POST /admin/benevoles/modifier", routes.ModifyBenevole(db.DB))
 	http.HandleFunc("DELETE /admin/benevoles/supprimer", routes.DeleteBenevole(db.DB))
+
+	http.HandleFunc("GET /admin/commercants", routes.DashboardAdministrateurCommercant(db.DB))
+	http.HandleFunc("POST /admin/commercants/creer", routes.CreateCommercant(db.DB))
+	http.HandleFunc("GET /admin/commercants/modifier", routes.FormModifyCommercant(db.DB))
+	http.HandleFunc("POST /admin/commercants/modifier", routes.ModifyCommercant(db.DB))
+	http.HandleFunc("DELETE /admin/commercants/supprimer", routes.DeleteCommercant(db.DB))
 
 	fmt.Println("Serveur lancé")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

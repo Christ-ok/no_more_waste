@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bénévoles — NO MORE WASTE</title>
+<title>Commerçants — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,8 +28,8 @@
       <a href="#" class="nav-item">Collectes</a>
       <a href="#" class="nav-item">Stocks</a>
       <a href="#" class="nav-item">Tournées de distribution</a>
-      <a href="/admin/benevoles" class="nav-item is-active">Bénévoles</a>
-      <a href="/admin/commercants" class="nav-item">Commerçants</a>
+      <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
+      <a href="/admin/commercants" class="nav-item is-active">Commerçants</a>
       <a href="#" class="nav-item">Adhérents</a>
       <a href="#" class="nav-item">Associations bénéficiaires</a>
       <a href="#" class="nav-item">Services</a>
@@ -45,7 +45,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Administration générale</span>
-        <h1>Bénévoles</h1>
+        <h1>Commerçants</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -53,27 +53,27 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Retrouvez l'ensemble des bénévoles inscrits sur toutes les agences, et leur statut de candidature.</p>
+      <p class="dash-subtitle">Retrouvez l'ensemble des commerçants inscrits sur toutes les agences, et leur statut d'adhésion.</p>
 
-      <form class="table-toolbar" action="/admin/benevoles" method="GET">
+      <form class="table-toolbar" action="/admin/commercants" method="GET">
         <input
           type="text"
-          name="searchBenevole"
+          name="searchCommercant"
           class="table-search"
-          placeholder="Rechercher un bénévole par nom..."
-          value="{{.BenevoleRecherche}}"
+          placeholder="Rechercher un commerçant par nom..."
+          value="{{.CommercantRecherce}}"
         >
         <button type="submit" class="btn btn-primary">Rechercher</button>
       </form>
 
-      <a href="/admin/benevoles/creer" class="btn btn-success">
+      <a href="/admin/commercants/creer" class="btn btn-success">
         <i class="fa-solid fa-plus">
-          Nouveau bénévole
+          Nouveau commerçant
         </i>
       </a>
 
       <div class="panel panel-table">
-        {{if .Benevoles}}
+        {{if .Commercants}}
         <table class="data-table">
           <thead>
             <tr>
@@ -83,13 +83,16 @@
               <th>Adresse</th>
               <th>Ville</th>
               <th>Pays</th>
+              <th>Entreprise</th>
+              <th>Type de commerce</th>
+              <th>SIRET</th>
               <th>Statut</th>
               <th>Modifier</th>
               <th>Supprimer</th>
             </tr>
           </thead>
           <tbody>
-            {{range .Benevoles}}
+            {{range .Commercants}}
             <tr>
               <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
               <td>{{.Email}}</td>
@@ -97,25 +100,30 @@
               <td>{{if .Adresse}}{{.Adresse}}{{else}}—{{end}}</td>
               <td>{{if .Ville}}{{.Ville}}{{else}}—{{end}}</td>
               <td>{{if .Pays}}{{.Pays}}{{else}}—{{end}}</td>
+              <td>{{if .NomEntriprise}}{{.NomEntriprise}}{{else}}—{{end}}</td>
+              <td>{{if .TypeCommerce}}{{.TypeCommerce}}{{else}}—{{end}}</td>
+              <td>{{if .NumeroSiret}}{{.NumeroSiret}}{{else}}—{{end}}</td>
+
               <td>
-                {{if eq .Statut "VALIDE"}}
-                  <span class="badge badge-success">Validé</span>
-                {{else if eq .Statut "EN_ATTENTE"}}
-                  <span class="badge badge-pending">En attente</span>
-                {{else if eq .Statut "REFUSE"}}
-                  <span class="badge badge-refused">Refusé</span>
+                {{if eq .Statut "ACTIF"}}
+                    <span class="badge badge-success">Actif</span>
+                {{else if eq .Statut "EXPIRE"}}
+                    <span class="badge badge-refused">Expiré</span>
+                {{else if eq .Statut "SUSPENDU"}}
+                    <span class="badge badge-pending">Suspendu</span>
                 {{else}}
-                  <span class="badge">{{.Statut}}</span>
+                    <span class="badge">{{.Statut}}</span>
                 {{end}}
               </td>
+              
               <td>
-                <a href="/admin/benevoles/modifier?id={{.IDUtilisateur}}" class="icon-btn" title="Modifier">
+                <a href="/admin/commercants/modifier?id={{.IDutilisateur}}" class="icon-btn" title="Modifier">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </a>
               </td>
 
               <td>
-                <button type="button" class="icon-btn" onclick="BenevoleDelete('{{.IDUtilisateur}}')" title="Supprimer">
+                <button type="button" class="icon-btn" onclick="CommercantDelete('{{.IDutilisateur}}')" title="Supprimer">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </td>
@@ -124,7 +132,7 @@
           </tbody>
         </table>
         {{else}}
-        <p class="table-empty">Aucun bénévole ne correspond à votre recherche.</p>
+        <p class="table-empty">Aucun commerçant ne correspond à votre recherche.</p>
         {{end}}
       </div>
     </main>
@@ -133,10 +141,10 @@
 </div>
 
 <script>
-  function BenevoleDelete(id) {
-    if (!confirm("Supprimer ce bénévoel ?")) return;
+  function CommercantDelete(id) {
+    if (!confirm("Supprimer ce commerçant ?")) return;
 
-    fetch("/admin/benevoles/supprimer?id=" + id, {
+    fetch("/admin/commercants/supprimer?id=" + id, {
       method: "DELETE",
       credentials: "include",
     }).then(res => {

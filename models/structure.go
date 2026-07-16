@@ -104,3 +104,19 @@ type BenevoleAffichageDashboard struct {
 	Disponibilite string `json:"disponibilité" db:"disponibilite"`
 	Statut        string `json:"statut" db:"statut"`
 }
+
+type CommercantAffichageDashboard struct {
+	IDutilisateur int    `json:"id_utilisateur" db:"id_utilisateur"`
+	Nom           string `json:"nom" db:"nom"`
+	Prenom        string `json:"prenom" db:"prenom"`
+	Email         string `json:"email" db:"email"`
+	Telephone     string `json:"telephone" db:"telephone"`
+	Adresse       string `json:"adresse" db:"adresse"`
+	Ville         string `json:"ville" db:"ville"`
+	CodePostal    string `json:"code_postal" db:"code_postal"`
+	Pays          string `json:"pays" db:"pays"`
+	NomEntriprise string `json:"nom_entriprise" db:"nom_entreprise"`
+	TypeCommerce  string `json:"type_commerce" db:"type_commerce"`
+	NumeroSiret   string `json:"numero_siret" db:"numero_siret"`
+	Statut        string `json:"statut" db:"statut"`
+}
