@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Créer un commerçant — NO MORE WASTE</title>
+<title>Créer un administrateur — NO MORE WASTE</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,12 +28,12 @@
 
         <nav class="sidebar-nav">
             <a href="/admin" class="nav-item">Tableau de bord</a>
-            <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
+            <a href="/admin/administrateurs" class="nav-item is-active">Administrateurs Agences</a>
             <a href="#" class="nav-item">Collectes</a>
             <a href="#" class="nav-item">Stocks</a>
             <a href="#" class="nav-item">Tournées</a>
             <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
-            <a href="/admin/commercants" class="nav-item is-active">Commerçants</a>
+            <a href="/admin/commercants" class="nav-item">Commerçants</a>
             <a href="#" class="nav-item">Adhérents</a>
             <a href="#" class="nav-item">Associations</a>
             <a href="#" class="nav-item">Services</a>
@@ -52,7 +52,7 @@
 
             <div>
                 <span class="tag">Administration générale</span>
-                <h1>Créer un commerçant</h1>
+                <h1>Créer un administrateur</h1>
             </div>
 
             <div class="topbar-user">
@@ -64,12 +64,12 @@
         <main class="dash-content">
 
             <p class="dash-subtitle">
-                Complétez les informations ci-dessous afin d'ajouter un nouveau commerçant.
+                Complétez les informations ci-dessous afin d'ajouter un nouvel administrateur d'agence.
             </p>
 
             <div class="panel">
 
-                <form action="/admin/commercants/creer" method="POST" class="form-grid">
+                <form action="/admin/administrateurs/creer" method="POST" class="form-grid">
 
                     <div class="form-group">
                         <label>Nom *</label>
@@ -117,49 +117,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Nom de l'entreprise *</label>
-                        <input type="text" name="nom_entreprise" required>
-                    </div>
+                        <label>Agence *</label>
 
-                    <div class="form-group">
-                        <label>Type de commerce</label>
+                            <select name="id_agence">
+                                <option value="0">Aucune agence</option>
+                                {{range .Agences}}
+                                    <option value="{{.IDAgence}}">{{.Ville}}</option>
+                                {{end}}
+                            </select>
 
-                        <select name="type_commerce">
-                            <option value="">-- Choisir --</option>
-                            <option value="BOULANGERIE">Boulangerie</option>
-                            <option value="SUPERMARCHE">Supermarché</option>
-                            <option value="PRIMEUR">Primeur</option>
-                            <option value="RESTAURANT">Restaurant</option>
-                            <option value="AUTRE">Autre</option>
-                        </select>
-
-                    </div>
-
-                    <div class="form-group">
-                        <label>Numéro SIRET</label>
-                        <input type="text" name="numero_siret">
-                    </div>
-
-                    <div class="form-group">
-
-                        <label>Statut</label>
-
-                        <select name="statut">
-                            <option value="ACTIF" selected>Actif</option>
-                            <option value="EXPIRE">Expiré</option>
-                            <option value="SUSPENDU">Suspendu</option>
-                        </select>
-                        
                     </div>
 
                     <div class="form-actions">
 
-                        <a href="/admin/commercants" class="btn btn-ghost">
+                        <a href="/admin/administrateurs" class="btn btn-ghost">
                             Annuler
                         </a>
 
                         <button type="submit" class="btn btn-primary">
-                            Créer le commerçant
+                            Créer l'administrateur
                         </button>
 
                     </div>

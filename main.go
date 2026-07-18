@@ -50,6 +50,13 @@ func main() {
 	http.HandleFunc("POST /admin/commercants/modifier", routes.ModifyCommercant(db.DB))
 	http.HandleFunc("DELETE /admin/commercants/supprimer", routes.DeleteCommercant(db.DB))
 
+	http.HandleFunc("GET /admin/administrateurs", routes.DashboardAdministrateurAdmins(db.DB))
+	http.HandleFunc("GET /admin/administrateurs/creer", routes.PageCreerAdministrateur(db.DB))
+	http.HandleFunc("POST /admin/administrateurs/creer", routes.CreateAdministrateur(db.DB))
+	http.HandleFunc("GET /admin/administrateurs/modifier", routes.FormModifyAdministrateur(db.DB))
+	http.HandleFunc("POST /admin/administrateurs/modifier", routes.ModifyAdministrateur(db.DB))
+	http.HandleFunc("DELETE /admin/administrateurs/supprimer", routes.DeleteAdministrateur(db.DB))
+
 	fmt.Println("Serveur lancé")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("Erreur :", err)

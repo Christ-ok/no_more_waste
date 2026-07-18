@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commerçants — NO MORE WASTE</title>
+<title>Administrateurs — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,12 +24,12 @@
 
     <nav class="sidebar-nav">
       <a href="/admin" class="nav-item">Tableau de bord</a>
-      <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
+      <a href="/admin/administrateurs" class="nav-item is-active">Administrateurs Agences</a>
       <a href="#" class="nav-item">Collectes</a>
       <a href="#" class="nav-item">Stocks</a>
       <a href="#" class="nav-item">Tournées de distribution</a>
       <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
-      <a href="/admin/commercants" class="nav-item is-active">Commerçants</a>
+      <a href="/admin/commercants" class="nav-item">Commerçants</a>
       <a href="#" class="nav-item">Adhérents</a>
       <a href="#" class="nav-item">Associations bénéficiaires</a>
       <a href="#" class="nav-item">Services</a>
@@ -45,7 +45,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Administration générale</span>
-        <h1>Commerçants</h1>
+        <h1>Administrateurs</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -53,77 +53,55 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Retrouvez l'ensemble des commerçants inscrits sur toutes les agences, et leur statut d'adhésion.</p>
+      <p class="dash-subtitle">Retrouvez l'ensemble des administratuers de NO-MORE-WASTE.</p>
 
-      <form class="table-toolbar" action="/admin/commercants" method="GET">
+      <form class="table-toolbar" action="/admin/administrateurs" method="GET">
         <input
           type="text"
-          name="searchCommercant"
+          name="searchBenevole"
           class="table-search"
-          placeholder="Rechercher un commerçant par nom..."
-          value="{{.CommercantRecherce}}"
+          placeholder="Rechercher un bénévole par nom..."
+          value="{{.AdministrateurRecherche}}"
         >
         <button type="submit" class="btn btn-primary">Rechercher</button>
       </form>
 
-      <a href="/admin/commercants/creer" class="btn btn-success">
+      <a href="/admin/administrateurs/creer" class="btn btn-success">
         <i class="fa-solid fa-plus">
-          Nouveau commerçant
+          Nouvel administrateur
         </i>
       </a>
 
       <div class="panel panel-table">
-        {{if .Commercants}}
+        {{if .Administrateurs}}
         <table class="data-table">
           <thead>
             <tr>
               <th>Nom</th>
               <th>Email</th>
-              <th>Téléphone</th>
-              <th>Adresse</th>
               <th>Ville</th>
               <th>Pays</th>
-              <th>Entreprise</th>
-              <th>Type de commerce</th>
-              <th>SIRET</th>
-              <th>Statut</th>
+              <th>Agence</th>
               <th>Modifier</th>
               <th>Supprimer</th>
             </tr>
           </thead>
           <tbody>
-            {{range .Commercants}}
+            {{range .Administrateurs}}
             <tr>
               <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
               <td>{{.Email}}</td>
-              <td>{{if .Telephone}}{{.Telephone}}{{else}}—{{end}}</td>
-              <td>{{if .Adresse}}{{.Adresse}}{{else}}—{{end}}</td>
               <td>{{if .Ville}}{{.Ville}}{{else}}—{{end}}</td>
               <td>{{if .Pays}}{{.Pays}}{{else}}—{{end}}</td>
-              <td>{{if .NomEntriprise}}{{.NomEntriprise}}{{else}}—{{end}}</td>
-              <td>{{if .TypeCommerce}}{{.TypeCommerce}}{{else}}—{{end}}</td>
-              <td>{{if .NumeroSiret}}{{.NumeroSiret}}{{else}}—{{end}}</td>
-
+              <td>{{if .NomAgence}}{{.NomAgence}}{{else}}-{{end}}</td>
               <td>
-                {{if eq .Statut "ACTIF"}}
-                    <span class="badge badge-success">Actif</span>
-                {{else if eq .Statut "EXPIRE"}}
-                    <span class="badge badge-refused">Expiré</span>
-                {{else if eq .Statut "SUSPENDU"}}
-                    <span class="badge badge-pending">Suspendu</span>
-                {{else}}
-                    <span class="badge">{{.Statut}}</span>
-                {{end}}
-              </td>
-              
-              <td>
-                <a href="/admin/commercants/modifier?id={{.IDutilisateur}}" class="icon-btn" title="Modifier">
+                <a href="/admin/administrateurs/modifier?id={{.IDUtilisateur}}" class="icon-btn" title="Modifier">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </a>
               </td>
 
               <td>
-                <button type="button" class="icon-btn" onclick="CommercantDelete('{{.IDutilisateur}}')" title="Supprimer">
+                <button type="button" class="icon-btn" onclick="AdministrateurDelete('{{.IDUtilisateur}}')" title="Supprimer">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </td>
@@ -132,7 +110,7 @@
           </tbody>
         </table>
         {{else}}
-        <p class="table-empty">Aucun commerçant ne correspond à votre recherche.</p>
+        <p class="table-empty">Aucun administrateur ne correspond à votre recherche.</p>
         {{end}}
       </div>
     </main>
@@ -141,10 +119,10 @@
 </div>
 
 <script>
-  function CommercantDelete(id) {
-    if (!confirm("Supprimer ce commerçant ?")) return;
+  function AdministrateurDelete(id) {
+    if (!confirm("Supprimer cet administrateur ?")) return;
 
-    fetch("/admin/commercants/supprimer?id=" + id, {
+    fetch("/admin/administrateurs/supprimer?id=" + id, {
       method: "DELETE",
       credentials: "include",
     }).then(res => {
