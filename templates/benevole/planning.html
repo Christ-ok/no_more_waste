@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon planning — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/benevole/benevole.css">
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/fr.global.min.js'></script>
+
+<style>
+    /* Police normale : on écrase la police display "Fraunces" définie
+       dans benevole.css pour repasser sur une police sans-serif classique */
+    :root {
+        --font-display: var(--font-body);
+    }
+ 
+    /* ============================================
+       Habillage FullCalendar aux couleurs du site
+       (à déplacer dans benevole.css si tu préfères)
+       ============================================ */
+    .calendar-panel { padding: 24px 26px 30px; }
+ 
+    .calendar-panel .fc {
+        font-family: var(--font-body);
+        color: var(--ink);
+    }
+ 
+    .calendar-panel .fc-toolbar-title {
+        font-family: var(--font-body);
+        color: var(--green-deep);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+ 
+    .calendar-panel .fc-button {
+        background: var(--white);
+        border: 1.5px solid var(--sage-line);
+        color: var(--green-deep);
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: .82rem;
+        text-transform: capitalize;
+        box-shadow: none;
+        border-radius: 999px;
+        padding: 6px 14px;
+    }
+    .calendar-panel .fc-button:hover {
+        background: var(--sage);
+        border-color: var(--sage-line);
+        color: var(--green-deep);
+    }
+    .calendar-panel .fc-button-primary:not(:disabled).fc-button-active,
+    .calendar-panel .fc-button-primary:not(:disabled):active {
+        background: var(--green-deep);
+        border-color: var(--green-deep);
+        color: var(--white);
+    }
+    .calendar-panel .fc-today-button:disabled {
+        opacity: .5;
+    }
+ 
+    .calendar-panel .fc-theme-standard td,
+    .calendar-panel .fc-theme-standard th,
+    .calendar-panel .fc-theme-standard .fc-scrollgrid {
+        border-color: var(--sage-line);
+    }
+ 
+    .calendar-panel .fc-col-header-cell {
+        background: var(--sage);
+    }
+    .calendar-panel .fc-col-header-cell-cushion {
+        color: var(--green-deep);
+        font-weight: 600;
+        font-size: .82rem;
+        padding: 10px 4px;
+    }
+ 
+    .calendar-panel .fc-timegrid-slot-label-cushion {
+        color: var(--ink-soft);
+        font-size: .78rem;
+    }
+ 
+    .calendar-panel .fc-day-today {
+        background: rgba(124, 169, 130, .12) !important;
+    }
+ 
+    .calendar-panel .fc-event {
+        background: var(--green-mid);
+        border: none;
+        border-radius: 6px;
+        padding: 2px 4px;
+    }
+    .calendar-panel .fc-event-title,
+    .calendar-panel .fc-event-time {
+        font-size: .78rem;
+        font-weight: 500;
+    }
+ 
+    #calendar {
+        margin-top: 10px;
+        min-height: 620px;
+    }
+
+    /* ============================================
+       Boutons pleins (le fichier benevole.css ne
+       définit pour l'instant que .btn-ghost)
+       ============================================ */
+    .btn-primary {
+        background: var(--green-deep);
+        color: var(--white);
+        border-color: var(--green-deep);
+    }
+    .btn-primary:hover {
+        background: var(--green-mid);
+        border-color: var(--green-mid);
+    }
+    .btn-secondary {
+        background: var(--white);
+        color: var(--ink);
+        border-color: var(--sage-line);
+    }
+    .btn-secondary:hover {
+        background: var(--sage);
+    }
+
+    #dispoBenevole {
+        margin-bottom: 20px;
+    }
+
+    /* ============================================
+       Modale "Gérer mes disponibilités"
+       ============================================ */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(34, 40, 31, .45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-box {
+        background: var(--white);
+        border-radius: var(--radius);
+        width: 420px;
+        max-width: 92vw;
+        box-shadow: 0 12px 40px rgba(34, 40, 31, .18);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--sage-line);
+    }
+    .modal-header h3 {
+        font-size: 1.05rem;
+        color: var(--green-deep);
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: var(--ink-soft);
+        line-height: 1;
+    }
+    .modal-close:hover { color: var(--ink); }
+
+    .modal-body {
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .modal-footer {
+        padding: 16px 22px;
+        border-top: 1px solid var(--sage-line);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .form-group label {
+        font-size: .8rem;
+        color: var(--ink-soft);
+        font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+        padding: 8px 10px;
+        border: 1.5px solid var(--sage-line);
+        border-radius: 8px;
+        font-family: var(--font-body);
+        font-size: .9rem;
+        color: var(--ink);
+        width: 100%;
+        background: var(--white);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--green-mid);
+    }
+
+    .form-error {
+        font-size: .8rem;
+        color: #B3452C;
+        display: none;
+    }
+</style>
+
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Espace bénévole</span>
+
+    <nav class="sidebar-nav">
+      <a href="/benevole/dashboard" class="nav-item">Tableau de bord</a>
+      <a href="/benevole/planning" class="nav-item is-active">Mon planning</a>
+      <a href="#" class="nav-item">Mes tournées</a>
+      <a href="#" class="nav-item">Mes disponibilités</a>
+      <a href="#" class="nav-item">Mes compétences</a>
+      <a href="#" class="nav-item">Mon profil</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Espace bénévole</span>
+        <h1>Mon planning</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez ici l'ensemble de vos missions et créneaux prévus, édités par votre agence.</p>
+
+      <button id="dispoBenevole" class="btn btn-primary">
+        Gérer disponibilités
+      </button>
+
+      <div class="panel calendar-panel">
+        <div id="calendar"></div>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<div id="modal-dispo" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Ajouter une disponibilité</h3>
+            <button type="button" class="modal-close" data-close-modal>✕</button>
+        </div>
+
+        <form id="disponibiliteForm" data-id="">
+            <div class="modal-body">
+                <span id="dispo-error" class="form-error"></span>
+
+                <div class="form-group">
+                    <label for="dispo-date">Date</label>
+                    <input type="date" id="dispo-date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dispo-heure-debut">Heure début</label>
+                    <input type="time" id="dispo-heure-debut" name="heure_debut" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dispo-heure-fin">Heure fin</label>
+                    <input type="time" id="dispo-heure-fin" name="heure_fin" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dispo-statut">Statut</label>
+                    <select id="dispo-statut" name="statut" required>
+                        <option value="DISPONIBLE">Disponible</option>
+                        <option value="ABSENT">Absent</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close-modal>Annuler</button>
+                <button type="submit" id="btn-save-dispo" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+        
+    </div>
+</div>
+
+<script>
+    let calendar;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'fr',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            height: 'auto',
+
+            selectable: false,
+            editable: false,
+            eventClick: false,
+
+            events: function (fetchInfo, successCallback, failureCallback) {
+                fetch('/benevole/planning', {
+                    method: 'GET',
+                    credentials: 'include'
+                })
+                    .then(response => {
+                        console.log("Status :", response.status);
+                        if (!response.ok) {
+                            throw new Error("Erreur HTTP :" + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => successCallback(data || []))
+                    .catch(error => {
+                        console.error("Erreur de chargement du planning :", error);
+                        failureCallback(error);
+                    });
+            }
+        });
+
+        calendar.render();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const modalDispo = document.getElementById("modal-dispo");
+        const btnOuvrirDispo = document.getElementById("dispoBenevole");
+        const disponibiliteForm = document.getElementById("disponibiliteForm");
+        const dispoError = document.getElementById("dispo-error");
+
+        function ouvrirModalDispo() {
+            dispoError.style.display = "none";
+            disponibiliteForm.reset();
+            modalDispo.style.display = "flex";
+        }
+
+        function fermerModalDispo() {
+            modalDispo.style.display = "none";
+        }
+
+        btnOuvrirDispo.addEventListener("click", ouvrirModalDispo);
+
+        modalDispo.querySelectorAll("[data-close-modal]").forEach(function (el) {
+            el.addEventListener("click", fermerModalDispo);
+        });
+
+        modalDispo.addEventListener("click", function (e) {
+            if (e.target === modalDispo) fermerModalDispo();
+        });
+
+        disponibiliteForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const params = new URLSearchParams(formData);
+
+            const btnSave = document.getElementById("btn-save-dispo");
+            btnSave.disabled = true;
+            btnSave.textContent = "Enregistrement...";
+
+            fetch("/benevole/disponibilite/creer", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: params
+            })
+                .then(function (res) {
+                    if (!res.ok) throw new Error("Erreur " + res.status);
+                    fermerModalDispo();
+                    calendar.refetchEvents();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    dispoError.textContent = "Erreur lors de l'ajout de la disponibilité.";
+                    dispoError.style.display = "block";
+                })
+                .finally(function () {
+                    btnSave.disabled = false;
+                    btnSave.textContent = "Enregistrer";
+                });
+        });
+    });
+
+
+</script>
+
+</body>
+</html>

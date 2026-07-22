@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> Disponibilités Bénévoles — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_agence/adminAgence.css">
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Général</span>
+
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Collectes</a>
+        <a href="#" class="nav-item">Stocks</a>
+        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item is-active">Bénévoles</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="#" class="nav-item">Services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration générale</span>
+        <h1>Disponibilités Bénévoles</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez l'ensemble des disponibilités bénévoles inscrits dans votre agence.</p>
+
+      <div class="panel panel-table">
+        {{if .Disponibilites}}
+        
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom</th>
+              <th>Prenom</th>
+              <th>Date_Disponibilite</th>
+              <th>Heure_Début</th>
+              <th>Heure_Fin</th>
+              <th>Statut</th>
+              <th>Attribuer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Disponibilites}}
+            <tr>
+              <td>{{.ID_Disponibilite}}</td>
+              <td>{{.Nom}}</td>
+              <td>{{.Prenom}}</td>
+              <td>{{.Date_Disponibilite}}</td>
+              <td>{{.Heure_Debut}}</td>
+              <td>{{.Heure_Fin}}</td>
+              <td>{{.Statut}}</td>
+              <td>
+                <a href="/admin-agence/planning/creer?id={{.ID_Disponibilite}}">
+                    <button>Attribuer</button>
+                </a>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun bénévole ne correspond à votre recherche.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
