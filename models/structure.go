@@ -135,3 +135,15 @@ type AdministrateurAffichageDashboard struct {
 	NomAgence     string `json:"nom_agence" db:"nom_agence"`
 	EtatCompte    string `json:"etat_compte" db:"etat_compte"`
 }
+
+type BenevoleDisponibilite struct {
+	ID_Disponibilite   int       `json:"id_disponibilite" db:"id_disponibilite"`
+	ID_Benevole        int       `json:"id_benevole" db:"id_benevole"`
+	Nom                string    `json:"nom" db:"nom"`
+	Prenom             string    `json:"prenom" db:"prenom"`
+	Date_Disponibilite string    `json:"date_disponibilite" db:"date_disponibilite"`
+	Heure_Debut        string    `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin          string    `json:"heure_fin" db:"heure_fin"`
+	Statut             string    `json:"statut" db:"statut"`
+	Created_At         time.Time `json:"created_at" db:"created_at"`
+}
