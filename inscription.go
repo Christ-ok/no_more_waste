@@ -13,8 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ---- Affichage de la page (GET) ----
-
 func PageInscription(database *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 

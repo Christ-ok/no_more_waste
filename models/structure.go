@@ -147,3 +147,13 @@ type BenevoleDisponibilite struct {
 	Statut             string    `json:"statut" db:"statut"`
 	Created_At         time.Time `json:"created_at" db:"created_at"`
 }
+
+type Planning struct {
+	ID_Planning      int       `json:"id_planning" db:"id_planning"`
+	ID_Benevole      int       `json:"id_benevole" db:"id_benevole"`
+	ID_Disponibilite int       `json:"id_disponibilite" db:"id_disponibilite"`
+	Date             time.Time `json:"date" db:"date"`
+	Heure_Debut      time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin        time.Time `json:"heure_fin" db:"heure_fin"`
+	Statut           string    `json:"statut" db:"statut"`
+}

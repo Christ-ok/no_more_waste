@@ -8,10 +8,15 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"strconv"
 )
 
 type AdminAgenceDashboardDisponibilite struct {
 	Disponibilites []models.BenevoleDisponibilite
+}
+
+type AdminAgenceDashboardPlanning struct {
+	Planning models.Planning
 }
 
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
@@ -140,5 +145,103 @@ func DashboardAdminAgenceGererDisponibilite(database *sql.DB) http.HandlerFunc {
 		}
 
 		tmpl.Execute(response, data)
+	}, "ADMIN_AGENCE")
+}
+
+func FormCreatePlanning(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+		idDisponibilite := request.URL.Query().Get("id")
+		if idDisponibilite == "" {
+			http.Error(response, "ID manquant", http.StatusBadRequest)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			http.Error(response, "Données de formulaire invalides", http.StatusBadRequest)
+			return
+		}
+
+		var planning models.Planning
+
+		errExec := database.QueryRow("SELECT id_benevole, id_disponibilite, date_disponibilite, heure_debut, heure_fin, statut FROM disponibilite WHERE id_disponibilite = $1", idDisponibilite).Scan(&planning.ID_Benevole, &planning.ID_Disponibilite, &planning.Date, &planning.Heure_Debut, &planning.Heure_Fin, &planning.Statut)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur select dans la base de données", http.StatusInternalServerError)
+			return
+		}
+
+		data := AdminAgenceDashboardPlanning{
+			Planning: planning,
+		}
+
+		fmt.Println("ID disponibilité :", planning.ID_Disponibilite)
+		fmt.Println("ID bénévole :", planning.ID_Benevole)
+		fmt.Println("Date :", planning.Date)
+		fmt.Println("Début :", planning.Heure_Debut)
+		fmt.Println("Fin :", planning.Heure_Fin)
+		fmt.Println("Statut :", planning.Statut)
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/creer_planning.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur chargement template : %v\n", errTmpl)
+			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceCreerPlanning(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+		errForm := request.ParseForm()
+		if errForm != nil {
+			http.Error(response, "Données de formulaire invalides", http.StatusBadRequest)
+			return
+		}
+
+		idDisponibilite, errorDisponibilite := strconv.Atoi(request.FormValue("id_disponibilite"))
+		if errorDisponibilite != nil {
+			fmt.Printf("Erreur : %v", errorDisponibilite)
+			http.Error(response, "Erreur conversion idDisponibilite", http.StatusInternalServerError)
+			return
+		}
+
+		idBenevole, errorBenevole := strconv.Atoi(request.FormValue("id_benevole"))
+		if errorBenevole != nil {
+			fmt.Printf("Erreur : %v", errorBenevole)
+			http.Error(response, "Erreur conversion idBenevole", http.StatusInternalServerError)
+			return
+		}
+
+		date := request.FormValue("date")
+		heure_debut := request.FormValue("heure_debut")
+		heure_fin := request.FormValue("heure_fin")
+		statut := request.FormValue("statut")
+
+		if date == "" || heure_debut == "" || heure_fin == "" {
+			http.Error(response, "Champs obligatoires manquants", http.StatusBadRequest)
+			return
+		}
+
+		_, errExec := database.Exec("INSERT INTO planning (id_benevole, id_disponibilite, date, heure_debut, heure_fin, statut) VALUES ($1, $2, $3, $4, $5, $6)", idBenevole, idDisponibilite, date, heure_debut, heure_fin, statut)
+		if errExec != nil {
+			fmt.Printf("Erreur insertion planning : %v\n", errExec)
+			http.Error(response, "Erreur lors de la création du planning", http.StatusInternalServerError)
+			return
+		}
+
+		_, err := database.Exec(`UPDATE disponibilite SET statut ='RESERVE' WHERE id_disponibilite = $1`, idDisponibilite)
+		if err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Erreur update disponibilite", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Disponibilité créée avec succès !")
+		http.Redirect(response, request, "/admin-agence/benevoles/disponibilites", http.StatusSeeOther)
+
 	}, "ADMIN_AGENCE")
 }
