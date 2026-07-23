@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer un planning — NO MORE WASTE</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+<link rel="stylesheet" href="/admin_agence/adminAgence.css">
+</head>
+
+<body class="dash-body">
+
+<div class="dash-shell">
+
+    <aside class="sidebar">
+        <a href="/" class="sidebar-logo">
+            <span class="sidebar-logo-mark">NMW</span>
+            <span class="sidebar-logo-text">NO MORE WASTE</span>
+        </a>
+
+        <span class="sidebar-space">Back-office — Agence</span>
+
+        <nav class="sidebar-nav">
+            <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+            <a href="/admin-agence/benevoles" class="nav-item is-active">Bénévoles</a>
+        </nav>
+    </aside>
+
+    <div class="dash-main">
+
+        <header class="dash-topbar">
+            <div>
+                <span class="tag">Administration Agence</span>
+                <h1>Créer un planning</h1>
+            </div>
+        </header>
+
+        <main class="dash-content">
+
+            <div class="panel">
+
+                <form action="/admin-agence/planning/creer" method="POST">
+
+                    <input type="hidden"
+                           name="id_disponibilite"
+                           value="{{.Planning.ID_Disponibilite}}">
+
+                    <input type="hidden"
+                           name="id_benevole"
+                           value="{{.Planning.ID_Benevole}}">
+
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input
+                            type="date"
+                            name="date"
+                            value="{{.Planning.Date.Format "2006-01-02"}}"
+                            readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Heure de début</label>
+                        <input
+                            type="time"
+                            name="heure_debut"
+                            value="{{.Planning.Heure_Debut.Format "15:04"}}"
+                            readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Heure de fin</label>
+                        <input
+                            type="time"
+                            name="heure_fin"
+                            value="{{.Planning.Heure_Fin.Format "15:04"}}"
+                            readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Statut</label>
+
+                        <select name="statut">
+
+                            <option value="PLANIFIE"
+                                {{if eq .Planning.Statut "PLANIFIE"}}selected{{end}}>
+                                PLANIFIÉ
+                            </option>
+
+                            <option value="ANNULE"
+                                {{if eq .Planning.Statut "ANNULE"}}selected{{end}}>
+                                ANNULÉ
+                            </option>
+
+                            <option value="TERMINE"
+                                {{if eq .Planning.Statut "TERMINE"}}selected{{end}}>
+                                TERMINÉ
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <br>
+
+                    <button type="submit" class="btn btn-primary">
+                        Créer le planning
+                    </button>
+
+                    <a href="/admin-agence/benevoles/disponibilites"
+                       class="btn btn-secondary">
+                        Annuler
+                    </a>
+
+                </form>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>
