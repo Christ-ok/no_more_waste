@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Disponibilités Bénévoles — NO MORE WASTE</title>
+<title>Disponibilités Bénévoles — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="/admin_agence/adminAgence.css">
+
 </head>
 <body class="dash-body">
 
@@ -20,17 +21,11 @@
       <span class="sidebar-logo-text">NO MORE WASTE</span>
     </a>
 
-    <span class="sidebar-space">Back-office — Général</span>
+    <span class="sidebar-space">Back-office — Agence</span>
 
     <nav class="sidebar-nav">
-        <a href="#" class="nav-item">Tableau de bord</a>
-        <a href="#" class="nav-item">Collectes</a>
-        <a href="#" class="nav-item">Stocks</a>
-        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
         <a href="/admin-agence/benevoles" class="nav-item is-active">Bénévoles</a>
-        <a href="#" class="nav-item">Commerçants</a>
-        <a href="#" class="nav-item">Services</a>
-        <a href="#" class="nav-item">Statistiques</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -41,7 +36,7 @@
   <div class="dash-main">
     <header class="dash-topbar">
       <div>
-        <span class="tag">Administration générale</span>
+        <span class="tag">Administration Agence</span>
         <h1>Disponibilités Bénévoles</h1>
       </div>
       <div class="topbar-user">
@@ -50,20 +45,19 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Retrouvez l'ensemble des disponibilités bénévoles inscrits dans votre agence.</p>
+      <p class="dash-subtitle">Retrouvez l'ensemble des disponibilités du bénévole sélectionné, et attribuez-les à un planning.</p>
 
       <div class="panel panel-table">
         {{if .Disponibilites}}
-        
         <table class="data-table">
           <thead>
             <tr>
               <th>ID</th>
               <th>Nom</th>
               <th>Prenom</th>
-              <th>Date_Disponibilite</th>
-              <th>Heure_Début</th>
-              <th>Heure_Fin</th>
+              <th>Date</th>
+              <th>Début</th>
+              <th>Fin</th>
               <th>Statut</th>
               <th>Attribuer</th>
             </tr>
@@ -74,21 +68,33 @@
               <td>{{.ID_Disponibilite}}</td>
               <td>{{.Nom}}</td>
               <td>{{.Prenom}}</td>
-              <td>{{.Date_Disponibilite}}</td>
-              <td>{{.Heure_Debut}}</td>
-              <td>{{.Heure_Fin}}</td>
-              <td>{{.Statut}}</td>
+              <td>{{.Date_Disponibilite.Format "02/01/2006"}}</td>
+              <td>{{.Heure_Debut.Format "15:04"}}</td>
+              <td>{{.Heure_Fin.Format "15:04"}}</td>
               <td>
-                <a href="/admin-agence/planning/creer?id={{.ID_Disponibilite}}">
-                    <button>Attribuer</button>
-                </a>
+                {{if eq .Statut "DISPONIBLE"}}
+                  <span class="cell-statut statut-disponible">{{.Statut}}</span>
+                {{else if eq .Statut "RESERVE"}}
+                  <span class="cell-statut statut-reserve">{{.Statut}}</span>
+                {{else}}
+                  <span class="cell-statut statut-absent">{{.Statut}}</span>
+                {{end}}
+              </td>
+              <td>
+                {{if eq .Statut "DISPONIBLE"}}
+                  <a href="/admin-agence/planning/creer?id={{.ID_Disponibilite}}" class="btn btn-primary btn-sm">
+                    Attribuer
+                  </a>
+                {{else}}
+                  —
+                {{end}}
               </td>
             </tr>
             {{end}}
           </tbody>
         </table>
         {{else}}
-        <p class="table-empty">Aucun bénévole ne correspond à votre recherche.</p>
+        <p class="table-empty">Aucune disponibilité enregistrée pour ce bénévole.</p>
         {{end}}
       </div>
     </main>
