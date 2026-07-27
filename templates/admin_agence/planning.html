@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plannings — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_agence/adminAgence.css">
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Collectes</a>
+        <a href="#" class="nav-item">Stocks</a>
+        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item is-active">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="#" class="nav-item">Services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration Agence</span>
+        <h1>Plannings</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez l'ensemble des plannings attribués aux bénévoles de votre agence.</p>
+
+      <div class="panel panel-table">
+        {{if .Planning}}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom</th>
+              <th>Prenom</th>
+              <th>Date</th>
+              <th>Heure_Début</th>
+              <th>Heure_Fin</th>
+              <th>Statut</th>
+              <th>Modifier</th>
+              <th>Supprimer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Planning}}
+            <tr id="planning-row-{{.ID_Planning}}">
+              <td>{{.ID_Planning}}</td>
+              <td>{{.Nom}}</td>
+              <td>{{.Prenom}}</td>
+              <td>{{.Date.Format "02-01-2006"}}</td>
+              <td>{{.Heure_Debut.Format "15:04"}}</td>
+              <td>{{.Heure_Fin.Format "15:04"}}</td>
+              <td>
+                {{if eq .Statut "PLANIFIE"}}
+                  <span class="cell-statut statut-planifie">{{.Statut}}</span>
+                {{else if eq .Statut "TERMINE"}}
+                  <span class="cell-statut statut-termine">{{.Statut}}</span>
+                {{else}}
+                  <span class="cell-statut statut-annule">{{.Statut}}</span>
+                {{end}}
+              </td>
+              <td>
+                <a href="/admin-agence/planning/modifier?id={{.ID_Planning}}" class="icon-btn" title="Modifier">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="icon-btn btn-delete-planning"
+                  title="Supprimer"
+                  data-id="{{.ID_Planning}}">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun planning n'a encore été créé pour votre agence.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.btn-delete-planning').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const idPlanning = btn.dataset.id;
+
+                const confirmation = confirm(
+                    'Supprimer ce planning ? La disponibilité associée redeviendra DISPONIBLE.'
+                );
+                if (!confirmation) return;
+
+                btn.disabled = true;
+
+                fetch('/admin-agence/planning/supprimer?id_planning=' + encodeURIComponent(idPlanning), {
+                    method: 'DELETE',
+                    credentials: 'include'
+                })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Erreur ' + res.status);
+
+                        const row = document.getElementById('planning-row-' + idPlanning);
+                        if (row) row.remove();
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        alert('Erreur lors de la suppression du planning.');
+                        btn.disabled = false;
+                    });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

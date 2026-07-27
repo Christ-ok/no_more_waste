@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Créer un planning — NO MORE WASTE</title>
+<title>Modifier un planning — NO MORE WASTE</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,8 @@
 
         <nav class="sidebar-nav">
             <a href="/admin-agence" class="nav-item">Tableau de bord</a>
-            <a href="/admin-agence/benevoles" class="nav-item is-active">Bénévoles</a>
+            <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+            <a href="/admin-agence/planning" class="nav-item is-active">Plannings</a>
         </nav>
 
         <div class="sidebar-footer">
@@ -39,7 +40,7 @@
         <header class="dash-topbar">
             <div>
                 <span class="tag">Administration Agence</span>
-                <h1>Créer un planning</h1>
+                <h1>Modifier un planning</h1>
             </div>
             <div class="topbar-user">
                 <span>Bonjour !</span>
@@ -47,42 +48,46 @@
         </header>
 
         <main class="dash-content">
-            <p class="dash-subtitle">Confirmez l'attribution de ce créneau à un planning.</p>
+            <p class="dash-subtitle">Ajustez le créneau ou le statut de ce planning.</p>
 
-            <div class="panel panel-form">
+            <div class="panel panel-form panel-form-edit">
 
-                <div class="slot-summary">
-                    <div class="slot-item">
-                        <span class="slot-label">Date</span>
-                        <span class="slot-value">{{.Planning.Date.Format "02/01/2006"}}</span>
-                    </div>
-                    <div class="slot-item">
-                        <span class="slot-label">Début</span>
-                        <span class="slot-value">{{.Planning.Heure_Debut.Format "15:04"}}</span>
-                    </div>
-                    <div class="slot-item">
-                        <span class="slot-label">Fin</span>
-                        <span class="slot-value">{{.Planning.Heure_Fin.Format "15:04"}}</span>
-                    </div>
-                </div>
+                <form action="/admin-agence/planning/modifier" method="POST">
 
-                <form action="/admin-agence/planning/creer" method="POST">
-
-                    <input type="hidden"
-                           name="id_disponibilite"
-                           value="{{.Planning.ID_Disponibilite}}">
-
-                    <input type="hidden"
-                           name="id_benevole"
-                           value="{{.Planning.ID_Benevole}}">
-
-                           
-                    <input type="hidden" name="date" value="{{.Planning.Date.Format "2006-01-02"}}">
-                    <input type="hidden" name="heure_debut" value="{{.Planning.Heure_Debut.Format "15:04"}}">
-                    <input type="hidden" name="heure_fin" value="{{.Planning.Heure_Fin.Format "15:04"}}">
+                    <input type="hidden" name="id_planning" value="{{.Planning.ID_Planning}}">
 
                     <div class="form-group">
-                        <label for="statut">Statut du planning</label>
+                        <label for="date">Date</label>
+                        <input
+                            type="date"
+                            id="date"
+                            name="date"
+                            value="{{.Planning.Date.Format "2006-01-02"}}"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="heure_debut">Heure de début</label>
+                        <input
+                            type="time"
+                            id="heure_debut"
+                            name="heure_debut"
+                            value="{{.Planning.Heure_Debut.Format "15:04"}}"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="heure_fin">Heure de fin</label>
+                        <input
+                            type="time"
+                            id="heure_fin"
+                            name="heure_fin"
+                            value="{{.Planning.Heure_Fin.Format "15:04"}}"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="statut">Statut</label>
                         <select name="statut" id="statut">
                             <option value="PLANIFIE"
                                 {{if eq .Planning.Statut "PLANIFIE"}}selected{{end}}>
@@ -101,10 +106,9 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
-                            Créer le planning
+                            Enregistrer les modifications
                         </button>
-                        <a href="/admin-agence/benevoles/disponibilites"
-                           class="btn btn-secondary">
+                        <a href="/admin-agence/planning" class="btn btn-secondary">
                             Annuler
                         </a>
                     </div>

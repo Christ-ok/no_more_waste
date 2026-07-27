@@ -65,6 +65,10 @@ func main() {
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
 	http.HandleFunc("GET /admin-agence/planning/creer", routes.FormCreatePlanning(db.DB))
 	http.HandleFunc("POST /admin-agence/planning/creer", routes.DashboardAdminAgenceCreerPlanning(db.DB))
+	http.HandleFunc("GET /admin-agence/planning", routes.DashboardAdminAgenceAfficherPlanning(db.DB))
+	http.HandleFunc("GET /admin-agence/planning/modifier", routes.FormModifierPlanning(db.DB))
+	http.HandleFunc("POST /admin-agence/planning/modifier", routes.ModifierPlanning(db.DB))
+	http.HandleFunc("DELETE /admin-agence/planning/supprimer", routes.DeletePlanning(db.DB))
 
 	fmt.Println("Serveur lancé")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

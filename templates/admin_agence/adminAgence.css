@@ -92,6 +92,45 @@ h1, h2, h3 {
 .btn-block { width: 100%; }
 
 /* ============================================
+   Boutons pleins (utilisés dans les tableaux et formulaires)
+   ============================================ */
+.btn-primary {
+  background: var(--green-deep);
+  color: var(--white);
+  border-color: var(--green-deep);
+}
+.btn-primary:hover {
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+}
+.btn-secondary {
+  background: var(--white);
+  color: var(--ink);
+  border-color: var(--sage-line);
+}
+.btn-secondary:hover { background: var(--sage); }
+.btn-success {
+  background: var(--green-bright);
+  color: var(--white);
+  border-color: var(--green-bright);
+}
+.btn-success:hover { background: var(--green-mid); }
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .82rem;
+}
+.btn-success {
+  background: var(--green-bright);
+  color: var(--white);
+  border-color: var(--green-bright);
+}
+.btn-success:hover { background: var(--green-mid); }
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .82rem;
+}
+
+/* ============================================
    Structure générale : sidebar + contenu
    ============================================ */
 .dash-shell {
@@ -270,7 +309,7 @@ h1, h2, h3 {
 }
 
 /* ============================================
-   Bloc placeholder de contenu (à remplacer plus tard)
+   Bloc placeholder de contenu
    ============================================ */
 .panel {
   background: var(--white);
@@ -280,6 +319,184 @@ h1, h2, h3 {
 }
 .panel h2 { font-size: 1.15rem; margin-bottom: 8px; }
 .panel p { color: var(--ink-soft); margin: 0; font-size: .92rem; }
+.panel-form { max-width: 520px; }
+
+/* ============================================
+   Barre de recherche au-dessus des tableaux
+   (utilisée par benevoles.html)
+   ============================================ */
+.table-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.table-search {
+  flex: 1;
+  max-width: 360px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--sage-line);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  color: var(--ink);
+  background: var(--white);
+}
+.table-search:focus {
+  outline: none;
+  border-color: var(--green-mid);
+}
+
+/* ============================================
+   Tableaux de données
+   ============================================ */
+.panel-table {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--sage-line);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  text-align: left;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--green-deep);
+  background: var(--white);
+  padding: 16px 20px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--sage-line);
+}
+.data-table tbody td {
+  padding: 15px 20px;
+  font-size: .9rem;
+  color: var(--ink);
+}
+.data-table tbody tr:nth-child(even) { background: var(--sage); }
+.data-table tbody tr:hover { background: rgba(124, 169, 130, .16); }
+
+.cell-strong { font-weight: 600; color: var(--green-deep); }
+
+/* Statut affiché en texte coloré, sans fond plein */
+.cell-statut { font-weight: 600; font-size: .85rem; }
+.cell-statut.statut-disponible,
+.cell-statut.statut-planifie   { color: var(--green-mid); }
+.cell-statut.statut-reserve,
+.cell-statut.statut-termine    { color: var(--green-deep); }
+.cell-statut.statut-absent,
+.cell-statut.statut-annule     { color: var(--ink-soft); }
+
+.table-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: .9rem;
+  margin: 0;
+  background: var(--white);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+.icon-btn:hover {
+  background: var(--white);
+  color: var(--green-deep);
+}
+
+/* ============================================
+   Formulaires (ex: création de planning)
+   ============================================ */
+.panel-form {
+  max-width: 480px;
+  border-top: 3px solid var(--green-deep);
+}
+/* Variante "modification" : accent plus doux que la création,
+   pour signaler visuellement une action différente (édition vs nouveau) */
+.panel-form-edit {
+  border-top-color: var(--green-mid);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.form-group label {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 2px solid var(--sage-line);
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--sage);
+  width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-bottom-color: var(--green-deep);
+}
+.form-group input[readonly] {
+  background: transparent;
+  border-bottom-style: dashed;
+  color: var(--ink-soft);
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Résumé d'un créneau en lecture seule (date/heure) */
+.slot-summary {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border: 1px solid var(--sage-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.slot-item {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--sage-line);
+}
+.slot-item:last-child { border-right: none; }
+.slot-label {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.slot-value {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  font-weight: 600;
+}
 
 /* ============================================
    Responsive
@@ -290,4 +507,7 @@ h1, h2, h3 {
   .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
   .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
   .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+  .slot-summary { flex-direction: column; }
+  .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
+  .slot-item:last-child { border-bottom: none; }
 }

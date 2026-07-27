@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"no_more_waste/session"
 )
@@ -62,6 +64,23 @@ func roleIsAllowed(role string, rolesAutorises []string) bool {
 	}
 
 	return false
+}
+
+func GetIDAgenceUtilisateur(database *sql.DB, idUtilisateur int) (int, error) {
+	var idAgence sql.NullInt64
+
+	err := database.QueryRow(
+		"SELECT id_agence FROM utilisateur WHERE id_utilisateur = $1",
+		idUtilisateur,
+	).Scan(&idAgence)
+	if err != nil {
+		return 0, err
+	}
+
+	if !idAgence.Valid {
+		return 0, fmt.Errorf("aucune agence associée à l'utilisateur %d", idUtilisateur)
+	}
+	return int(idAgence.Int64), nil
 }
 
 func Logout(response http.ResponseWriter, request *http.Request) {

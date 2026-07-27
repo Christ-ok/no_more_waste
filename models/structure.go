@@ -141,9 +141,9 @@ type BenevoleDisponibilite struct {
 	ID_Benevole        int       `json:"id_benevole" db:"id_benevole"`
 	Nom                string    `json:"nom" db:"nom"`
 	Prenom             string    `json:"prenom" db:"prenom"`
-	Date_Disponibilite string    `json:"date_disponibilite" db:"date_disponibilite"`
-	Heure_Debut        string    `json:"heure_debut" db:"heure_debut"`
-	Heure_Fin          string    `json:"heure_fin" db:"heure_fin"`
+	Date_Disponibilite time.Time `json:"date_disponibilite" db:"date_disponibilite"`
+	Heure_Debut        time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin          time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut             string    `json:"statut" db:"statut"`
 	Created_At         time.Time `json:"created_at" db:"created_at"`
 }
@@ -156,4 +156,14 @@ type Planning struct {
 	Heure_Debut      time.Time `json:"heure_debut" db:"heure_debut"`
 	Heure_Fin        time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut           string    `json:"statut" db:"statut"`
+}
+
+type PlanningAfficheDashboard struct {
+	ID_Planning int       `json:"id_planning" db:"id_planning"`
+	Nom         string    `json:"nom" db:"nom"`
+	Prenom      string    `json:"prenom" db:"prenom"`
+	Date        time.Time `json:"date" db:"date"`
+	Heure_Debut time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin   time.Time `json:"heure_fin" db:"heure_fin"`
+	Statut      string    `json:"statut" db:"statut"`
 }
