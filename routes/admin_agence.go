@@ -345,6 +345,16 @@ func DashboardAdminAgenceCreerPlanning(database *sql.DB) http.HandlerFunc {
 	}, "ADMIN_AGENCE")
 }
 
+func MiseAJourPlanningsExpires(database *sql.DB) error {
+	_, err := database.Exec(`
+		UPDATE planning SET statut = 'TERMINE'
+		WHERE (date + heure_fin) < NOW() 
+			AND statut = 'PLANIFIE'
+	`)
+
+	return err
+}
+
 func DashboardAdminAgenceAfficherPlanning(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -365,6 +375,10 @@ func DashboardAdminAgenceAfficherPlanning(database *sql.DB) http.HandlerFunc {
 			fmt.Printf("Erreur récupération agence : %v\n", errAgence)
 			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
 			return
+		}
+
+		if errUpdate := MiseAJourPlanningsExpires(database); errUpdate != nil {
+			fmt.Printf("Erreur mise à jour planning expirés : %v", errUpdate)
 		}
 
 		rowsPlanning, rowsErr := database.Query(`SELECT p.id_planning, u.nom, u.prenom, p.date, p.heure_debut, p.heure_fin,  p.statut FROM planning p

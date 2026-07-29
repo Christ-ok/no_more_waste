@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes disponibilités — NO MORE WASTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/benevole/benevole.css">
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+    <aside class="sidebar">
+        <a href="/" class="sidebar-logo">
+            <span class="sidebar-logo-mark">NMW</span>
+            <span class="sidebar-logo-text">NO MORE WASTE</span>
+        </a>
+
+        <span class="sidebar-space">Espace bénévole</span>
+
+        <nav class="sidebar-nav">
+            <a href="/benevole/dashboard" class="nav-item">Tableau de bord</a>
+            <a href="/benevole/planning" class="nav-item">Mon planning</a>
+            <a href="#" class="nav-item">Mes tournées</a>
+            <a href="/benevole/disponibilites" class="nav-item is-active">Mes disponibilités</a>
+            <a href="#" class="nav-item">Mes compétences</a>
+            <a href="#" class="nav-item">Mon profil</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+        </div>
+    </aside>
+
+    <div class="dash-main">
+        <header class="dash-topbar">
+            <div>
+                <span class="tag">Espace bénévole</span>
+                <h1>Mes disponibilités</h1>
+            </div>
+            <div class="topbar-user">
+                <span>Bonjour !</span>
+            </div>
+        </header>
+
+        <main class="dash-content">
+            <p class="dash-subtitle">Retrouvez l'ensemble de vos créneaux de disponibilité. Modifier ou supprimer un créneau déjà attribué à un planning annule ce planning.</p>
+
+            <div class="panel panel-table">
+                {{if .Disponibilites}}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Heure début</th>
+                            <th>Heure fin</th>
+                            <th>Statut</th>
+                            <th>Modifier</th>
+                            <th>Supprimer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Disponibilites}}
+                        <tr id="dispo-row-{{.ID_Disponibilite}}">
+                            <td>{{.Date_Disponibilite.Format "02-01-2006"}}</td>
+                            <td>{{.Heure_Debut.Format "15:04"}}</td>
+                            <td>{{.Heure_Fin.Format "15:04"}}</td>
+                            <td>
+                                {{if eq .Statut "DISPONIBLE"}}
+                                    <span class="cell-statut statut-disponible">Disponible</span>
+                                {{else if eq .Statut "RESERVE"}}
+                                    <span class="cell-statut statut-reserve">Réservée</span>
+                                    <span class="hint-reserve">planning attribué</span>
+                                {{else}}
+                                    <span class="cell-statut statut-absent">Absent</span>
+                                {{end}}
+                            </td>
+                            <td>
+                                <button
+                                    type="button"
+                                    class="icon-btn btn-edit-dispo"
+                                    title="Modifier"
+                                    data-id="{{.ID_Disponibilite}}"
+                                    data-date="{{.Date_Disponibilite.Format "2006-01-02"}}"
+                                    data-heure-debut="{{.Heure_Debut.Format "15:04"}}"
+                                    data-heure-fin="{{.Heure_Fin.Format "15:04"}}"
+                                    data-statut="{{.Statut}}"
+                                    data-reserve="{{if eq .Statut "RESERVE"}}1{{else}}0{{end}}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button
+                                    type="button"
+                                    class="icon-btn icon-btn-danger btn-delete-dispo"
+                                    title="Supprimer"
+                                    data-id="{{.ID_Disponibilite}}"
+                                    data-reserve="{{if eq .Statut "RESERVE"}}1{{else}}0{{end}}">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p class="table-empty">Vous n'avez pas encore ajouté de disponibilité.</p>
+                {{end}}
+            </div>
+        </main>
+    </div>
+
+</div>
+
+<!-- Modale de modification -->
+<div id="modal-edit-dispo" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Modifier la disponibilité</h3>
+            <button type="button" class="modal-close" data-close-modal>✕</button>
+        </div>
+
+        <form id="editDisponibiliteForm">
+            <div class="modal-body">
+                <span id="edit-dispo-error" class="form-error"></span>
+                <span id="edit-dispo-warning" class="form-warning">
+                    Cette disponibilité est déjà attribuée à un planning. La modifier mettra automatiquement à jour ce planning avec les nouveaux horaires.
+                </span>
+
+                <input type="hidden" id="edit-dispo-id" name="id_disponibilite">
+
+                <div class="form-group">
+                    <label for="edit-dispo-date">Date</label>
+                    <input type="date" id="edit-dispo-date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-dispo-heure-debut">Heure début</label>
+                    <input type="time" id="edit-dispo-heure-debut" name="heure_debut" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-dispo-heure-fin">Heure fin</label>
+                    <input type="time" id="edit-dispo-heure-fin" name="heure_fin" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-dispo-statut">Statut</label>
+                    <select id="edit-dispo-statut" name="statut" required>
+                        <option value="DISPONIBLE">Disponible</option>
+                        <option value="ABSENT">Absent</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-close-modal>Annuler</button>
+                <button type="submit" id="btn-save-edit-dispo" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const modal = document.getElementById('modal-edit-dispo');
+        const form = document.getElementById('editDisponibiliteForm');
+        const errorSpan = document.getElementById('edit-dispo-error');
+        const warningSpan = document.getElementById('edit-dispo-warning');
+
+        function ouvrirModal(btn) {
+            errorSpan.style.display = 'none';
+            warningSpan.style.display = btn.dataset.reserve === '1' ? 'block' : 'none';
+
+            document.getElementById('edit-dispo-id').value = btn.dataset.id;
+            document.getElementById('edit-dispo-date').value = btn.dataset.date;
+            document.getElementById('edit-dispo-heure-debut').value = btn.dataset.heureDebut;
+            document.getElementById('edit-dispo-heure-fin').value = btn.dataset.heureFin;
+            document.getElementById('edit-dispo-statut').value = btn.dataset.statut === 'RESERVE' ? 'DISPONIBLE' : btn.dataset.statut;
+
+            modal.style.display = 'flex';
+        }
+
+        function fermerModal() {
+            modal.style.display = 'none';
+        }
+
+        document.querySelectorAll('.btn-edit-dispo').forEach(function (btn) {
+            btn.addEventListener('click', function () { ouvrirModal(btn); });
+        });
+
+        modal.querySelectorAll('[data-close-modal]').forEach(function (el) {
+            el.addEventListener('click', fermerModal);
+        });
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) fermerModal();
+        });
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            const btnSave = document.getElementById('btn-save-edit-dispo');
+            btnSave.disabled = true;
+            btnSave.textContent = 'Enregistrement...';
+
+            fetch('/benevole/disponibilite/modifier', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('Erreur ' + res.status);
+                    location.reload();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    errorSpan.textContent = "Erreur lors de la modification de la disponibilité.";
+                    errorSpan.style.display = 'block';
+                })
+                .finally(function () {
+                    btnSave.disabled = false;
+                    btnSave.textContent = 'Enregistrer';
+                });
+        });
+
+        document.querySelectorAll('.btn-delete-dispo').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const idDispo = btn.dataset.id;
+                const isReserve = btn.dataset.reserve === '1';
+
+                const message = isReserve
+                    ? "Cette disponibilité est attribuée à un planning. La supprimer annulera aussi ce planning. Continuer ?"
+                    : "Supprimer cette disponibilité ?";
+
+                if (!confirm(message)) return;
+
+                btn.disabled = true;
+
+                const params = new URLSearchParams();
+                params.set('id_disponibilite', idDispo);
+
+                fetch('/benevole/disponibilite/supprimer', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Erreur ' + res.status);
+                        const row = document.getElementById('dispo-row-' + idDispo);
+                        if (row) row.remove();
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        alert('Erreur lors de la suppression de la disponibilité.');
+                        btn.disabled = false;
+                    });
+            });
+        });
+
+    });
+</script>
+
+</body>
+</html>
