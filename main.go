@@ -6,14 +6,18 @@ import (
 	db "no_more_waste/database"
 	"no_more_waste/routes"
 	"no_more_waste/session"
+	"os"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/stripe/stripe-go/v84"
 )
 
 func main() {
 
 	godotenv.Load()
+
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	db.Init(".env")
 	fmt.Println("Connexion à la base de données réussie")
@@ -39,7 +43,6 @@ func main() {
 	http.HandleFunc("GET /admin/commercants/creer", routes.PageCreerCommercant)
 	http.HandleFunc("GET /benevole/planning", routes.PagePlanningBenevole)
 	http.HandleFunc("GET /benevole/dashboard", routes.PageDashboardBenevole)
-	http.HandleFunc("GET /adherent/adhesion", routes.PageAdhesionAdherent)
 
 	http.HandleFunc("GET /admin/benevoles", routes.DashboardAdministrateurBenevoles(db.DB))
 	http.HandleFunc("POST /admin/benevoles/creer", routes.CreateBenevole(db.DB))
@@ -77,6 +80,9 @@ func main() {
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/mot-de-passe", routes.ModificationMotDePasseAdherent(db.DB))
+	http.HandleFunc("GET /adherent/adhesion", routes.PageAdhesionAdherent(db.DB))
+	http.HandleFunc("POST /adherent/adhesion/payer", routes.CreerSessionPaiementAdhesion(db.DB))
+	http.HandleFunc("POST /stripe/webhook", routes.StripeWebhookAdhesion(db.DB, os.Getenv("STRIPE_WEBHOOK_SECRET")))
 
 	fmt.Println("Serveur lancé")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

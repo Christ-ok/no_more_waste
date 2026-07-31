@@ -235,8 +235,10 @@
   .dash-content-center {
     min-height: calc(100vh - 160px);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 18px;
   }
 
   .dash-subtitle {
@@ -251,12 +253,14 @@
     border: 1px solid var(--sage-line);
     border-radius: var(--radius);
     padding: 28px 30px;
+    box-shadow: 0 1px 2px rgba(34,40,31,.04), 0 8px 24px rgba(34,40,31,.05);
   }
   .panel h2 { font-size: 1.15rem; margin-bottom: 8px; }
   .panel p { color: var(--ink-soft); margin: 0; font-size: .92rem; }
 
   /* Bloc paiement de l'adhésion */
   .panel-paiement {
+    width: 100%;
     max-width: 480px;
   }
   .panel-paiement h2 {
@@ -265,6 +269,7 @@
   }
   .panel-paiement p {
     margin: 0 0 24px;
+    line-height: 1.6;
   }
 
   .paiement-note {
@@ -272,6 +277,71 @@
     font-size: .78rem;
     color: var(--ink-soft);
     margin: 14px 0 0;
+  }
+
+  /* Alertes de confirmation / erreur */
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    font-size: .875rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    width: 100%;
+    max-width: 480px;
+  }
+  .alert::before {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .alert-success { background: var(--sage); color: var(--green-deep); border-color: var(--sage-line); }
+  .alert-success::before { content: "✓"; background: var(--green-mid); }
+  .alert-error   { background: #F5DFDC; color: #A23B34; border-color: #EAC9C5; }
+  .alert-error::before { content: "!"; background: #A23B34; }
+
+  /* Badge de statut */
+  .statut-badge {
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .statut-ACTIF { background: var(--sage); color: var(--green-deep); }
+
+  /* Liste des dates de validité */
+  .adhesion-dates {
+    margin: 22px 0 0;
+    padding: 0;
+  }
+  .adhesion-dates-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 13px 0;
+    border-top: 1px solid var(--sage-line);
+  }
+  .adhesion-dates-row:first-child { border-top: none; padding-top: 4px; }
+  .adhesion-dates-row dt { font-size: .82rem; color: var(--ink-soft); }
+  .adhesion-dates-row dd {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--green-deep);
   }
 
   /* Responsive */
@@ -321,6 +391,32 @@
     </header>
 
     <main class="dash-content dash-content-center">
+
+      {{if .Succes}}
+      <div class="alert alert-success" role="status">{{.Succes}}</div>
+      {{end}}
+      {{if .Erreur}}
+      <div class="alert alert-error" role="alert">{{.Erreur}}</div>
+      {{end}}
+
+      {{if eq .Statut "ACTIF"}}
+      <section class="panel panel-paiement">
+        <div class="statut-badge statut-ACTIF">Adhésion active</div>
+        <h2>Votre cotisation est à jour</h2>
+        <p>Vous avez accès à l'ensemble des services proposés par l'association tant que votre adhésion est valide.</p>
+
+        <dl class="adhesion-dates">
+          <div class="adhesion-dates-row">
+            <dt>Début de validité</dt>
+            <dd>{{if .DateAdhesion}}{{.DateAdhesion}}{{else}}—{{end}}</dd>
+          </div>
+          <div class="adhesion-dates-row">
+            <dt>Fin de validité</dt>
+            <dd>{{if .DateExpiration}}{{.DateExpiration}}{{else}}—{{end}}</dd>
+          </div>
+        </dl>
+      </section>
+      {{else}}
       <section class="panel panel-paiement">
         <h2>Cotisation annuelle</h2>
         <p>
@@ -333,7 +429,9 @@
           <button type="submit" class="btn btn-primary btn-block">Payer mon adhésion</button>
         </form>
 
+        <p class="paiement-note">Vous serez redirigé vers Stripe pour finaliser votre paiement en toute sécurité.</p>
       </section>
+      {{end}}
     </main>
   </div>
 
