@@ -23,6 +23,13 @@ func PageInscription(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		agences, agenceErr := getAgences(database)
+		if agenceErr != nil {
+			fmt.Println("Erreur récupération agences :", err)
+			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			return
+		}
+
 		tmpl, err := template.ParseFiles("templates/inscription.html")
 		if err != nil {
 			fmt.Println("Erreur parsing template :", err)
@@ -32,14 +39,37 @@ func PageInscription(database *sql.DB) http.HandlerFunc {
 
 		data := struct {
 			Competences []models.Competence
+			Agences     []models.Agence
 		}{
 			Competences: competences,
+			Agences:     agences,
 		}
 
 		if err := tmpl.Execute(response, data); err != nil {
 			fmt.Println("Erreur exécution template :", err)
 		}
 	}
+}
+
+func getAgences(database *sql.DB) ([]models.Agence, error) {
+	rows, err := database.Query(`SELECT id_agence, nom FROM agence ORDER BY nom`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var agences_List []models.Agence
+
+	for rows.Next() {
+		var agence models.Agence
+
+		if err := rows.Scan(&agence.IDAgence, &agence.Nom); err != nil {
+			return nil, err
+		}
+
+		agences_List = append(agences_List, agence)
+	}
+	return agences_List, rows.Err()
 }
 
 func getCompetences(database *sql.DB) ([]models.Competence, error) {
@@ -178,7 +208,12 @@ func insertProfilRole(tx *sql.Tx, request *http.Request, roleNom string, idUtili
 		return err
 
 	case "ADHERENT":
-		_, err := tx.Exec(`INSERT INTO adherent (id_utilisateur) VALUES ($1)`, idUtilisateur)
+		idAgence, err := strconv.Atoi(request.FormValue("id_agence"))
+		if err != nil {
+			return fmt.Errorf("agence invalide")
+		}
+
+		_, err = tx.Exec(`INSERT INTO adherent (id_utilisateur, id_agence, statut) VALUES ($1, $2, 'EN_ATTENTE')`, idUtilisateur, idAgence)
 		return err
 
 	case "ASSOCIATION":

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon profil — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adherent/adherent.css">
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Espace adhérent</span>
+
+    <nav class="sidebar-nav">
+      <a href="/adherent" class="nav-item">Tableau de bord</a>
+      <a href="/adherent/services" class="nav-item">Services disponibles</a>
+      <a href="/adherent/inscriptions" class="nav-item">Mes inscriptions</a>
+      <a href="/adherent/adhesion" class="nav-item">Mon adhésion</a>
+      <a href="/adherent/profil" class="nav-item is-active">Mon profil</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Espace adhérent</span>
+        <h1>Mon profil</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour <strong>{{.Adherent.Prenom}}</strong></span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Consultez votre adhésion et mettez à jour vos informations personnelles.</p>
+
+      <div class="profil-grid">
+
+
+        <div class="profil-main-col">
+
+          <section class="panel">
+            <h2>Informations personnelles</h2>
+            <p>Ces informations sont modifiables à tout moment.</p>
+
+            <form class="profil-form" action="/adherent/profil/modifier" method="POST">
+              <div class="field-row">
+                <div class="field">
+                  <label for="prenom">Prénom</label>
+                  <input type="text" id="prenom" name="prenom" value="{{.Adherent.Prenom}}" required>
+                </div>
+                <div class="field">
+                  <label for="nom">Nom</label>
+                  <input type="text" id="nom" name="nom" value="{{.Adherent.Nom}}" required>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="email">Adresse e-mail</label>
+                <input type="email" id="email" name="email" value="{{.Adherent.Email}}" required>
+                <span class="field-hint">Un changement d'adresse e-mail nécessitera une nouvelle vérification.</span>
+              </div>
+
+              <div class="field">
+                <label for="telephone">Téléphone</label>
+                <input type="tel" id="telephone" name="telephone" value="{{.Adherent.Telephone}}">
+              </div>
+
+              <div class="field">
+                <label for="adresse">Adresse</label>
+                <input type="text" id="adresse" name="adresse" value="{{.Adherent.Adresse}}">
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="ville">Ville</label>
+                  <input type="text" id="ville" name="ville" value="{{.Adherent.Ville}}">
+                </div>
+                <div class="field">
+                  <label for="code_postal">Code postal</label>
+                  <input type="text" id="code_postal" name="code_postal" value="{{.Adherent.CodePostal}}">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="pays">Pays</label>
+                <input type="text" id="pays" name="pays" value="{{.Adherent.Pays}}">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <h2>Sécurité</h2>
+            <p>Modifiez votre mot de passe de connexion.</p>
+
+            <form class="profil-form" action="/adherent/profil/mot-de-passe" method="POST">
+              <div class="field">
+                <label for="mot_de_passe_actuel">Mot de passe actuel</label>
+                <input type="password" id="mot_de_passe_actuel" name="mot_de_passe_actuel" required>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="nouveau_mot_de_passe">Nouveau mot de passe</label>
+                  <input type="password" id="nouveau_mot_de_passe" name="nouveau_mot_de_passe" minlength="8" required>
+                </div>
+                <div class="field">
+                  <label for="confirmation">Confirmation</label>
+                  <input type="password" id="confirmation" name="confirmation" minlength="8" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-secondary">Modifier le mot de passe</button>
+            </form>
+          </section>
+
+          <section class="panel panel-danger">
+            <h2>Désactiver mon compte</h2>
+            <p>Votre profil sera désactivé et vous ne recevrez plus de communications de l'association.</p>
+            <form action="/adherent/profil/desactiver" method="POST" onsubmit="return confirm('Confirmez-vous la désactivation de votre compte adhérent ?');">
+              <button type="submit" class="btn btn-danger-ghost">Désactiver mon compte</button>
+            </form>
+          </section>
+
+        </div>
+
+        <!-- ============ Colonne latérale : lecture seule ============ -->
+        <aside class="profil-side-col">
+
+          <section class="panel">
+            <h2>Mon adhésion</h2>
+
+            <div class="statut-badge statut-{{.Adherent.Statut}}">
+              {{if eq .Adherent.Statut "ACTIF"}}Adhésion active{{end}}
+              {{if eq .Adherent.Statut "EN_ATTENTE"}}En attente de paiement{{end}}
+              {{if eq .Adherent.Statut "EXPIRE"}}Adhésion expirée{{end}}
+              {{if eq .Adherent.Statut "SUSPENDU"}}Compte suspendu{{end}}
+            </div>
+
+            <dl class="profil-readonly-list">
+              <div class="profil-readonly-row">
+                <dt>Agence de rattachement</dt>
+                <dd>{{.Agence.Nom}}</dd>
+              </div>
+              <div class="profil-readonly-row">
+                <dt>Membre depuis</dt>
+                <dd>{{if .Adherent.DateAdhesion}}{{.Adherent.DateAdhesion}}{{else}}—{{end}}</dd>
+              </div>
+              <div class="profil-readonly-row">
+                <dt>Adhésion valable jusqu'au</dt>
+                <dd>{{if .Adherent.DateExpiration}}{{.Adherent.DateExpiration}}{{else}}—{{end}}</dd>
+              </div>
+              <div class="profil-readonly-row">
+                <dt>Dernière cotisation</dt>
+                <dd>{{if .DerniereCotisation}}{{.DerniereCotisation.Montant}} € — {{.DerniereCotisation.DatePaiement}}{{else}}Aucune cotisation enregistrée{{end}}</dd>
+              </div>
+            </dl>
+
+            <p class="profil-readonly-note">Pour changer d'agence de rattachement, contactez votre agence actuelle.</p>
+
+            {{if or (eq .Adherent.Statut "EN_ATTENTE") (eq .Adherent.Statut "EXPIRE") .AdhesionExpireBientot}}
+            <a href="/adherent/profil/renouveler" class="btn btn-primary btn-block">
+              {{if eq .Adherent.Statut "EN_ATTENTE"}}Payer ma cotisation{{else}}Renouveler mon adhésion{{end}}
+            </a>
+            {{end}}
+          </section>
+
+        </aside>
+
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>

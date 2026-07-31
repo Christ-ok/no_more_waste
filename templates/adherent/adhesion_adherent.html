@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon adhésion — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white:        #FFFFFF;
+    --cream:        #FBFAF7;
+    --sage:         #EEF4E6;
+    --sage-line:    #DCE7CE;
+    --green-deep:   #33553A;
+    --green-mid:    #5A8A5F;
+    --ink:          #22281F;
+    --ink-soft:     #5C6459;
+
+    --font-display: "Fraunces", serif;
+    --font-body:    "Work Sans", sans-serif;
+
+    --radius: 16px;
+    --sidebar-width: 264px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--cream);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    color: var(--green-deep);
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+
+  /* Étiquette signature */
+  .tag {
+    display: inline-block;
+    position: relative;
+    background: var(--green-deep);
+    color: var(--white);
+    font-weight: 600;
+    font-size: .7rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 6px 14px 6px 20px;
+    border-radius: 3px 10px 10px 3px;
+    margin-bottom: 10px;
+  }
+  .tag::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--white);
+    opacity: .85;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: .9rem;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn-primary {
+    background: var(--green-deep);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    border-color: rgba(255,255,255,.25);
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,.6); }
+  .btn-block { width: 100%; }
+
+  /* Structure générale : sidebar + contenu */
+  .dash-shell {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--green-deep);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 0 8px;
+  }
+  .sidebar-logo-mark {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--white);
+    color: var(--green-deep);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: .68rem;
+  }
+  .sidebar-logo-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: .95rem;
+    letter-spacing: .01em;
+  }
+
+  .sidebar-space {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: rgba(255,255,255,.55);
+    padding: 0 8px;
+    margin: 22px 0 10px;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: .9rem;
+    font-weight: 500;
+    color: rgba(255,255,255,.78);
+  }
+  .nav-item::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .5;
+    flex-shrink: 0;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,.08);
+    color: var(--white);
+  }
+  .nav-item.is-active {
+    background: var(--white);
+    color: var(--green-deep);
+    font-weight: 600;
+  }
+  .nav-item.is-active::before { opacity: 0; }
+
+  .sidebar-footer {
+    padding-top: 16px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.15);
+  }
+
+  /* Contenu principal */
+  .dash-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dash-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 32px 40px 0;
+  }
+
+  .dash-topbar h1 {
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .88rem;
+    color: var(--ink-soft);
+    background: var(--white);
+    border: 1px solid var(--sage-line);
+    padding: 8px 16px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .topbar-user strong { color: var(--green-deep); }
+
+  .dash-content {
+    padding: 20px 40px 48px;
+  }
+
+  .dash-content-center {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dash-subtitle {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0 0 32px;
+  }
+
+  /* Panel générique */
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--sage-line);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+  }
+  .panel h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .panel p { color: var(--ink-soft); margin: 0; font-size: .92rem; }
+
+  /* Bloc paiement de l'adhésion */
+  .panel-paiement {
+    max-width: 480px;
+  }
+  .panel-paiement h2 {
+    font-size: 1.3rem;
+    margin: 0 0 12px;
+  }
+  .panel-paiement p {
+    margin: 0 0 24px;
+  }
+
+  .paiement-note {
+    text-align: center;
+    font-size: .78rem;
+    color: var(--ink-soft);
+    margin: 14px 0 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .dash-shell { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+    .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
+    .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Espace adhérent</span>
+
+    <nav class="sidebar-nav">
+      <a href="/adherent" class="nav-item">Tableau de bord</a>
+      <a href="/adherent/services" class="nav-item">Services disponibles</a>
+      <a href="/adherent/inscriptions" class="nav-item">Mes inscriptions</a>
+      <a href="/adherent/adhesion" class="nav-item is-active">Mon adhésion</a>
+      <a href="/adherent/profil" class="nav-item">Mon profil</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Espace adhérent</span>
+        <h1>Mon adhésion</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content dash-content-center">
+      <section class="panel panel-paiement">
+        <h2>Cotisation annuelle</h2>
+        <p>
+          Pour bénéficier des services de l'association — cours de cuisine, partage de véhicules,
+          entraide entre particuliers, réparation, gardiennage — votre adhésion doit être à jour.
+          Le règlement se fait en ligne, en toute sécurité via Stripe.
+        </p>
+
+        <form action="/adherent/adhesion/payer" method="POST">
+          <button type="submit" class="btn btn-primary btn-block">Payer mon adhésion</button>
+        </form>
+
+      </section>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
