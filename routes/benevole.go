@@ -129,7 +129,8 @@ func DashboardBenevoleDisponibiltes(database *sql.DB) http.HandlerFunc {
 		}
 
 		rowsDisponibilite, errDisponibilties := database.Query(`SELECT id_disponibilite, date_disponibilite, heure_debut, heure_fin, statut FROM disponibilite 
-																WHERE id_benevole = $1 ORDER BY date_disponibilite, heure_debut`,
+																WHERE id_benevole = $1 AND (date_disponibilite + heure_fin) >= NOW () 
+																ORDER BY date_disponibilite, heure_debut`,
 			idBenevole)
 
 		if errDisponibilties != nil {

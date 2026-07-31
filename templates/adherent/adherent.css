@@ -291,3 +291,136 @@ h1, h2, h3 {
   .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
   .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
 }
+
+/* ============================================
+   AJOUTS — Page « Mon profil » (adhérent)
+   Rien n'est redéfini ci-dessus : uniquement des
+   compléments (variantes de boutons, badges de
+   statut, formulaires) absents du fichier de base.
+   ============================================ */
+
+:root {
+  --amber:      #A6791F;
+  --amber-soft: #F3E7CB;
+  --clay:       #B9603F;
+  --clay-soft:  #F4E3DA;
+  --red:        #A23B34;
+  --red-soft:   #F5DFDC;
+}
+
+/* Variantes de boutons manquantes (seuls .btn-ghost et .btn-block existent dans la base) */
+.btn-primary {
+  background: var(--green-deep);
+  color: var(--white);
+}
+.btn-primary:hover { background: var(--green-mid); }
+
+.btn-secondary {
+  background: var(--sage);
+  color: var(--green-deep);
+  border-color: var(--sage-line);
+}
+.btn-secondary:hover { background: var(--sage-line); }
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--red);
+  border-color: var(--clay-soft);
+}
+.btn-danger-ghost:hover { background: var(--red-soft); }
+
+/* Alertes de confirmation / erreur */
+.alert {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  font-weight: 500;
+  margin-bottom: 24px;
+  border: 1px solid transparent;
+}
+.alert-success { background: var(--sage); color: var(--green-deep); border-color: var(--sage-line); }
+.alert-error   { background: var(--red-soft); color: var(--red); border-color: #EAC9C5; }
+
+/* Mise en page à deux colonnes de la page profil */
+.profil-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .profil-grid { grid-template-columns: 1fr; }
+}
+.profil-main-col, .profil-side-col {
+  display: flex;
+  flex-direction: column;
+}
+.panel + .panel { margin-top: 24px; }
+.panel-danger { border-color: #ECD3CE; background: #FFFBFA; }
+
+/* Formulaires */
+.profil-form .field,
+.profil-form .field-row {
+  margin-bottom: 18px;
+}
+.profil-form .field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.profil-form label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.profil-form input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--sage-line);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  color: var(--ink);
+  background: var(--cream);
+}
+.profil-form input:focus-visible {
+  outline: 2px solid var(--green-mid);
+  outline-offset: 1px;
+  border-color: var(--green-mid);
+}
+.field-hint {
+  display: block;
+  font-size: .75rem;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+/* Badge de statut d'adhésion */
+.statut-badge {
+  display: inline-block;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.statut-ACTIF      { background: var(--sage);       color: var(--green-deep); }
+.statut-EN_ATTENTE { background: var(--amber-soft); color: var(--amber); }
+.statut-EXPIRE     { background: var(--clay-soft);  color: var(--clay); }
+.statut-SUSPENDU   { background: var(--red-soft);   color: var(--red); }
+
+/* Liste de champs en lecture seule (agence, dates, cotisation) */
+.profil-readonly-list { margin: 0 0 16px; padding: 0; }
+.profil-readonly-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--sage-line);
+}
+.profil-readonly-row:first-child { border-top: none; }
+.profil-readonly-row dt { font-size: .8rem; color: var(--ink-soft); }
+.profil-readonly-row dd { margin: 0; font-size: .8rem; font-weight: 600; text-align: right; color: var(--ink); }
+.profil-readonly-note { font-size: .75rem; color: var(--ink-soft); margin: 0 0 18px; }

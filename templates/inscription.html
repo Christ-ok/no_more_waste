@@ -28,7 +28,6 @@
 <main class="auth-main">
   <div class="auth-wrap">
 
-    <!-- Panneau image -->
     <aside class="auth-side">
       <img src="https://images.pexels.com/photos/6995201/pexels-photo-6995201.jpeg?auto=compress&cs=tinysrgb&w=1000"
            alt="Bénévoles triant des denrées alimentaires données pour l'association">
@@ -40,7 +39,6 @@
       </div>
     </aside>
 
-    <!-- Formulaire -->
     <section class="auth-card">
       <span class="tag">Inscription</span>
       <h1>Créer mon compte</h1>
@@ -90,6 +88,16 @@
           <input type="text" id="pays" name="pays" placeholder="France" value="France">
         </div>
 
+        <div class="field">
+          <label for="id_agence">Agence de rattachement</label>
+          <select id="id_agence" name="id_agence" required>
+            <option value="" disabled selected>Choisir une agence</option>
+            {{range .Agences}}
+            <option value="{{.IDAgence}}">{{.Nom}}</option>
+            {{end}}
+          </select>
+        </div>
+
         <div class="field-row">
           <div class="field">
             <label for="mot_de_passe">Mot de passe</label>
@@ -112,7 +120,6 @@
           </select>
         </div>
 
-        <!-- ---- Champs spécifiques : Bénévole ---- -->
         <div class="role-fields" data-role="BENEVOLE" hidden>
           <label class="checkbox-field">
             <input type="checkbox" name="permis">
@@ -134,7 +141,6 @@
           <p class="role-fields-note">Vous pourrez renseigner vos disponibilités depuis votre espace bénévole une fois votre compte créé.</p>
         </div>
 
-        <!-- ---- Champs spécifiques : Commerçant ---- -->
         <div class="role-fields" data-role="COMMERCANT" hidden>
           <div class="field">
             <label for="nom_entreprise">Nom de l'entreprise</label>
@@ -152,7 +158,6 @@
           </div>
         </div>
 
-        <!-- ---- Champs spécifiques : Association bénéficiaire ---- -->
         <div class="role-fields" data-role="ASSOCIATION" hidden>
           <div class="field-row">
             <div class="field">
@@ -175,8 +180,6 @@
             </div>
           </div>
         </div>
-
-        <!-- L'adhérent ne nécessite aucun champ supplémentaire au-delà du tronc commun -->
 
         <label class="checkbox-field">
           <input type="checkbox" name="cgu" required>
