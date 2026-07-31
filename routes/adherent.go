@@ -16,8 +16,78 @@ type AdherentData struct {
 	Adherent models.Utilisateur
 }
 
-func PageAdhesionAdherent(response http.ResponseWriter, request *http.Request) {
-	http.ServeFile(response, request, "templates/adherent/adhesion_adherent.html")
+type AdhesionPageData struct {
+	Statut         string
+	DateAdhesion   string
+	DateExpiration string
+	Succes         string
+	Erreur         string
+}
+
+func PageAdhesionAdherent(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		var statut string
+		var dateAdhesion, dateExpiration sql.NullTime
+
+		errRow := database.QueryRow(`
+			SELECT statut, date_adhesion, date_expiration
+			FROM adherent
+			WHERE id_utilisateur = $1
+		`, idUtilisateur).Scan(&statut, &dateAdhesion, &dateExpiration)
+		if errRow != nil {
+			fmt.Printf("Erreur récupération adhérent : %v", errRow)
+			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
+			return
+		}
+
+		data := AdhesionPageData{
+			Statut: statut,
+		}
+
+		if dateAdhesion.Valid {
+			data.DateAdhesion = dateAdhesion.Time.Format("02/01/2006")
+		}
+		if dateExpiration.Valid {
+			data.DateExpiration = dateExpiration.Time.Format("02/01/2006")
+		}
+
+		switch request.URL.Query().Get("succes") {
+		case "paiement":
+			data.Succes = "Votre cotisation a bien été enregistrée. Merci pour votre soutien !"
+		}
+
+		switch request.URL.Query().Get("erreur") {
+		case "annule":
+			data.Erreur = "Le paiement a été annulé, vous pouvez réessayer à tout moment."
+		case "stripe":
+			data.Erreur = "Une erreur est survenue lors de la préparation du paiement, veuillez réessayer."
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/adherent/adhesion_adherent.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur parsing template : %v", errTmpl)
+			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			return
+		}
+
+		if errExec := tmpl.Execute(response, data); errExec != nil {
+			fmt.Printf("Erreur exécution template : %v", errExec)
+		}
+
+	}, "ADHERENT")
 }
 
 func AfficherPageModififierProfilAdherent(database *sql.DB) http.HandlerFunc {
