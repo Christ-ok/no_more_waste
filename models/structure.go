@@ -193,3 +193,20 @@ type DemandeService struct {
 	Date_Demande       time.Time `json:"date_demande" db:"date_demande"`
 	Statut             string    `json:"statut" db:"statut"`
 }
+
+type BenevoleDisponible struct {
+	ID_Benevole int    `json:"id_benevole" db:"id_benevole"`
+	Nom         string `json:"nom" db:"nom"`
+	Prenom      string `json:"prenom" db:"prenom"`
+}
+
+type DemandeServiceDashboard struct {
+	ID_Benevole   int       `json:"id_benevole" db:"id_benevole"`
+	Nom           string    `json:"nom" db:"nom"`
+	Prenom        string    `json:"prenom" db:"prenom"`
+	ID_Planning   int       `json:"id_planning" db:"id_planning"`
+	Date_Planning time.Time `json:"date_planning" db:"date_planning"`
+	Heure_Debut   time.Time `json:"heure_debut" db:"heure_fin"`
+	Heure_Fin     time.Time `json:"heure_fin" db:"heure_fin"`
+	Statut        string    `json:"statut" db:"statut"`
+}

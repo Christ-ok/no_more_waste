@@ -35,6 +35,10 @@ type AdminAgenceDashboardDemandeService struct {
 	Demandes []models.DemandeService
 }
 
+type AdminAgenceBenevolesDisponibilites struct {
+	Benevoles_Disponibilites []models.DemandeServiceDashboard
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -1152,6 +1156,108 @@ func DashboardAdminAgenceDemandesServices(database *sql.DB) http.HandlerFunc {
 		if tmplErr != nil {
 			fmt.Printf("Erreur : %v", tmplErr)
 			http.Error(response, "Erreur parse fichier demandes_services.html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func PageAffectationBenevoleService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur parse formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idDemandeStr := request.FormValue("id_demande")
+
+		idDemande, errDemande := strconv.Atoi(idDemandeStr)
+		if errDemande != nil {
+			fmt.Printf("Erreur : %v", errDemande)
+			http.Error(response, "Erreur conversion id", http.StatusInternalServerError)
+			return
+		}
+
+		var idCompetenceRequise int
+		errCompetence := database.QueryRow(`SELECT s.id_competence FROM demande_service ds JOIN service s ON s.id_service = ds.id_service WHERE ds.id_demande_service = $1`, idDemande).Scan(&idCompetenceRequise)
+		if errCompetence != nil {
+			fmt.Printf("Erreur : %v", errCompetence)
+			http.Error(response, "Erreur récupération ID compétence", http.StatusInternalServerError)
+			return
+		}
+
+		rowsBenevoleDispo, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+														  	JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+														  	JOIN planning p ON p.id_benevole = b.id_benevole
+														  WHERE u.id_agence = $1
+														  	AND b.id_competence = $2
+															AND b.statut = 'VALIDE'
+															AND p.statut = 'PLANIFIE'
+														  ORDER BY p.date, p.heure_debut
+		`, idAgence, idCompetenceRequise)
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "Erreur récupération bénévoles disponibles", http.StatusInternalServerError)
+			return
+		}
+		defer rowsBenevoleDispo.Close()
+
+		var benevolesDisponibilites_List []models.DemandeServiceDashboard
+
+		for rowsBenevoleDispo.Next() {
+
+			var benevoleDisponibilite models.DemandeServiceDashboard
+
+			errScan := rowsBenevoleDispo.Scan(&benevoleDisponibilite.ID_Benevole,
+				&benevoleDisponibilite.Nom,
+				&benevoleDisponibilite.Prenom,
+				&benevoleDisponibilite.ID_Planning,
+				&benevoleDisponibilite.Date_Planning,
+				&benevoleDisponibilite.Heure_Debut,
+				&benevoleDisponibilite.Heure_Fin,
+				&benevoleDisponibilite.Statut,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan bénévoles disponibilités", http.StatusInternalServerError)
+				return
+			}
+
+			benevolesDisponibilites_List = append(benevolesDisponibilites_List, benevoleDisponibilite)
+		}
+
+		data := AdminAgenceBenevolesDisponibilites{
+			Benevoles_Disponibilites: benevolesDisponibilites_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
+			http.Error(response, "Erreur pase file html", http.StatusInternalServerError)
 			return
 		}
 
