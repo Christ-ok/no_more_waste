@@ -128,12 +128,13 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="/admin-agence/demandes-services/detail?id={{.ID_Demande_Service}}"
-                                   class="btn btn-primary btn-sm">
-                                    Voir
-                                </a>
+                                <form action="/admin-agence/demandes-services/affectation" method="GET">
+                                    <input type="hidden" name="id_demande" value="{{.ID_Demande_Service}}">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        Voir
+                                    </button>
+                                </form>
                             </td>
-
                         </tr>
                         {{end}}
                     </tbody>
