@@ -8,6 +8,7 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -313,3 +314,94 @@ func DashboardAdherentServices(database *sql.DB) http.HandlerFunc {
 
 	}, "ADHERENT")
 }
+
+func RejoindreServiceAdherent(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		idServiceStr := request.FormValue("id_service")
+
+		idService, err := strconv.Atoi(idServiceStr)
+		if err != nil {
+			http.Error(response, "ID service invalide", http.StatusBadRequest)
+			return
+		}
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
+		if agenceErr != nil {
+			fmt.Printf("Erreur : %v", agenceErr)
+			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+			return
+		}
+
+		var idAdherent int
+		var statut string
+
+		errQuery := database.QueryRow(`SELECT id_adherent, statut FROM adherent WHERE id_utilisateur = $1 AND id_agence = $2`, idUtilisateur, idAgence).Scan(&idAdherent, &statut)
+		if errQuery != nil {
+			fmt.Printf("Erreur : %v", errQuery)
+			http.Error(response, "Erreur récupération ID adhérent", http.StatusInternalServerError)
+			return
+		}
+
+		if statut != "ACTIF" {
+			http.Redirect(response, request, "/adherent/adhesion", http.StatusSeeOther)
+			return
+		}
+
+		_, errExec := database.Exec(`INSERT INTO demande_service (id_service, id_adherent) VALUES ($1, $2)`, idService, idAdherent)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur lors de l'envoie de la demande", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Demande de service envoyé avec succès !")
+		response.WriteHeader(http.StatusCreated)
+		http.Redirect(response, request, "adherent/services", http.StatusSeeOther)
+
+	}, "ADHERENT")
+}
+
+/*
+func DashboardAdherentServicesRejoints(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
+		if agenceErr != nil {
+			fmt.Printf("Erreur : %v", agenceErr)
+			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+			return
+		}
+
+		var idAdherent int
+		errQuery := database.QueryRow(`SELECT s.id_service, s.nom, s.description, s.statut FROM service s
+										JOIN demande_service ds ON s.id_service = ds.id_service
+		`)
+
+	}, "ADHERENT")
+}
+*/

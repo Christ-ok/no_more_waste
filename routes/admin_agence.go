@@ -31,6 +31,10 @@ type ServiceCreerData struct {
 	Competences []models.Competence
 }
 
+type AdminAgenceDashboardDemandeService struct {
+	Demandes []models.DemandeService
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -1078,6 +1082,80 @@ func DeleteService(database *sql.DB) http.HandlerFunc {
 
 		fmt.Println("Service supprimé avec succès !")
 		response.WriteHeader(http.StatusOK)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceDemandesServices(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsDemandes, demandesErr := database.Query(`SELECT ds.id_demande_service, s.nom, u.nom, u.prenom, ds.date_demande, ds.statut FROM demande_service ds
+														JOIN service s ON ds.id_service = s.id_service
+														JOIN adherent a ON ds.id_adherent = a.id_adherent
+														JOIN utilisateur u ON a.id_utilisateur = u.id_utilisateur 
+													WHERE a.id_agence = $1
+													ORDER BY ds.date_demande DESC
+		`, idAgence)
+		if demandesErr != nil {
+			fmt.Printf("Erreur : %v", demandesErr)
+			http.Error(response, "Erreur récupération demandes", http.StatusInternalServerError)
+			return
+		}
+		defer rowsDemandes.Close()
+
+		var demandes_List []models.DemandeService
+
+		for rowsDemandes.Next() {
+
+			var demande models.DemandeService
+
+			errQuery := rowsDemandes.Scan(&demande.ID_Demande_Service,
+				&demande.Nom_Service,
+				&demande.Nom_Adherent,
+				&demande.Prenom_Adherent,
+				&demande.Date_Demande,
+				&demande.Statut,
+			)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur Scan demandes", http.StatusInternalServerError)
+				return
+			}
+
+			demandes_List = append(demandes_List, demande)
+		}
+
+		data := AdminAgenceDashboardDemandeService{
+			Demandes: demandes_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/demandes_services.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
+			http.Error(response, "Erreur parse fichier demandes_services.html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
 
 	}, "ADMIN_AGENCE")
 }

@@ -511,3 +511,52 @@ h1, h2, h3 {
   .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
   .slot-item:last-child { border-bottom: none; }
 }
+
+/* ============================================
+   Statuts des demandes de services
+   ============================================ */
+
+.cell-statut.statut-EN_ATTENTE {
+  color: #B8860B;
+}
+
+.cell-statut.statut-ATTRIBUE {
+  color: var(--green-mid);
+}
+
+.cell-statut.statut-TERMINE {
+  color: var(--green-deep);
+}
+
+.cell-statut.statut-ANNULE {
+  color: var(--ink-soft);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--green-deep);
+  border-color: var(--sage-line);
+}
+
+.btn-outline:hover {
+  background: var(--sage);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.panel-table {
+  padding:0;
+  overflow-x:auto;
+}
+
+tr[data-demande-id] {
+  transition: background .15s ease;
+}
+
+tr[data-demande-id]:hover {
+  background: rgba(124,169,130,.12);
+}
