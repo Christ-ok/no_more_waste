@@ -73,7 +73,12 @@
               </td>
               <td>
                 {{if eq .Statut "ACTIF"}}
-                <a href="/adherent/services/inscription?id={{.ID_Service}}" class="btn btn-primary btn-sm">Rejoindre</a>
+                    <form action="/adherent/services/rejoindre" method="POST">
+                        <input type="hidden" name="id_service" value="{{.ID_Service}}">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Rejoindre
+                        </button>
+                    </form>
                 {{else}}
                 <span class="cell-muted">Indisponible</span>
                 {{end}}
