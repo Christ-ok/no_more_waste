@@ -471,3 +471,65 @@ h1, h2, h3 {
   color: var(--green-deep);
 }
 .profil-readonly-note { font-size: .75rem; color: var(--ink-soft); margin: 0 0 18px; }
+
+/* ============================================
+   AJOUTS — Page « Services disponibles » (adhérent)
+   Même schéma que la page services d'admin_agence
+   (panel-table + data-table), porté ici puisque
+   adherent.css ne définissait pas encore ces classes.
+   ============================================ */
+
+.table-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: .9rem;
+  margin: 0;
+  background: var(--white);
+}
+
+.panel-table {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--sage-line);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  text-align: left;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--green-deep);
+  background: var(--white);
+  padding: 16px 20px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--sage-line);
+}
+.data-table tbody td {
+  padding: 15px 20px;
+  font-size: .9rem;
+  color: var(--ink);
+}
+.data-table tbody tr:nth-child(even) { background: var(--sage); }
+.data-table tbody tr:hover { background: rgba(124, 169, 130, .16); }
+
+.cell-strong { font-weight: 600; color: var(--green-deep); }
+
+.cell-statut { font-weight: 600; font-size: .85rem; }
+.cell-statut.statut-ACTIF   { color: var(--green-mid); }
+.cell-statut.statut-INACTIF { color: var(--ink-soft); }
+
+.cell-muted {
+  color: var(--ink-soft);
+  font-size: .85rem;
+  font-style: italic;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .82rem;
+}

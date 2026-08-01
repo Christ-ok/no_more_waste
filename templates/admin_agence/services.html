@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+<style>
+    .cell-statut.statut-ACTIF   { color: var(--green-mid); }
+    .cell-statut.statut-INACTIF { color: var(--ink-soft); }
+</style>
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Collectes</a>
+        <a href="#" class="nav-item">Stocks</a>
+        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/services" class="nav-item is-active">Services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration agence</span>
+        <h1>Services</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Gérez les services proposés aux adhérents de votre agence et la compétence requise pour chacun.</p>
+
+      <a href="/admin-agence/services/creer" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i>
+        Ajouter un service
+      </a>
+
+      <div class="panel panel-table">
+        {{if .Services}}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom</th>
+              <th>Description</th>
+              <th>Compétence requise</th>
+              <th>Statut</th>
+              <th>Modifier</th>
+              <th>Supprimer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Services}}
+            <tr data-service-id="{{.ID_Service}}">
+              <td>{{.ID_Service}}</td>
+              <td class="cell-strong">{{.Nom}}</td>
+              <td>{{if .Description}}{{.Description}}{{else}}—{{end}}</td>
+              <td>{{.Competence}}</td>
+              <td>
+                <span class="cell-statut statut-{{.Statut}}">
+                  {{if eq .Statut "ACTIF"}}Actif{{else}}Inactif{{end}}
+                </span>
+              </td>
+              <td>
+                <a href="/admin-agence/services/modifier?id={{.ID_Service}}" class="icon-btn" title="Modifier">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </td>
+              <td>
+                <button type="button" class="icon-btn btn-supprimer-service" data-id="{{.ID_Service}}" title="Supprimer">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun service n'a encore été créé pour votre agence.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<script>
+
+    document.querySelectorAll(".btn-supprimer-service").forEach(function (bouton) {
+    bouton.addEventListener("click", function () {
+
+        const idService = bouton.dataset.id;
+
+        if (!confirm("Voulez-vous vraiment supprimer ce service ?")) {
+            return;
+        }
+        fetch("/admin-agence/services/supprimer?id_service=" + idService, {
+            method: "DELETE",
+            credentials: "include"
+        })
+        .then(async function(response) {
+            const message = await response.text();
+
+            console.log("Statut :", response.status);
+            console.log("Réponse serveur :", message);
+
+            if (response.ok) {
+
+                const ligne = document.querySelector(
+                    'tr[data-service-id="' + idService + '"]'
+                );
+
+                if (ligne) {
+                    ligne.remove();
+                }
+            } else {
+                alert("Erreur : " + message);
+            }
+        })
+        .catch(function(error) {
+            console.error("Erreur réseau :", error);
+            alert("Une erreur réseau est survenue.");
+        });
+    });
+    });
+
+</script>
+
+</body>
+</html>

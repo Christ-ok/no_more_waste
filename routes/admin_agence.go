@@ -23,6 +23,14 @@ type AdminAgenceDashboardPlanningAfficher struct {
 	Planning []models.PlanningAfficheDashboard
 }
 
+type AdminAgenceDashboardServicesAfficher struct {
+	Services    []models.Service
+	Competences []models.Competence
+}
+type ServiceCreerData struct {
+	Competences []models.Competence
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -648,4 +656,428 @@ func DeletePlanning(database *sql.DB) http.HandlerFunc {
 		http.Redirect(response, request, "/admin-agence/planning", http.StatusSeeOther)
 
 	}, "ADMIN_AGENCE", "ADMIN_GENERAL")
+}
+
+func DashboardAdminAgenceServices(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsServices, servicesErr := database.Query(`SELECT s.id_service, s.nom, s.description, c.nom AS competence, s.statut FROM service s
+													LEFT JOIN competence c ON s.id_competence = c.id_competence
+													WHERE s.id_agence = $1
+													ORDER BY s.id_service
+		`, idAgence)
+		if servicesErr != nil {
+			fmt.Printf("Erreur : %v", servicesErr)
+			http.Error(response, "Erreur récupération des services", http.StatusInternalServerError)
+			return
+		}
+		defer rowsServices.Close()
+
+		var services_List []models.Service
+
+		for rowsServices.Next() {
+
+			var service models.Service
+
+			var competence sql.NullString
+
+			errQuery := rowsServices.Scan(&service.ID_Service,
+				&service.Nom,
+				&service.Description,
+				&competence,
+				&service.Statut,
+			)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur Scan service", http.StatusInternalServerError)
+				return
+			}
+
+			if competence.Valid {
+				service.Competence = competence.String
+			} else {
+				service.Competence = "Aucune compétence requise"
+			}
+
+			services_List = append(services_List, service)
+		}
+
+		rowsCompetences, competenceErr := database.Query(`SELECT id_competence, nom FROM competence`)
+		if competenceErr != nil {
+			fmt.Printf("Erreur : %v", competenceErr)
+			http.Error(response, "Erreur récupération de compétences", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCompetences.Close()
+
+		var competences_List []models.Competence
+
+		for rowsCompetences.Next() {
+
+			var competence models.Competence
+
+			errQuery := rowsCompetences.Scan(&competence.IDCompetence, &competence.Nom)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur scan compétence", http.StatusInternalServerError)
+				return
+			}
+
+			competences_List = append(competences_List, competence)
+		}
+
+		data := AdminAgenceDashboardServicesAfficher{
+			Services:    services_List,
+			Competences: competences_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/services.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
+			http.Error(response, "Erreur parsage fichier", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func PageCreerService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		rowsCompetences, errQuery := database.Query(`SELECT id_competence, nom FROM competence ORDER BY nom`)
+		if errQuery != nil {
+			fmt.Printf("Erreur : %v", errQuery)
+			http.Error(response, "Erreur récupération des compétences", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCompetences.Close()
+
+		var competencesList []models.Competence
+		for rowsCompetences.Next() {
+			var competence models.Competence
+			if errScan := rowsCompetences.Scan(&competence.IDCompetence, &competence.Nom); errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan compétence", http.StatusInternalServerError)
+				return
+			}
+			competencesList = append(competencesList, competence)
+		}
+
+		data := ServiceCreerData{Competences: competencesList}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/creer_service.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsage fichier", http.StatusInternalServerError)
+			return
+		}
+
+		if errExec := tmpl.Execute(response, data); errExec != nil {
+			fmt.Printf("Erreur exécution template : %v", errExec)
+		}
+
+	}, "ADMIN_AGENCE")
+}
+
+func CreateService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		nom := request.FormValue("nom")
+		description := request.FormValue("description")
+		competence := request.FormValue("competence")
+		statut := request.FormValue("statut")
+
+		var idCompetence sql.NullInt64
+
+		if competence != "" {
+			idConv, errConv := strconv.Atoi(competence)
+			if errConv != nil {
+				fmt.Printf("Erreur conversion idCompetence : %v", errConv)
+				http.Error(response, "Compétence invalide", http.StatusBadRequest)
+				return
+			}
+			idCompetence = sql.NullInt64{Int64: int64(idConv), Valid: true}
+		}
+
+		_, errInsert := database.Exec(`INSERT INTO service (nom, description, id_competence, statut, id_agence) VALUES ($1, $2, $3, $4, $5)`, nom, description, idCompetence, statut, idAgence)
+		if errInsert != nil {
+			fmt.Printf("Erreur : %v", errInsert)
+			http.Error(response, "Erreur insert service", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Service crée avec succès !")
+		http.Redirect(response, request, "/admin-agence/services", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func FormModifyService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		idServiceStr := request.URL.Query().Get("id")
+		if idServiceStr == "" {
+			http.Error(response, "ID service manquant", http.StatusBadRequest)
+			return
+		}
+
+		idService, errConv := strconv.Atoi(idServiceStr)
+		if errConv != nil {
+			http.Error(response, "ID service invalide", http.StatusBadRequest)
+			return
+		}
+
+		var service models.ServiceModifierData
+		var description sql.NullString
+		var idCompetence sql.NullInt64
+
+		errRow := database.QueryRow(`
+			SELECT id_service, nom, description, id_competence, statut
+			FROM service
+			WHERE id_service = $1 AND id_agence = $2
+		`, idService, idAgence).Scan(&service.IDService, &service.Nom, &description, &idCompetence, &service.Statut)
+
+		if errRow == sql.ErrNoRows {
+			http.Error(response, "Service introuvable", http.StatusNotFound)
+			return
+		}
+		if errRow != nil {
+			fmt.Printf("Erreur : %v", errRow)
+			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
+			return
+		}
+
+		if description.Valid {
+			service.Description = description.String
+		}
+		if idCompetence.Valid {
+			service.IDCompetence = int(idCompetence.Int64)
+		}
+
+		rowsCompetences, errQuery := database.Query(`SELECT id_competence, nom FROM competence ORDER BY nom`)
+		if errQuery != nil {
+			fmt.Printf("Erreur : %v", errQuery)
+			http.Error(response, "Erreur récupération des compétences", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCompetences.Close()
+
+		for rowsCompetences.Next() {
+
+			var competence models.Competence
+
+			if errScan := rowsCompetences.Scan(&competence.IDCompetence, &competence.Nom); errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan compétence", http.StatusInternalServerError)
+				return
+			}
+			service.Competences = append(service.Competences, competence)
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/modifier_service.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsage fichier", http.StatusInternalServerError)
+			return
+		}
+
+		if errExec := tmpl.Execute(response, service); errExec != nil {
+			fmt.Printf("Erreur exécution template : %v", errExec)
+		}
+
+	}, "ADMIN_AGENCE")
+}
+
+func ModifierService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			fmt.Printf("Erreur : %v", errAgence)
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idService := request.FormValue("id_service")
+		if idService == "" {
+			http.Error(response, "ID service manquant", http.StatusBadRequest)
+			return
+		}
+
+		nom := request.FormValue("nom")
+		description := request.FormValue("description")
+		competence := request.FormValue("competence")
+		statut := request.FormValue("statut")
+
+		var idCompetence sql.NullInt64
+		if competence != "" {
+			idConv, errConv := strconv.Atoi(competence)
+			if errConv != nil {
+				fmt.Printf("Erreur conversion idCompetence : %v", errConv)
+				http.Error(response, "Compétence invalide", http.StatusBadRequest)
+				return
+			}
+			idCompetence = sql.NullInt64{Int64: int64(idConv), Valid: true}
+		}
+
+		_, errExec := database.Exec(`UPDATE service SET 
+										nom = COALESCE(NULLIF($1, ''), nom),
+										description = COALESCE(NULLIF($2, ''), description),
+										id_competence = $3,
+										statut = COALESCE(NULLIF($4, ''), statut)
+									WHERE id_service = $5 AND id_agence = $6
+		`, nom, description, idCompetence, statut, idService, idAgence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur modification service", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(response, request, "/admin-agence/services", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DeleteService(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			http.Error(response, "Données de formulaire invalides", http.StatusBadRequest)
+			return
+		}
+
+		idService := request.FormValue("id_service")
+		if idService == "" {
+			http.Error(response, "ID manquant", http.StatusBadRequest)
+			return
+		}
+
+		fmt.Println("ID Service :", idService)
+		fmt.Println("ID Agence :", idAgence)
+
+		result, errExec := database.Exec(`DELETE FROM service WHERE id_service = $1 AND id_agence = $2`, idService, idAgence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur suppression service", http.StatusInternalServerError)
+			return
+		}
+
+		nbLignes, err := result.RowsAffected()
+		if err != nil {
+			fmt.Printf("Erreur RowsAffected : %v\n", err)
+			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			return
+		}
+
+		if nbLignes == 0 {
+			http.Error(response, "Aucun service trouvé", http.StatusNotFound)
+			return
+		}
+
+		fmt.Println("Service supprimé avec succès !")
+		response.WriteHeader(http.StatusOK)
+
+	}, "ADMIN_AGENCE")
 }

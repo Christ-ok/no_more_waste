@@ -251,3 +251,65 @@ func ModificationMotDePasseAdherent(database *sql.DB) http.HandlerFunc {
 
 	}, "ADHERENT")
 }
+
+func DashboardAdherentServices(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
+		if agenceErr != nil {
+			fmt.Printf("Erreur : %v", agenceErr)
+			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+			return
+		}
+
+		rowsServices, servicesErr := database.Query(`SELECT id_service, nom, description, statut FROM service WHERE id_agence = $1 AND statut = 'ACTIF'`, idAgence)
+		if servicesErr != nil {
+			fmt.Printf("Erreur : %v", servicesErr)
+			http.Error(response, "Erreur récupération services", http.StatusInternalServerError)
+			return
+		}
+		defer rowsServices.Close()
+
+		var services_List []models.Service
+
+		for rowsServices.Next() {
+
+			var service models.Service
+
+			errQuery := rowsServices.Scan(&service.ID_Service, &service.Nom, &service.Description, &service.Statut)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur Scan des services", http.StatusInternalServerError)
+				return
+			}
+
+			services_List = append(services_List, service)
+		}
+
+		data := AdminAgenceDashboardServicesAfficher{
+			Services: services_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/adherent/services.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
+			http.Error(response, "Erreur parsage fichier", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADHERENT")
+}

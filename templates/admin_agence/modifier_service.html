@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modifier un service — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+</head>
+<body class="dash-body">
+
+<!--
+  Données attendues côté Go (html/template) :
+
+  type ServiceModifierData struct {
+      IDService    int
+      Nom          string
+      Description  string
+      IDCompetence int                  // 0 si aucune compétence requise
+      Statut       string
+      Competences  []models.Competence  // IDCompetence, Nom
+  }
+-->
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Collectes</a>
+        <a href="#" class="nav-item">Stocks</a>
+        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/services" class="nav-item is-active">Services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration agence</span>
+        <h1>Modifier un service</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Modifiez les informations du service. Un champ laissé vide conserve sa valeur actuelle.</p>
+
+      <div class="panel panel-form panel-form-edit">
+        <h2>{{.Nom}}</h2>
+        <p>Modifiez uniquement les champs concernés.</p>
+
+        <form action="/admin-agence/services/modifier" method="POST">
+          <input type="hidden" name="id_service" value="{{.IDService}}">
+
+          <div class="form-group">
+            <label for="nom">Nom du service</label>
+            <input type="text" id="nom" name="nom" value="{{.Nom}}">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <input type="text" id="description" name="description" value="{{.Description}}">
+          </div>
+
+          <div class="form-group">
+            <label for="competence">Compétence requise</label>
+            <select id="competence" name="competence">
+              <option value="" {{if eq .IDCompetence 0}}selected{{end}}>Aucune compétence requise</option>
+              {{range .Competences}}
+              <option value="{{.IDCompetence}}" {{if eq .IDCompetence $.IDCompetence}}selected{{end}}>{{.Nom}}</option>
+              {{end}}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="statut">Statut</label>
+            <select id="statut" name="statut">
+              <option value="ACTIF" {{if eq .Statut "ACTIF"}}selected{{end}}>Actif</option>
+              <option value="INACTIF" {{if eq .Statut "INACTIF"}}selected{{end}}>Inactif</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i>
+              Enregistrer les modifications
+            </button>
+            <a href="/admin-agence/services" class="btn btn-secondary">Annuler</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
