@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services disponibles — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/adherent/adherent.css">
+</head>
+<body>
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Espace adhérent</span>
+
+    <nav class="sidebar-nav">
+      <a href="/adherent" class="nav-item">Tableau de bord</a>
+      <a href="/adherent/services" class="nav-item is-active">Services disponibles</a>
+      <a href="/adherent/inscriptions" class="nav-item">Mes inscriptions</a>
+      <a href="/adherent/adhesion" class="nav-item">Mon adhésion</a>
+      <a href="/adherent/profil" class="nav-item">Mon profil</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Espace adhérent</span>
+        <h1>Services disponibles</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Découvrez les services proposés par votre agence et inscrivez-vous à ceux qui vous intéressent.</p>
+
+      <div class="panel panel-table">
+        {{if .Services}}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nom</th>
+              <th>Description</th>
+              <th>Statut</th>
+              <th>Inscription</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Services}}
+            <tr>
+              <td>{{.ID_Service}}</td>
+              <td class="cell-strong">{{.Nom}}</td>
+              <td>{{if .Description}}{{.Description}}{{else}}—{{end}}</td>
+              <td>
+                <span class="cell-statut statut-{{.Statut}}">
+                  {{if eq .Statut "ACTIF"}}Actif{{else}}Inactif{{end}}
+                </span>
+              </td>
+              <td>
+                {{if eq .Statut "ACTIF"}}
+                <a href="/adherent/services/inscription?id={{.ID_Service}}" class="btn btn-primary btn-sm">Rejoindre</a>
+                {{else}}
+                <span class="cell-muted">Indisponible</span>
+                {{end}}
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun service n'est disponible pour le moment.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

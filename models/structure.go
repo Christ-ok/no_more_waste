@@ -167,3 +167,20 @@ type PlanningAfficheDashboard struct {
 	Heure_Fin   time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut      string    `json:"statut" db:"statut"`
 }
+
+type Service struct {
+	ID_Service  int    `json:"id_service" db:"id_service"`
+	Nom         string `json:"nom" db:"nom"`
+	Description string `json:"description" db:"description"`
+	Competence  string `json:"competence" db:"competence"`
+	Statut      string `json:"statut" db:"statut"`
+}
+
+type ServiceModifierData struct {
+	IDService    int
+	Nom          string
+	Description  string
+	IDCompetence int
+	Statut       string
+	Competences  []Competence
+}
