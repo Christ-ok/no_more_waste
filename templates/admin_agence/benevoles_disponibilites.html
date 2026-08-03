@@ -88,6 +88,7 @@
 
                             <td>
                                 <form action="/admin-agence/demandes-services/attribuer" method="POST">
+                                    <input type="hidden" name="id_demande" value="{{$.ID_Demande}}">
                                     <input type="hidden" name="id_planning" value="{{.ID_Planning}}">
                                     <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
                                     <button type="submit" class="btn btn-primary btn-sm">Attribuer</button>

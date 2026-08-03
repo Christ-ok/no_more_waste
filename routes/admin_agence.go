@@ -37,6 +37,7 @@ type AdminAgenceDashboardDemandeService struct {
 
 type AdminAgenceBenevolesDisponibilites struct {
 	Benevoles_Disponibilites []models.DemandeServiceDashboard
+	ID_Demande               int
 }
 
 type AdminAgenceBenevoleDocument struct {
@@ -1256,6 +1257,7 @@ func PageAffectationBenevoleService(database *sql.DB) http.HandlerFunc {
 
 		data := AdminAgenceBenevolesDisponibilites{
 			Benevoles_Disponibilites: benevolesDisponibilites_List,
+			ID_Demande:               idDemande,
 		}
 
 		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites.html")
@@ -1433,6 +1435,115 @@ func RejeterBenevole(database *sql.DB) http.HandlerFunc {
 		}
 
 		http.Redirect(response, request, "/admin-agence/benevoles/documents", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func AttributionDemandeServicePlanningBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("id_demande :", request.FormValue("id_demande"))
+		fmt.Println("id_planning :", request.FormValue("id_planning"))
+		fmt.Println("id_benevole :", request.FormValue("id_benevole"))
+
+		idPlanning, errPlanning := strconv.Atoi(request.FormValue("id_planning"))
+		if errPlanning != nil {
+			fmt.Printf("Erreur : %v", errPlanning)
+			http.Error(response, "ID Planning vide", http.StatusInternalServerError)
+			return
+		}
+
+		idBenevole, errBenevole := strconv.Atoi(request.FormValue("id_benevole"))
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "ID Benevole vide", http.StatusInternalServerError)
+			return
+		}
+
+		idDemande, errDemande := strconv.Atoi(request.FormValue("id_demande"))
+		if errDemande != nil {
+			fmt.Printf("Erreur : %v", errDemande)
+			http.Error(response, "ID demande vide", http.StatusBadRequest)
+			return
+		}
+
+		tx, txErr := database.Begin()
+		if txErr != nil {
+			fmt.Printf("Erreur : %v", txErr)
+			http.Error(response, "Erreur ouverture transaction", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		result, errExec := tx.Exec(`UPDATE demande_service ds SET 
+										id_benevole = $1,
+										id_planning = $2,
+										statut = 'ATTRIBUE'
+									 FROM service s
+										WHERE ds.id_service = s.id_service
+										AND ds.id_demande_service = $3
+										AND s.id_agence = $4
+		`, idBenevole, idPlanning, idDemande, idAgence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur attribution planning et bénévole", http.StatusInternalServerError)
+			return
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			http.Error(response, "Demande introuvable", http.StatusNotFound)
+			return
+		}
+
+		resultPlanning, errUpdatePlanning := tx.Exec(`UPDATE planning SET statut = 'ATTRIBUE' WHERE id_planning = $1`, idPlanning)
+		if errUpdatePlanning != nil {
+			fmt.Printf("Erreur : %v", errUpdatePlanning)
+			http.Error(response, "Erreur update planning", http.StatusInternalServerError)
+			return
+		}
+
+		rowsPlanning, _ := resultPlanning.RowsAffected()
+
+		if rowsPlanning == 0 {
+			http.Error(response, "Planning introuvable", http.StatusNotFound)
+			return
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			fmt.Printf("Erreur : %v", errCommit)
+			http.Error(response, "Erreur commit transaction", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Demande de service attribué avec succès !")
+		http.Redirect(response, request, "/admin-agence/demande-services", http.StatusSeeOther)
 
 	}, "ADMIN_AGENCE")
 }
