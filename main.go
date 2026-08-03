@@ -70,6 +70,10 @@ func main() {
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
+	http.HandleFunc("GET /admin-agence/benevoles/documents", routes.DashboardAdminAgenceDocumentsBenevoles(db.DB))
+	http.HandleFunc("GET /admin-agence/benevoles/documents/voir", routes.VoirDocumentBenevole(db.DB))
+	http.HandleFunc("POST /admin-agence/benevoles/valider", routes.ValiderBenevole(db.DB))
+	http.HandleFunc("POST /admin-agence/benevoles/rejeter", routes.RejeterBenevole(db.DB))
 	http.HandleFunc("GET /admin-agence/planning/creer", routes.FormCreatePlanning(db.DB))
 	http.HandleFunc("POST /admin-agence/planning/creer", routes.DashboardAdminAgenceCreerPlanning(db.DB))
 	http.HandleFunc("GET /admin-agence/planning", routes.DashboardAdminAgenceAfficherPlanning(db.DB))
@@ -93,6 +97,9 @@ func main() {
 	http.HandleFunc("POST /stripe/webhook", routes.StripeWebhookAdhesion(db.DB, os.Getenv("STRIPE_WEBHOOK_SECRET")))
 	http.HandleFunc("GET /adherent/services", routes.DashboardAdherentServices(db.DB))
 	http.HandleFunc("POST /adherent/services/rejoindre", routes.RejoindreServiceAdherent(db.DB))
+
+	uploadsFs := http.FileServer(http.Dir("./uploads"))
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))
 
 	fmt.Println("Serveur lancé")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

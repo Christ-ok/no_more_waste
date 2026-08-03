@@ -57,7 +57,7 @@
             <p class="dash-subtitle">Sélectionnez un bénévole disponible et un créneau adapté afin d'attribuer cette demande de service.</p>
 
             <div class="panel panel-table">
-                {{if .BenevolesDispo}}
+                {{if .Benevoles_Disponibilites}}
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -71,11 +71,11 @@
                     </thead>
 
                     <tbody>
-                        {{range .BenevolesDispo}}
+                        {{range .Benevoles_Disponibilites}}
                         <tr data-planning-id="{{.ID_Planning}}">
                             <td>{{.ID_Benevole}}</td>
                             <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
-                            <td>{{.Date.Format "02-01-2006"}}</td>
+                            <td>{{.Date_Planning.Format "02-01-2006"}}</td>
 
                             <td>
                                 {{.Heure_Debut.Format "15:04"}} -
@@ -90,7 +90,7 @@
                                 <form action="/admin-agence/demandes-services/attribuer" method="POST">
                                     <input type="hidden" name="id_planning" value="{{.ID_Planning}}">
                                     <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
-                                    <button type="submit"class="btn btn-primary btn-sm">Attribuer</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Attribuer</button>
                                 </form>
                             </td>
                         </tr>
@@ -109,7 +109,7 @@
                         </p>
 
                         <br>
-                        
+
                         <a href="/admin-agence/demande-services"
                         class="btn btn-secondary">
                             Retour aux demandes
