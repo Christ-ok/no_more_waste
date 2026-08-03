@@ -206,7 +206,16 @@ type DemandeServiceDashboard struct {
 	Prenom        string    `json:"prenom" db:"prenom"`
 	ID_Planning   int       `json:"id_planning" db:"id_planning"`
 	Date_Planning time.Time `json:"date_planning" db:"date_planning"`
-	Heure_Debut   time.Time `json:"heure_debut" db:"heure_fin"`
+	Heure_Debut   time.Time `json:"heure_debut" db:"heure_debut"`
 	Heure_Fin     time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut        string    `json:"statut" db:"statut"`
+}
+
+type BenevoleDocument struct {
+	ID_Benevole    int    `json:"id_utilisateur" db:"id_utilisateur"`
+	Nom            string `json:"nom" db:"nom"`
+	Prenom         string `json:"prenom" db:"prenom"`
+	Nom_Competence string `json:"nom_competence" db:"nom_competence"`
+	Statut         string `json:"statut" db:"statut"`
+	Justificatif   string `json:"justificatif" db:"justificatif"`
 }

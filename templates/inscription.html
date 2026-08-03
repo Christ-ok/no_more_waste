@@ -44,7 +44,7 @@
       <h1>Créer mon compte</h1>
       <p class="auth-lead">Quelques informations suffisent pour commencer.</p>
 
-      <form class="auth-form" action="/inscription" method="POST">
+      <form class="auth-form" action="/inscription" method="POST" enctype="multipart/form-data">
 
         <div class="field-row">
           <div class="field">
@@ -127,15 +127,19 @@
           </label>
 
           <div class="field">
-            <span class="field-label-standalone">Compétences</span>
-            <div class="competence-grid">
+            <label for="competence">Compétence</label>
+            <select id="competence" name="competence" required>
+              <option value="" disabled selected>Choisir une compétence</option>
               {{range .Competences}}
-              <label class="checkbox-field">
-                <input type="checkbox" name="competences" value="{{.IDCompetence}}">
-                <span>{{.Nom}}</span>
-              </label>
+              <option value="{{.IDCompetence}}">{{.Nom}}</option>
               {{end}}
-            </div>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="justificatif">Justificatif de compétence (PDF)</label>
+            <input type="file" id="justificatif" name="justificatif" accept="application/pdf" data-required="true">
+            <span class="field-hint">Ex : permis de conduire pour la compétence Chauffeur.</span>
           </div>
 
           <p class="role-fields-note">Vous pourrez renseigner vos disponibilités depuis votre espace bénévole une fois votre compte créé.</p>
@@ -158,29 +162,6 @@
           </div>
         </div>
 
-        <div class="role-fields" data-role="ASSOCIATION" hidden>
-          <div class="field-row">
-            <div class="field">
-              <label for="nom_responsable">Nom du responsable</label>
-              <input type="text" id="nom_responsable" name="nom_responsable" placeholder="Prénom Nom" data-required="true">
-            </div>
-            <div class="field">
-              <label for="nom_association">Nom de l'association</label>
-              <input type="text" id="nom_association" name="nom_association" placeholder="Ex : Restos du Cœur" data-required="true">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label for="type_association">Type d'association</label>
-              <input type="text" id="type_association" name="type_association" placeholder="Ex : aide alimentaire">
-            </div>
-            <div class="field">
-              <label for="nombre_beneficiaires">Nombre de bénéficiaires</label>
-              <input type="number" id="nombre_beneficiaires" name="nombre_beneficiaires" min="0" placeholder="Ex : 50">
-            </div>
-          </div>
-        </div>
-
         <label class="checkbox-field">
           <input type="checkbox" name="cgu" required>
           <span>J'accepte les conditions d'utilisation de NO MORE WASTE.</span>
@@ -190,9 +171,6 @@
       </form>
 
       <script>
-        // Affiche uniquement les champs correspondant au rôle sélectionné,
-        // et ne rend "required" que les champs visibles (sinon le navigateur
-        // bloquerait la soumission sur des champs cachés).
         const selectRole = document.getElementById("role");
         const blocsRole = document.querySelectorAll(".role-fields");
 

@@ -39,6 +39,10 @@ type AdminAgenceBenevolesDisponibilites struct {
 	Benevoles_Disponibilites []models.DemandeServiceDashboard
 }
 
+type AdminAgenceBenevoleDocument struct {
+	Benevoles_Documents []models.BenevoleDocument
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -1261,7 +1265,174 @@ func PageAffectationBenevoleService(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		if errExec := tmpl.Execute(response, data); errExec != nil {
+			fmt.Printf("Erreur exécutio template : %v", errExec)
+		}
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceDocumentsBenevoles(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rows, errRows := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, c.nom , b.statut, b.justificatif FROM benevole b
+											JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+											LEFT JOIN competence c ON c.id_competence = b.id_competence
+										WHERE u.id_agence = $1	
+		`, idAgence)
+		if errRows != nil {
+			fmt.Printf("Erreur : %v", errRows)
+			http.Error(response, "Erreur récupération documents", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var benevolesDocuments_List []models.BenevoleDocument
+
+		for rows.Next() {
+			var benevoleDocument models.BenevoleDocument
+			var justificatif sql.NullString
+
+			errQuery := rows.Scan(&benevoleDocument.ID_Benevole,
+				&benevoleDocument.Nom,
+				&benevoleDocument.Prenom,
+				&benevoleDocument.Nom_Competence,
+				&benevoleDocument.Statut,
+				&justificatif,
+			)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur Scan", http.StatusInternalServerError)
+				return
+			}
+
+			if justificatif.Valid {
+				benevoleDocument.Justificatif = justificatif.String
+			}
+
+			benevolesDocuments_List = append(benevolesDocuments_List, benevoleDocument)
+		}
+
+		data := AdminAgenceBenevoleDocument{
+			Benevoles_Documents: benevolesDocuments_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/benevoles_documents.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parse file html", http.StatusInternalServerError)
+			return
+		}
+
 		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func VoirDocumentBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		id := request.URL.Query().Get("id")
+		if id == "" {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var chemin string
+
+		err := database.QueryRow(`
+            SELECT justificatif
+            FROM benevole
+            WHERE id_benevole = $1
+        `, id).Scan(&chemin)
+
+		if err != nil {
+			http.Error(response, "Document introuvable", http.StatusNotFound)
+			return
+		}
+
+		http.ServeFile(response, request, chemin)
+
+	}, "ADMIN_AGENCE")
+}
+
+func ValiderBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		if err := request.ParseForm(); err != nil {
+			http.Error(response, "Requête invalide", http.StatusBadRequest)
+			return
+		}
+
+		idBenevole := request.FormValue("id_benevole")
+		if idBenevole == "" {
+			http.Error(response, "ID bénévole manquant", http.StatusBadRequest)
+			return
+		}
+
+		_, err := database.Exec(`
+			UPDATE benevole
+			SET statut = 'VALIDE'
+			WHERE id_benevole = $1
+		`, idBenevole)
+
+		if err != nil {
+			fmt.Printf("Erreur validation bénévole : %v\n", err)
+			http.Error(response, "Erreur lors de la validation", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(response, request, "/admin-agence/benevoles/documents", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func RejeterBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		if err := request.ParseForm(); err != nil {
+			http.Error(response, "Requête invalide", http.StatusBadRequest)
+			return
+		}
+
+		idBenevole := request.FormValue("id_benevole")
+		if idBenevole == "" {
+			http.Error(response, "ID bénévole manquant", http.StatusBadRequest)
+			return
+		}
+
+		_, err := database.Exec(`
+			UPDATE benevole
+			SET statut = 'REFUSE'
+			WHERE id_benevole = $1
+		`, idBenevole)
+
+		if err != nil {
+			fmt.Printf("Erreur rejet bénévole : %v\n", err)
+			http.Error(response, "Erreur lors du rejet", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(response, request, "/admin-agence/benevoles/documents", http.StatusSeeOther)
 
 	}, "ADMIN_AGENCE")
 }

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents bénévoles — NO MORE WASTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/admin_general/adminGeneral.css">
+    <style>
+        .actions .icon-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: 0.2s ease;
+        }
+
+        .actions .icon-btn i {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .actions .btn-success {
+            background: #16A34A;
+        }
+
+        .actions .btn-success:hover {
+            background: #15803D;
+            transform: translateY(-2px) scale(1.08);
+        }
+
+        .actions .btn-danger {
+            background: #DC2626;
+        }
+
+        .actions .btn-danger:hover {
+            background: #B91C1C;
+            transform: translateY(-2px) scale(1.08);
+        }
+    </style>
+
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="/" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Collectes</a>
+        <a href="#" class="nav-item">Stocks</a>
+        <a href="#" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/benevoles/documents" class="nav-item is-active">Documents bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
+        <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+    </div>
+
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration agence</span>
+        <h1>Documents bénévoles</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Consultez le justificatif de compétence de chaque bénévole avant de valider ou refuser son inscription.</p>
+
+      <div class="panel panel-table">
+          <table class="data-table">
+              <thead>
+                  <tr>
+                      <th>ID</th>
+                      <th>Bénévole</th>
+                      <th>Compétence déclarée</th>
+                      <th>Justificatif</th>
+                      <th>Statut</th>
+                      <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        {{if .Benevoles_Documents}}
+            {{range .Benevoles_Documents}}
+            <tr data-benevole-id="{{.ID_Benevole}}">
+              <td>{{.ID_Benevole}}</td>
+              <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
+              <td>{{.Nom_Competence}}</td>
+              <td>
+                {{if .Justificatif}}
+                <a href="/admin-agence/benevoles/documents/voir?id={{.ID_Benevole}}" target="_blank" class="icon-btn" title="Voir le justificatif PDF">
+                  <i class="fa-solid fa-file-pdf"></i>
+                </a>
+                {{else}}
+                —
+                {{end}}
+              </td>
+
+              <td>
+                {{if eq .Statut "EN_ATTENTE"}}
+                    <span class="cell-statut statut-attente">En attente</span>
+                {{else if eq .Statut "VALIDE"}}
+                    <span class="cell-statut statut-valide">Validé</span>
+                {{else}}
+                    <span class="cell-statut statut-refuse">Refusé</span>
+                {{end}}
+              </td>
+
+              <td>
+                <div class="actions">
+
+                    {{if eq .Statut "EN_ATTENTE"}}
+
+                        <form action="/admin-agence/benevoles/valider" method="POST">
+                            <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
+                            <button type="submit" class="icon-btn btn-success" title="Valider">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+
+                        <form action="/admin-agence/benevoles/rejeter" method="POST">
+                            <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
+                            <button type="submit" class="icon-btn btn-danger" title="Refuser">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </form>
+
+                    {{else if eq .Statut "VALIDE"}}
+
+                        <form action="/admin-agence/benevoles/rejeter" method="POST">
+                            <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
+                            <button type="submit" class="icon-btn btn-danger" title="Refuser">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </form>
+
+                    {{else}}
+
+                        <form action="/admin-agence/benevoles/valider" method="POST">
+                            <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
+                            <button type="submit" class="icon-btn btn-success" title="Valider">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                    {{end}}
+                </div>
+            </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucun bénévole à valider pour le moment.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>

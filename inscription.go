@@ -4,10 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
-	"strconv"
-
 	"no_more_waste/models"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -93,8 +96,8 @@ func getCompetences(database *sql.DB) ([]models.Competence, error) {
 func Signin(database *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 
-		if err := request.ParseForm(); err != nil {
-			http.Error(response, "Formulaire invalide", http.StatusBadRequest)
+		if err := request.ParseMultipartForm(10 << 20); err != nil {
+			http.Error(response, "Formulaire invalide ou fichier trop volumineux (max 10 Mo)", http.StatusBadRequest)
 			return
 		}
 
@@ -173,28 +176,41 @@ func insertProfilRole(tx *sql.Tx, request *http.Request, roleNom string, idUtili
 	case "BENEVOLE":
 		permis := request.FormValue("permis") == "on"
 
-		var idBenevole int
-		err := tx.QueryRow(
-			`INSERT INTO benevole (id_utilisateur, permis) VALUES ($1, $2) RETURNING id_benevole`,
-			idUtilisateur, permis,
-		).Scan(&idBenevole)
-		if err != nil {
-			return err
+		idCompetence, errConv := strconv.Atoi(request.FormValue("competence"))
+		if errConv != nil {
+			return fmt.Errorf("Compétence invalide")
 		}
 
-		for _, idCompetenceStr := range request.Form["competences"] {
-			idCompetence, err := strconv.Atoi(idCompetenceStr)
-			if err != nil {
-				continue
-			}
-			if _, err := tx.Exec(
-				`INSERT INTO benevole_competence (id_benevole, id_competence) VALUES ($1, $2)`,
-				idBenevole, idCompetence,
-			); err != nil {
-				return err
-			}
+		file, header, errFile := request.FormFile("justificatif")
+		if errFile != nil {
+			fmt.Printf("Erreur : %v", errFile)
 		}
-		return nil
+		defer file.Close()
+
+		extension := strings.ToLower(filepath.Ext(header.Filename))
+		if extension != ".pdf" {
+			return fmt.Errorf("Le justificatid doit etre un fichier PDF")
+		}
+
+		if errDir := os.MkdirAll("./uploads", os.ModePerm); errDir != nil {
+			return fmt.Errorf("Erreur création dossier uploads : %w", errDir)
+		}
+
+		path := filepath.Join("./uploads", fmt.Sprintf("%d.pdf", idUtilisateur))
+
+		out, errCreate := os.Create(path)
+		if errCreate != nil {
+			return fmt.Errorf("Erreur création fichier : %w", errCreate)
+		}
+		defer out.Close()
+
+		if _, errCopy := io.Copy(out, file); errCopy != nil {
+			return fmt.Errorf("Erreur écriture fichier : %w", errCopy)
+		}
+
+		_, err := tx.Exec(`INSERT INTO benevole (id_utilisateur, permis, id_competence, justificatif) VALUES ($1, $2, $3, $4)`, idUtilisateur, permis, idCompetence, path)
+
+		return err
 
 	case "COMMERCANT":
 		_, err := tx.Exec(
@@ -214,19 +230,6 @@ func insertProfilRole(tx *sql.Tx, request *http.Request, roleNom string, idUtili
 		}
 
 		_, err = tx.Exec(`INSERT INTO adherent (id_utilisateur, id_agence, statut) VALUES ($1, $2, 'EN_ATTENTE')`, idUtilisateur, idAgence)
-		return err
-
-	case "ASSOCIATION":
-		nombreBeneficiaires, _ := strconv.Atoi(request.FormValue("nombre_beneficiaires"))
-		_, err := tx.Exec(
-			`INSERT INTO association_beneficiaire (id_utilisateur, nom_responsable, nom_association, nombre_beneficiaires, type_association)
-			 VALUES ($1, $2, $3, $4, $5)`,
-			idUtilisateur,
-			request.FormValue("nom_responsable"),
-			request.FormValue("nom_association"),
-			nombreBeneficiaires,
-			request.FormValue("type_association"),
-		)
 		return err
 
 	default:
