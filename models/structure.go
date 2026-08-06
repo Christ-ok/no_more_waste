@@ -190,6 +190,8 @@ type DemandeService struct {
 	Nom_Service        string    `json:"nom_service" db:"nom_service"`
 	Nom_Adherent       string    `json:"nom_adherent" db:"nom_adherent"`
 	Prenom_Adherent    string    `json:"prenom_adherent" db:"prenom_adherent"`
+	Nom_Benevole       string    `json:"nom" db:"nom"`
+	Prenom_Benevole    string    `json:"prenom" db:"prenom"`
 	Date_Demande       time.Time `json:"date_demande" db:"date_demande"`
 	Statut             string    `json:"statut" db:"statut"`
 }

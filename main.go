@@ -98,6 +98,8 @@ func main() {
 	http.HandleFunc("POST /stripe/webhook", routes.StripeWebhookAdhesion(db.DB, os.Getenv("STRIPE_WEBHOOK_SECRET")))
 	http.HandleFunc("GET /adherent/services", routes.DashboardAdherentServices(db.DB))
 	http.HandleFunc("POST /adherent/services/rejoindre", routes.RejoindreServiceAdherent(db.DB))
+	http.HandleFunc("GET /adherent/services/rejoint", routes.AfficherServiceRejointAdherent(db.DB))
+	http.HandleFunc("GET /adherent/services/historique", routes.HistoriqueServiceAdherent(db.DB))
 
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))
