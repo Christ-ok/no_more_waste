@@ -86,6 +86,7 @@ func main() {
 	http.HandleFunc("GET /admin-agence/services/modifier", routes.FormModifyService(db.DB))
 	http.HandleFunc("POST /admin-agence/services/modifier", routes.ModifierService(db.DB))
 	http.HandleFunc("DELETE /admin-agence/services/supprimer", routes.DeleteService(db.DB))
+	http.HandleFunc("GET /admin-agence/services/historique", routes.HistoriqueServicesRealises(db.DB))
 	http.HandleFunc("GET /admin-agence/demande-services", routes.DashboardAdminAgenceDemandesServices(db.DB))
 	http.HandleFunc("GET /admin-agence/demandes-services/affectation", routes.PageAffectationBenevoleService(db.DB))
 	http.HandleFunc("POST /admin-agence/demandes-services/attribuer", routes.AttributionDemandeServicePlanningBenevole(db.DB))
