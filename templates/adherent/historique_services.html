@@ -4,14 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Mes demandes de services — NO MORE WASTE</title>
-
+    <title>Historique des services — NO MORE WASTE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="/adherent/adherent.css">
 </head>
 
@@ -33,14 +29,16 @@
         <nav class="sidebar-nav">
             <a href="/adherent" class="nav-item">Tableau de bord</a>
             <a href="/adherent/services" class="nav-item">Services disponibles</a>
-            <a href="/adherent/services/rejoint" class="nav-item is-active">Services Demandés</a>
-            <a href="/adherent/services/historique" class="nav-item">Historique Services</a>
+            <a href="/adherent/services/rejoint" class="nav-item">Mes demandes</a>
+            <a href="/adherent/services/historique" class="nav-item is-active">Historique</a>
             <a href="/adherent/adhesion" class="nav-item">Mon adhésion</a>
             <a href="/adherent/profil" class="nav-item">Mon profil</a>
         </nav>
 
         <div class="sidebar-footer">
-            <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
+            <a href="/logout" class="btn btn-ghost btn-block">
+                Déconnexion
+            </a>
         </div>
 
     </aside>
@@ -50,7 +48,7 @@
             <div>
                 <span class="tag">Espace adhérent</span>
 
-                <h1>Mes demandes de services</h1>
+                <h1>Historique des services réalisés</h1>
             </div>
 
             <div class="topbar-user">
@@ -60,7 +58,7 @@
         </header>
 
         <main class="dash-content">
-            <p class="dash-subtitle">Retrouvez l'ensemble des demandes de services auxquelles vous avez souscrit ainsi que leur état d'avancement.</p>
+            <p class="dash-subtitle">Consultez l'historique de tous les services auxquels vous avez participé ainsi que le bénévole qui les a pris en charge.</p>
 
             <div class="panel panel-table">
                 {{if .Demandes}}
@@ -69,20 +67,21 @@
                         <tr>
                             <th>ID</th>
                             <th>Service</th>
-                            <th>Date de demande</th>
+                            <th>Date de Réalisation</th>
+                            <th>Réalisé par</th>
                             <th>Statut</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         {{range .Demandes}}
                         <tr>
                             <td>{{.ID_Demande_Service}}</td>
                             <td class="cell-strong">{{.Nom_Service}}</td>
                             <td>{{.Date_Demande.Format "02-01-2006"}}</td>
+                            <td>{{.Prenom_Benevole}} {{.Nom_Benevole}}</td>
                             <td>
                                 <span class="cell-statut statut-{{.Statut}}">
-                                    {{.Statut}}
+                                    Réalisé
                                 </span>
                             </td>
                         </tr>
@@ -90,9 +89,7 @@
                     </tbody>
                 </table>
                 {{else}}
-                <p class="table-empty">
-                    Vous n'avez encore rejoint aucun service.
-                </p>
+                <p class="table-empty">Aucun service n'apparaît encore dans votre historique.</p>
                 {{end}}
             </div>
         </main>

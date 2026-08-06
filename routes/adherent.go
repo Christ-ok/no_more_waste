@@ -374,8 +374,7 @@ func RejoindreServiceAdherent(database *sql.DB) http.HandlerFunc {
 	}, "ADHERENT")
 }
 
-/*
-func DashboardAdherentServicesRejoints(database *sql.DB) http.HandlerFunc {
+func AfficherServiceRejointAdherent(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
 		sess, sessErr := session.Store.Get(request, "nmw-session")
@@ -397,11 +396,119 @@ func DashboardAdherentServicesRejoints(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var idAdherent int
-		errQuery := database.QueryRow(`SELECT s.id_service, s.nom, s.description, s.statut FROM service s
-										JOIN demande_service ds ON s.id_service = ds.id_service
-		`)
+		servicesRejoints, serviceErr := database.Query(`SELECT ds.id_demande_service, s.nom, ds.date_demande, ds.statut FROM demande_service ds
+														JOIN service s ON s.id_service = ds.id_service
+														WHERE s.id_agence = $1
+		`, idAgence)
+		if serviceErr != nil {
+			fmt.Printf("Erreur : %v", serviceErr)
+			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
+			return
+		}
+		defer servicesRejoints.Close()
+
+		var servicesRejoints_List []models.DemandeService
+
+		for servicesRejoints.Next() {
+			var serviceRejoint models.DemandeService
+
+			errScan := servicesRejoints.Scan(&serviceRejoint.ID_Demande_Service,
+				&serviceRejoint.Nom_Service,
+				&serviceRejoint.Date_Demande,
+				&serviceRejoint.Statut)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan service", http.StatusInternalServerError)
+				return
+			}
+
+			servicesRejoints_List = append(servicesRejoints_List, serviceRejoint)
+		}
+
+		data := AdminAgenceDashboardDemandeService{
+			Demandes: servicesRejoints_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/adherent/services_rejoints.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
 
 	}, "ADHERENT")
 }
-*/
+
+func HistoriqueServiceAdherent(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
+		if agenceErr != nil {
+			fmt.Printf("Erreur : %v", agenceErr)
+			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+			return
+		}
+
+		serviceRendus, errService := database.Query(`SELECT ds.id_demande_service, s.nom, p.date, u.nom, u.prenom, ds.statut FROM demande_service ds
+													JOIN service s ON s.id_service = ds.id_service
+													JOIN planning p ON p.id_planning = ds.id_planning
+													JOIN benevole b ON ds.id_benevole = b.id_benevole
+													JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+													WHERE s.id_agence = $1
+		`, idAgence)
+		if errService != nil {
+			fmt.Printf("Erreur : %v", errService)
+			http.Error(response, "Erreur récupération data service", http.StatusInternalServerError)
+			return
+		}
+		defer serviceRendus.Close()
+
+		var serviceRendus_List []models.DemandeService
+
+		for serviceRendus.Next() {
+			var serviceRendu models.DemandeService
+
+			errScan := serviceRendus.Scan(&serviceRendu.ID_Demande_Service,
+				&serviceRendu.Nom_Service,
+				&serviceRendu.Date_Demande,
+				&serviceRendu.Nom_Benevole,
+				&serviceRendu.Prenom_Benevole,
+				&serviceRendu.Statut)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan service rendu", http.StatusInternalServerError)
+				return
+			}
+
+			serviceRendus_List = append(serviceRendus_List, serviceRendu)
+		}
+
+		data := AdminAgenceDashboardDemandeService{
+			Demandes: serviceRendus_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/adherent/historique_services.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parse html file", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADHERENT")
+}
