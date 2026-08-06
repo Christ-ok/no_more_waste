@@ -341,3 +341,76 @@ func DeleteDisponibilite(database *sql.DB) http.HandlerFunc {
 
 	}, "BENEVOLE")
 }
+
+func HistoriqueServiceRenduBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération id", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errQuery := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errQuery != nil {
+			fmt.Printf("Erreur : %v", errQuery)
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		rowsServices, errServices := database.Query(`SELECT ds.id_demande_service, s.nom, p.date, u.nom, u.prenom, ds.statut FROM demande_service ds
+													   JOIN service s ON s.id_service = ds.id_service
+													   JOIN planning p ON p.id_planning = ds.id_planning
+													   JOIN adherent a ON ds.id_adherent = a.id_adherent
+													   JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
+													 WHERE ds.id_benevole = $1
+		`, idBenevole)
+		if errServices != nil {
+			fmt.Printf("Erreur : %v", errServices)
+			http.Error(response, "Erreur récupération de services", http.StatusInternalServerError)
+			return
+		}
+		defer rowsServices.Close()
+
+		var serviceRendus_List []models.DemandeService
+
+		for rowsServices.Next() {
+			var serviceRendu models.DemandeService
+
+			errScan := rowsServices.Scan(&serviceRendu.ID_Demande_Service,
+				&serviceRendu.Nom_Service,
+				&serviceRendu.Date_Demande,
+				&serviceRendu.Nom_Adherent,
+				&serviceRendu.Prenom_Adherent,
+				&serviceRendu.Statut)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan service rendu", http.StatusInternalServerError)
+				return
+			}
+
+			serviceRendus_List = append(serviceRendus_List, serviceRendu)
+		}
+
+		data := AdminAgenceDashboardDemandeService{
+			Demandes: serviceRendus_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/historique_services.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
