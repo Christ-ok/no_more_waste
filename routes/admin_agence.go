@@ -1547,3 +1547,81 @@ func AttributionDemandeServicePlanningBenevole(database *sql.DB) http.HandlerFun
 
 	}, "ADMIN_AGENCE")
 }
+
+func HistoriqueServicesRealises(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsServices, errRows := database.Query(`SELECT ds.id_demande_service, s.nom, p.date, ua.nom, ua.prenom, ub.nom, ub.prenom, ds.statut FROM demande_service ds
+												  JOIN service s ON s.id_service = ds.id_service
+												  JOIN planning p ON p.id_planning = ds.id_planning
+												  JOIN adherent a ON ds.id_adherent = a.id_adherent
+												  JOIN utilisateur ua ON a.id_utilisateur = ua.id_utilisateur
+												  LEFT JOIN benevole b ON ds.id_benevole = b.id_benevole
+												  LEFT JOIN utilisateur ub ON b.id_utilisateur = ub.id_utilisateur
+												WHERE ua.id_agence = $1
+		`, idAgence)
+		if errRows != nil {
+			fmt.Printf("Erreur : %v", errRows)
+			http.Error(response, "Erreur récupération Services", http.StatusInternalServerError)
+			return
+		}
+		defer rowsServices.Close()
+
+		var services_List []models.DemandeService
+
+		for rowsServices.Next() {
+
+			var service models.DemandeService
+
+			errScan := rowsServices.Scan(&service.ID_Demande_Service,
+				&service.Nom_Service,
+				&service.Date_Demande,
+				&service.Nom_Adherent,
+				&service.Prenom_Adherent,
+				&service.Nom_Benevole,
+				&service.Prenom_Benevole,
+				&service.Statut,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan service", http.StatusInternalServerError)
+				return
+			}
+
+			services_List = append(services_List, service)
+		}
+
+		data := AdminAgenceDashboardDemandeService{
+			Demandes: services_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/historiques_services.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parseFile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
