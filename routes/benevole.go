@@ -14,6 +14,11 @@ type BenevoleDashboardDisponibilite struct {
 	Disponibilites []models.BenevoleDisponibilite
 }
 
+type BenevoleData struct {
+	Benevole   models.Utilisateur
+	Competence string
+}
+
 func PageDashboardBenevole(response http.ResponseWriter, request *http.Request) {
 	http.ServeFile(response, request, "templates/benevole/accueil_Benevole.html")
 }
@@ -407,6 +412,52 @@ func HistoriqueServiceRenduBenevole(database *sql.DB) http.HandlerFunc {
 		if errTmpl != nil {
 			fmt.Printf("Erreur : %v", errTmpl)
 			http.Error(response, "Erreur parsefile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
+
+func AfficherPageModifierProfilBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		var user models.Utilisateur
+		var competence_nom string
+
+		rowsErr := database.QueryRow(`SELECT u.nom, u.prenom, u.email, u.telephone, c.nom, u.ville, u.code_postal, u.pays FROM utilisateur u
+									  JOIN benevole b ON b.id_utilisateur = u.id_utilisateur
+									  JOIN competence c ON c.id_competence = b.id_competence
+									  WHERE b.id_utilisateur = $1
+		`, idUtilisateur).Scan(&user.Nom, &user.Prenom, &user.Email, &user.Telephone, &competence_nom, &user.Ville, &user.CodePostal, &user.Pays)
+		if rowsErr != nil {
+			fmt.Printf("Erreur : %v", rowsErr)
+			http.Error(response, "Erreur récupération valeurs bénévole", http.StatusInternalServerError)
+			return
+		}
+
+		data := BenevoleData{
+			Benevole:   user,
+			Competence: competence_nom,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/profil_benevole.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur prsefiles html", http.StatusInternalServerError)
 			return
 		}
 
