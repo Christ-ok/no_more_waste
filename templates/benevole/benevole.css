@@ -1202,3 +1202,43 @@ h1, h2, h3 {
   .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
   .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
 }
+
+.competence-card {
+display: flex;
+align-items: center;
+gap: 14px;
+margin-top: 20px;
+padding: 16px;
+background: var(--sage);
+border: 1px solid var(--sage-line);
+border-radius: 12px;
+}
+
+.competence-icon {
+display: grid;
+place-items: center;
+width: 42px;
+height: 42px;
+flex-shrink: 0;
+border-radius: 10px;
+background: var(--green-deep);
+color: var(--white);
+}
+
+.competence-card div {
+display: flex;
+flex-direction: column;
+gap: 3px;
+}
+
+.competence-card strong {
+font-size: .9rem;
+color: var(--green-deep);
+}
+
+.competence-card span:not(.competence-icon) {
+font-size: .75rem;
+color: var(--ink-soft);
+}
+
+

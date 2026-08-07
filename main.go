@@ -68,6 +68,7 @@ func main() {
 	http.HandleFunc("POST /benevole/disponibilite/modifier", routes.ModifierDisponibilite(db.DB))
 	http.HandleFunc("POST /benevole/disponibilite/supprimer", routes.DeleteDisponibilite(db.DB))
 	http.HandleFunc("GET /benevole/services/historique", routes.HistoriqueServiceRenduBenevole(db.DB))
+	http.HandleFunc("GET /benevole/profil", routes.AfficherPageModifierProfilBenevole(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
