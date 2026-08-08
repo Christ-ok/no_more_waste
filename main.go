@@ -108,6 +108,10 @@ func main() {
 	http.HandleFunc("GET /adherent/services/rejoint", routes.AfficherServiceRejointAdherent(db.DB))
 	http.HandleFunc("GET /adherent/services/historique", routes.HistoriqueServiceAdherent(db.DB))
 
+	http.HandleFunc("GET /commercant/profil", routes.AfficherPageModifierProfilCommercant(db.DB))
+	http.HandleFunc("POST /commercant/profil/modifier", routes.ModifierProfilCommercant(db.DB))
+	http.HandleFunc("POST /commercant/profil/mot-de-passe", routes.ModificationMotDePasseCommercant(db.DB))
+
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))
 
