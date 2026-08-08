@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	db "no_more_waste/database"
+	"no_more_waste/middleware"
 	"no_more_waste/routes"
 	"no_more_waste/session"
 	"os"
@@ -32,6 +33,7 @@ func main() {
 	http.HandleFunc("POST /inscription", Signin(db.DB))
 	http.HandleFunc("GET /connexion", PageConnexion)
 	http.HandleFunc("POST /connexion", Login(db.DB))
+	http.HandleFunc("POST /logout", middleware.Logout)
 
 	http.HandleFunc("GET /admin", PageAdminGeneral)
 	http.HandleFunc("GET /admin-agence", PageAdminAgence)

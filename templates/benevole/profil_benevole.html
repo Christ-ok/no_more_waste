@@ -12,7 +12,7 @@
 <body>
 <div class="dash-shell">
     <aside class="sidebar">
-        <a href="/" class="sidebar-logo">
+        <a href="#" class="sidebar-logo">
             <span class="sidebar-logo-mark">NMW</span>
             <span class="sidebar-logo-text">NO MORE WASTE</span>
         </a>
@@ -25,9 +25,11 @@
             <a href="/benevole/services/historique" class="nav-item">Services rendus</a>
             <a href="/benevole/profil" class="nav-item is-active">Mon profil</a>
         </nav>
-        <div class="sidebar-footer">
-            <a href="/logout" class="btn btn-ghost btn-block">Déconnexion</a>
-        </div>
+
+        <form action="/logout" method="POST" class="logout-form">
+            <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+        </form>        
+ 
     </aside>
 
 

@@ -877,3 +877,5 @@ h1, h2, h3 {
 .btn-success i{
     font-size:.9rem;
 }
+
+.logout-form { margin: 0; }
