@@ -8,6 +8,8 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type BenevoleDashboardDisponibilite struct {
@@ -462,6 +464,123 @@ func AfficherPageModifierProfilBenevole(database *sql.DB) http.HandlerFunc {
 		}
 
 		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
+
+func ModifierProfileBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		nom := request.FormValue("nom")
+		prenom := request.FormValue("prenom")
+		email := request.FormValue("email")
+		telephone := request.FormValue("telephone")
+		ville := request.FormValue("ville")
+		codePostal := request.FormValue("code_postal")
+		pays := request.FormValue("pays")
+
+		_, errExec := database.Exec(`UPDATE utilisateur SET 
+						nom         = COALESCE(NULLIF($1, ''), nom),
+						prenom      = COALESCE(NULLIF($2, ''), prenom),
+						email       = COALESCE(NULLIF($3, ''), email),
+						telephone   = COALESCE(NULLIF($4, ''), telephone),
+						ville       = COALESCE(NULLIF($5, ''), ville),
+						code_postal = COALESCE(NULLIF($6, ''), code_postal),
+						pays        = COALESCE(NULLIF($7, ''), pays)
+					WHERE id_utilisateur = $8									
+		`, nom, prenom, email, telephone, ville, codePostal, pays, idUtilisateur)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur Update data utilisateur", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(response, request, "/benevole/profil", http.StatusSeeOther)
+
+	}, "BENEVOLE")
+}
+
+func ModificationMotDePasseBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		motDePasseActuelSaisi := request.FormValue("mot_de_passe_actuel")
+		nouveauMotDePasse := request.FormValue("nouveau_mot_de_passe")
+		confirmation := request.FormValue("confirmation")
+
+		if nouveauMotDePasse != confirmation {
+			http.Error(response, "Mot de passe non correspondant", http.StatusBadRequest)
+			return
+		}
+
+		if nouveauMotDePasse == motDePasseActuelSaisi {
+			http.Error(response, "Mot de passe identique", http.StatusBadRequest)
+			return
+		}
+
+		var hashActuel string
+		errSelect := database.QueryRow(`SELECT mot_de_passe FROM utilisateur WHERE id_utilisateur = $1`, idUtilisateur).Scan(&hashActuel)
+		if errSelect != nil {
+			fmt.Printf("Erreur : %v", errSelect)
+			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			return
+		}
+
+		if errCompare := bcrypt.CompareHashAndPassword([]byte(hashActuel), []byte(motDePasseActuelSaisi)); errCompare != nil {
+			http.Error(response, "Mot de passe non correspondant", http.StatusBadRequest)
+			return
+		}
+
+		motDePasseFinal, bcryptErr := bcrypt.GenerateFromPassword([]byte(nouveauMotDePasse), 10)
+		if bcryptErr != nil {
+			fmt.Printf("Erreur : %v", bcryptErr)
+			http.Error(response, "Erreur cryptage mot de passe", http.StatusInternalServerError)
+			return
+		}
+
+		_, errExec := database.Exec(`UPDATE utilisateur SET mot_de_passe = $1 WHERE id_utilisateur = $2`, motDePasseFinal, idUtilisateur)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur update mot de passe", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(response, request, "/benevole/profil", http.StatusSeeOther)
 
 	}, "BENEVOLE")
 }
