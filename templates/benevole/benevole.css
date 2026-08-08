@@ -1203,4 +1203,165 @@ h1, h2, h3 {
   .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
 }
 
-.logout-form { margin: 0; }
+/* ============================================
+   Ajouts pour la page "Mon profil"
+   À coller à la fin de benevole.css — ne modifie
+   aucune règle existante, réutilise les tokens déjà
+   définis dans :root (couleurs, polices, --radius).
+   ============================================ */
+
+/* Séparation visuelle avant le bouton de déconnexion,
+   à la place de l'ancien .sidebar-footer */
+.logout-form {
+  margin: 0;
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+/* Grille principale de la page profil : colonne de contenu + colonne latérale */
+.profil-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.profil-main-col,
+.profil-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Champs de formulaire */
+.profil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--green-deep);
+}
+
+.field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--sage-line);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: .92rem;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 3px rgba(90, 138, 95, .14);
+}
+
+.field input::placeholder { color: #9AA396; }
+
+.profil-form-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--sage-line);
+  margin-top: 4px;
+  padding-top: 18px;
+}
+
+.field-hint {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* Badge de statut bénévole */
+.statut-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 600;
+  margin: 4px 0 20px;
+}
+.statut-badge.statut-ACTIF {
+  background: var(--sage);
+  color: var(--green-deep);
+  border: 1px solid var(--sage-line);
+}
+
+/* Liste d'informations en lecture seule (colonne latérale) */
+.profil-readonly-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.profil-readonly-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sage-line);
+}
+.profil-readonly-row:last-child { border-bottom: none; }
+
+.profil-readonly-row dt {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.profil-readonly-row dd {
+  margin: 0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  text-align: right;
+}
+
+.profil-readonly-note {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--sage-line);
+  font-size: .8rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@media (max-width: 1080px) {
+  .profil-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+  .panel { padding: 22px 20px; }
+}
