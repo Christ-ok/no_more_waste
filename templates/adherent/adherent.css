@@ -533,3 +533,5 @@ h1, h2, h3 {
   padding: 6px 14px;
   font-size: .82rem;
 }
+
+.logout-form { margin: 0; }

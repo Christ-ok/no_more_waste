@@ -86,6 +86,8 @@ func GetIDAgenceUtilisateur(database *sql.DB, idUtilisateur int) (int, error) {
 func Logout(response http.ResponseWriter, request *http.Request) {
 	sess, _ := session.Store.Get(request, nomSession)
 	sess.Options.MaxAge = -1
-	sess.Save(request, response)
+	if err := sess.Save(request, response); err != nil {
+		fmt.Printf("Erreur déconnexion : %v", err)
+	}
 	http.Redirect(response, request, "/", http.StatusFound)
 }

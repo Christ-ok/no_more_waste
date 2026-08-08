@@ -560,3 +560,5 @@ tr[data-demande-id] {
 tr[data-demande-id]:hover {
   background: rgba(124,169,130,.12);
 }
+
+.logout-form { margin: 0; }

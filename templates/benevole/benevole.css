@@ -1203,3 +1203,4 @@ h1, h2, h3 {
   .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
 }
 
+.logout-form { margin: 0; }
