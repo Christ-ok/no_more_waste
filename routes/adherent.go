@@ -338,17 +338,10 @@ func RejoindreServiceAdherent(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
-		if agenceErr != nil {
-			fmt.Printf("Erreur : %v", agenceErr)
-			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
-			return
-		}
-
 		var idAdherent int
 		var statut string
 
-		errQuery := database.QueryRow(`SELECT id_adherent, statut FROM adherent WHERE id_utilisateur = $1 AND id_agence = $2`, idUtilisateur, idAgence).Scan(&idAdherent, &statut)
+		errQuery := database.QueryRow(`SELECT id_adherent, statut FROM adherent WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idAdherent, &statut)
 		if errQuery != nil {
 			fmt.Printf("Erreur : %v", errQuery)
 			http.Error(response, "Erreur récupération ID adhérent", http.StatusInternalServerError)
@@ -368,7 +361,6 @@ func RejoindreServiceAdherent(database *sql.DB) http.HandlerFunc {
 		}
 
 		fmt.Println("Demande de service envoyé avec succès !")
-		response.WriteHeader(http.StatusCreated)
 		http.Redirect(response, request, "adherent/services", http.StatusSeeOther)
 
 	}, "ADHERENT")
@@ -389,17 +381,21 @@ func AfficherServiceRejointAdherent(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
-		if agenceErr != nil {
-			fmt.Printf("Erreur : %v", agenceErr)
-			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+		var idAdherent int
+		errAdherent := database.QueryRow(
+			`SELECT id_adherent FROM adherent WHERE id_utilisateur = $1`, idUtilisateur,
+		).Scan(&idAdherent)
+		if errAdherent != nil {
+			fmt.Printf("Erreur : %v", errAdherent)
+			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
 			return
 		}
 
 		servicesRejoints, serviceErr := database.Query(`SELECT ds.id_demande_service, s.nom, ds.date_demande, ds.statut FROM demande_service ds
-														JOIN service s ON s.id_service = ds.id_service
-														WHERE s.id_agence = $1
-		`, idAgence)
+														 JOIN service s ON s.id_service = ds.id_service
+														WHERE ds.id_adherent = $1
+														ORDER BY ds.date_demande DESC
+		`, idAdherent)
 		if serviceErr != nil {
 			fmt.Printf("Erreur : %v", serviceErr)
 			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
@@ -456,20 +452,24 @@ func HistoriqueServiceAdherent(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		idAgence, agenceErr := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
-		if agenceErr != nil {
-			fmt.Printf("Erreur : %v", agenceErr)
-			http.Error(response, "Erreur récupération id agence", http.StatusInternalServerError)
+		var idAdherent int
+		errAdherent := database.QueryRow(
+			`SELECT id_adherent FROM adherent WHERE id_utilisateur = $1`, idUtilisateur,
+		).Scan(&idAdherent)
+		if errAdherent != nil {
+			fmt.Printf("Erreur : %v", errAdherent)
+			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
 			return
 		}
 
 		serviceRendus, errService := database.Query(`SELECT ds.id_demande_service, s.nom, p.date, u.nom, u.prenom, ds.statut FROM demande_service ds
-													JOIN service s ON s.id_service = ds.id_service
-													JOIN planning p ON p.id_planning = ds.id_planning
-													JOIN benevole b ON ds.id_benevole = b.id_benevole
-													JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
-													WHERE s.id_agence = $1
-		`, idAgence)
+														JOIN service s ON s.id_service = ds.id_service
+														JOIN planning p ON p.id_planning = ds.id_planning
+														JOIN benevole b ON ds.id_benevole = b.id_benevole
+														JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+													WHERE ds.id_adherent = $1
+														ORDER BY p.date DESC
+		`, idAdherent)
 		if errService != nil {
 			fmt.Printf("Erreur : %v", errService)
 			http.Error(response, "Erreur récupération data service", http.StatusInternalServerError)

@@ -134,6 +134,12 @@ func Signin(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		idAgence, errAgenceConv := strconv.Atoi(request.FormValue("id_agence"))
+		if errAgenceConv != nil {
+			http.Error(response, "Agence invalide", http.StatusInternalServerError)
+			return
+		}
+
 		tx, errTx := database.Begin()
 		if errTx != nil {
 			http.Error(response, "Erreur interne", http.StatusInternalServerError)
@@ -143,12 +149,12 @@ func Signin(database *sql.DB) http.HandlerFunc {
 
 		var idUtilisateur int
 		errInsert := tx.QueryRow(
-			`INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, telephone, adresse, ville, code_postal, pays, id_role)
-			 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+			`INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, telephone, adresse, ville, code_postal, pays, id_role, id_agence)
+			 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 			 RETURNING id_utilisateur`,
 			utilisateur.Nom, utilisateur.Prenom, utilisateur.Email, utilisateur.MotDePasse,
 			utilisateur.Telephone, utilisateur.Adresse, utilisateur.Ville, utilisateur.CodePostal,
-			utilisateur.Pays, idRole,
+			utilisateur.Pays, idRole, idAgence,
 		).Scan(&idUtilisateur)
 		if errInsert != nil {
 			http.Error(response, "Impossible de créer le compte (email déjà utilisé ?)", http.StatusConflict)
@@ -224,12 +230,10 @@ func insertProfilRole(tx *sql.Tx, request *http.Request, roleNom string, idUtili
 		return err
 
 	case "ADHERENT":
-		idAgence, err := strconv.Atoi(request.FormValue("id_agence"))
+		_, err := tx.Exec(`INSERT INTO adherent (id_utilisateur, statut) VALUES ($1, 'EN_ATTENTE')`, idUtilisateur)
 		if err != nil {
-			return fmt.Errorf("agence invalide")
+			fmt.Printf("Erreur : %v", err)
 		}
-
-		_, err = tx.Exec(`INSERT INTO adherent (id_utilisateur, id_agence, statut) VALUES ($1, $2, 'EN_ATTENTE')`, idUtilisateur, idAgence)
 		return err
 
 	default:

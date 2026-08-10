@@ -8,7 +8,12 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
+
+	"github.com/xuri/excelize/v2"
 )
 
 type AdminAgenceDashboardDisponibilite struct {
@@ -1121,7 +1126,7 @@ func DashboardAdminAgenceDemandesServices(database *sql.DB) http.HandlerFunc {
 														JOIN service s ON ds.id_service = s.id_service
 														JOIN adherent a ON ds.id_adherent = a.id_adherent
 														JOIN utilisateur u ON a.id_utilisateur = u.id_utilisateur 
-													WHERE a.id_agence = $1
+													WHERE s.id_agence = $1
 													ORDER BY ds.date_demande DESC
 		`, idAgence)
 		if demandesErr != nil {
@@ -1542,6 +1547,25 @@ func AttributionDemandeServicePlanningBenevole(database *sql.DB) http.HandlerFun
 			return
 		}
 
+		var nom_benevole, prenom_benevole, statut_service string
+		var date_service, heure_debut, heure_fin time.Time
+
+		errInfo := database.QueryRow(`SELECT u.nom, u.prenom, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+										JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+										JOIN planning p ON p.id_planning = $2
+									  WHERE b.id_benevole = $1
+		`, idBenevole, idPlanning).Scan(&nom_benevole, &prenom_benevole, &date_service, &heure_debut, &heure_fin, &statut_service)
+		if errInfo != nil {
+			fmt.Printf("Erreur : %v", errInfo)
+			http.Redirect(response, request, "/admin-agence/demande-services", http.StatusSeeOther)
+			return
+		}
+
+		if err := genererPlanningExcel(database, idPlanning, idDemande, idBenevole, nom_benevole, prenom_benevole, date_service, heure_debut, heure_fin, statut_service); err != nil {
+			fmt.Printf("Erreur génération planning excel : %v\n", err)
+			return
+		}
+
 		fmt.Println("Demande de service attribué avec succès !")
 		http.Redirect(response, request, "/admin-agence/demande-services", http.StatusSeeOther)
 
@@ -1624,4 +1648,90 @@ func HistoriqueServicesRealises(database *sql.DB) http.HandlerFunc {
 		tmpl.Execute(response, data)
 
 	}, "ADMIN_AGENCE")
+}
+
+func genererPlanningExcel(database *sql.DB, idPlanning int, id_Demande int, idBenevole int,
+	nom_benevole string, prenom_benevole string, date_service time.Time,
+	heure_debut time.Time, heure_fin time.Time, statut_service string) error {
+
+	var nom_service string
+	err := database.QueryRow(`
+		SELECT s.nom FROM demande_service ds
+		JOIN service s ON ds.id_service = s.id_service
+		WHERE ds.id_demande_service = $1
+	`, id_Demande).Scan(&nom_service)
+	if err != nil {
+		return fmt.Errorf("récupération nom service : %w", err)
+	}
+
+	f := excelize.NewFile()
+	sheet := "Planning"
+	f.SetSheetName("Sheet1", sheet)
+
+	f.SetCellValue(sheet, "A1", "Planning du service")
+	f.MergeCell(sheet, "A1", "G1")
+
+	styleTitre, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Bold:  true,
+			Size:  14,
+			Color: "33553A",
+		},
+	})
+
+	f.SetCellStyle(sheet, "A1", "G1", styleTitre)
+
+	f.SetCellValue(sheet, "A2", nom_service)
+	f.MergeCell(sheet, "A2", "G2")
+
+	headers := []string{"Service", "Nom", "Prénom", "Date", "Début", "Fin", "Statut"}
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 4)
+		f.SetCellValue(sheet, cell, header)
+	}
+
+	styleHeader, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"33553A"}},
+	})
+
+	f.SetCellStyle(sheet, "A4", "G4", styleHeader)
+
+	f.SetCellValue(sheet, "A5", nom_service)
+	f.SetCellValue(sheet, "B5", nom_benevole)
+	f.SetCellValue(sheet, "C5", prenom_benevole)
+	f.SetCellValue(sheet, "D5", date_service.Format("02/01/2006"))
+	f.SetCellValue(sheet, "E5", heure_debut.Format("15:04"))
+	f.SetCellValue(sheet, "F5", heure_fin.Format("15:04"))
+	f.SetCellValue(sheet, "G5", statut_service)
+
+	f.SetColWidth(sheet, "A", "A", 25)
+	f.SetColWidth(sheet, "B", "B", 18)
+	f.SetColWidth(sheet, "C", "C", 18)
+	f.SetColWidth(sheet, "D", "D", 14)
+	f.SetColWidth(sheet, "E", "E", 12)
+	f.SetColWidth(sheet, "F", "F", 12)
+	f.SetColWidth(sheet, "G", "G", 15)
+
+	cheminDossier := filepath.Join("stockage", "plannings")
+	if err := os.MkdirAll(cheminDossier, 0755); err != nil {
+		return fmt.Errorf("Création dossier stockage : %w", err)
+	}
+
+	nomFichier := fmt.Sprintf("planning_%d.xlsx", idPlanning)
+	cheminFichier := filepath.Join(cheminDossier, nomFichier)
+
+	if err := f.SaveAs(cheminFichier); err != nil {
+		return fmt.Errorf("sauvegarde fichier excel : %w", err)
+	}
+
+	_, err = database.Exec(`
+		INSERT INTO planning_excel (id_planning, id_benevole, chemin_fichier)
+		VALUES ($1, $2, $3)
+	`, idPlanning, idBenevole, cheminFichier)
+	if err != nil {
+		return fmt.Errorf("insertion planning_excel : %w", err)
+	}
+
+	return nil
 }

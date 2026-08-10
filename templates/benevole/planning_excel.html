@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes plannings Excel — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/benevole/benevole.css">
+
+<style>
+    /* ============================================
+       Liste des plannings Excel téléchargeables
+       ============================================ */
+    .plannings-panel {
+        padding: 24px 26px 30px;
+    }
+
+    .plannings-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 60px 20px;
+        color: var(--ink-soft);
+        text-align: center;
+    }
+    .plannings-empty svg {
+        opacity: .5;
+        margin-bottom: 6px;
+    }
+    .plannings-empty p {
+        font-size: .92rem;
+        max-width: 340px;
+    }
+
+    .planning-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .planning-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 18px;
+        border: 1.5px solid var(--sage-line);
+        border-radius: var(--radius);
+        background: var(--white);
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .planning-card:hover {
+        border-color: var(--green-mid);
+        box-shadow: 0 4px 14px rgba(34, 40, 31, .06);
+    }
+
+    .planning-card-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .planning-icon {
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--sage);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--green-deep);
+    }
+
+    .planning-info {
+        min-width: 0;
+    }
+    .planning-competence {
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: .95rem;
+        color: var(--ink);
+        margin: 0 0 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .planning-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        font-size: .8rem;
+        color: var(--ink-soft);
+    }
+    .planning-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .planning-card-right {
+        flex-shrink: 0;
+    }
+
+    .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--green-deep);
+        color: var(--white);
+        border: none;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: .82rem;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .btn-download:hover {
+        background: var(--green-mid);
+    }
+
+    @media (max-width: 560px) {
+        .planning-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .planning-card-right {
+            width: 100%;
+        }
+        .btn-download {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Espace bénévole</span>
+
+    <nav class="sidebar-nav">
+        <a href="/benevole/dashboard" class="nav-item">Tableau de bord</a>
+        <a href="/benevole/planning-excel" class="nav-item is-active">Mes plannings Excel</a>
+        <a href="#" class="nav-item">Mes tournées</a>
+        <a href="/benevole/disponibilites" class="nav-item">Mes disponibilités</a>
+        <a href="/benevole/services/historique" class="nav-item">Services Rendus</a>
+        <a href="/benevole/profil" class="nav-item">Mon profil</a>
+    </nav>
+
+    <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Espace bénévole</span>
+        <h1>Mes plannings Excel</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez ici les récapitulatifs Excel de chacune de vos missions attribuées, générés par votre agence.</p>
+
+      <div class="panel plannings-panel">
+
+        {{if .Planning}}
+        <div class="planning-list">
+          {{range .Planning}}
+          <div class="planning-card">
+            <div class="planning-card-left">
+              <div class="planning-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M8.5 13.5 12 17l3.5-3.5M12 17v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="planning-info">
+                <p class="planning-competence">{{.Nom_Competence}}</p>
+                <div class="planning-meta">
+                  <span>📅 {{.Date_Planning.Format "02-01-2006"}}</span>
+                  <span>🕐 {{.Heure_Debut.Format "15:04"}} – {{.Heure_Fin.Format "15:04"}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="planning-card-right">
+              
+              <form action="/benevole/Planning-excel/telecharger" method="POST">
+                <input type="hidden" name="id" value="{{.ID_Planning_Excel}}">
+                <button type="submit" class="btn-download">
+                  Télécharger
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </form>
+
+            </div>
+          </div>
+          {{end}}
+        </div>
+        {{else}}
+        <div class="plannings-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          </svg>
+          <p>Vous n'avez encore aucun planning Excel disponible. Ils apparaîtront ici dès qu'une agence vous aura attribué une mission.</p>
+        </div>
+        {{end}}
+
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
