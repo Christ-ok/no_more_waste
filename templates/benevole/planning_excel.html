@@ -207,7 +207,7 @@
 
             <div class="planning-card-right">
               
-              <form action="/benevole/Planning-excel/telecharger" method="POST">
+              <form action="/benevole/planning-excel/telecharger?id={{.ID_Planning_Excel}}">
                 <input type="hidden" name="id" value="{{.ID_Planning_Excel}}">
                 <button type="submit" class="btn-download">
                   Télécharger

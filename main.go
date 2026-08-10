@@ -79,7 +79,7 @@ func main() {
 	http.HandleFunc("POST /benevole/profil/modifier", routes.ModifierProfileBenevole(db.DB))
 	http.HandleFunc("POST /benevole/profil/mot-de-passe", routes.ModificationMotDePasseBenevole(db.DB))
 	http.HandleFunc("GET /benevole/planning-excel", routes.PagePlanningExcelBenevole(db.DB))
-	http.HandleFunc("GET /benevole/Planning-excel/telecharger", routes.TelechargerPlanningExcel(db.DB))
+	http.HandleFunc("GET /benevole/planning-excel/telecharger", routes.TelechargerPlanningExcel(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
