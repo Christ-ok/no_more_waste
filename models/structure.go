@@ -221,3 +221,11 @@ type BenevoleDocument struct {
 	Statut         string `json:"statut" db:"statut"`
 	Justificatif   string `json:"justificatif" db:"justificatif"`
 }
+
+type Planning_Excel struct {
+	ID_Planning_Excel int       `json:"id_planning_excel" db:"id_planning_excel"`
+	Date_Planning     time.Time `json:"date_planning" db:"date_planning"`
+	Heure_Debut       time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin         time.Time `json:"heure_fin" db:"heure_fin"`
+	Nom_Competence    string    `json:"nom_competence" db:"nom_competence"`
+}

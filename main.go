@@ -29,6 +29,11 @@ func main() {
 	fs := http.FileServer(http.Dir("./templates"))
 	http.Handle("/", fs)
 
+	if err := os.MkdirAll("./stockage/plannings", 0755); err != nil {
+		fmt.Println("Erreur création dossier plannings :", err)
+		os.Exit(1)
+	}
+
 	http.HandleFunc("GET /inscription", PageInscription(db.DB))
 	http.HandleFunc("POST /inscription", Signin(db.DB))
 	http.HandleFunc("GET /connexion", PageConnexion)
@@ -73,6 +78,8 @@ func main() {
 	http.HandleFunc("GET /benevole/profil", routes.AfficherPageModifierProfilBenevole(db.DB))
 	http.HandleFunc("POST /benevole/profil/modifier", routes.ModifierProfileBenevole(db.DB))
 	http.HandleFunc("POST /benevole/profil/mot-de-passe", routes.ModificationMotDePasseBenevole(db.DB))
+	http.HandleFunc("GET /benevole/planning-excel", routes.PagePlanningExcelBenevole(db.DB))
+	http.HandleFunc("GET /benevole/Planning-excel/telecharger", routes.TelechargerPlanningExcel(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))

@@ -8,6 +8,7 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,6 +20,10 @@ type BenevoleDashboardDisponibilite struct {
 type BenevoleData struct {
 	Benevole   models.Utilisateur
 	Competence string
+}
+
+type BenevolePlanningExcel struct {
+	Planning []models.Planning_Excel
 }
 
 func PageDashboardBenevole(response http.ResponseWriter, request *http.Request) {
@@ -581,6 +586,112 @@ func ModificationMotDePasseBenevole(database *sql.DB) http.HandlerFunc {
 		}
 
 		http.Redirect(response, request, "/benevole/profil", http.StatusSeeOther)
+
+	}, "BENEVOLE")
+}
+
+func PagePlanningExcelBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, _ := session.Store.Get(request, "nmw-session")
+		idUtilisateur := sess.Values["id_utilisateur"].(int)
+
+		var idBenevole int
+		err := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if err != nil {
+			http.Error(response, "Bénévole introuvable", http.StatusForbidden)
+			return
+		}
+
+		rows, err := database.Query(`
+			SELECT pe.id_planning_excel, p.date, p.heure_debut, p.heure_fin, s.nom
+			FROM planning_excel pe
+			JOIN planning p ON p.id_planning = pe.id_planning
+			JOIN demande_service ds ON ds.id_planning = p.id_planning
+			JOIN service s ON s.id_service = ds.id_service
+			WHERE pe.id_benevole = $1
+			ORDER BY p.date
+		`, idBenevole)
+		if err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Erreur récupération données excel", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var plannings_List []models.Planning_Excel
+
+		for rows.Next() {
+			var planning models.Planning_Excel
+
+			errScan := rows.Scan(&planning.ID_Planning_Excel,
+				&planning.Date_Planning,
+				&planning.Heure_Debut,
+				&planning.Heure_Fin,
+				&planning.Nom_Competence,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan planning", http.StatusInternalServerError)
+				return
+			}
+
+			plannings_List = append(plannings_List, planning)
+		}
+
+		data := BenevolePlanningExcel{
+			Planning: plannings_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/planning_excel.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
+
+func TelechargerPlanningExcel(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+		idUtilisateur := sess.Values["id_utilisateur"].(int)
+
+		if errForm := request.ParseForm(); errForm != nil {
+			http.Error(response, "Erreur formulaire", http.StatusBadRequest)
+			return
+		}
+
+		idPlanningExcel, err := strconv.Atoi(request.URL.Query().Get("id"))
+		if err != nil {
+			http.Error(response, "ID invalide", http.StatusBadRequest)
+			return
+		}
+
+		var cheminFichier string
+		err = database.QueryRow(`
+			SELECT pe.chemin_fichier
+			FROM planning_excel pe
+			JOIN benevole b ON b.id_benevole = pe.id_benevole
+			WHERE pe.id_planning_excel = $1 AND b.id_utilisateur = $2
+		`, idPlanningExcel, idUtilisateur).Scan(&cheminFichier)
+
+		if err != nil {
+			http.Error(response, "Fichier introuvable", http.StatusNotFound)
+			return
+		}
+
+		response.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		response.Header().Set("Content-Disposition", `attachment; filename="planning.xlsx"`)
+		http.ServeFile(response, request, cheminFichier)
 
 	}, "BENEVOLE")
 }
