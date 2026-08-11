@@ -3,12 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ajouter un service — NO MORE WASTE</title>
+<title>Services — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="/admin_general/adminGeneral.css">
+<style>
+    .cell-statut.statut-ACTIF   { color: var(--green-mid); }
+    .cell-statut.statut-INACTIF { color: var(--ink-soft); }
+</style>
 </head>
 <body class="dash-body">
 
@@ -24,14 +28,14 @@
 
     <nav class="sidebar-nav">
         <a href="/admin-agence" class="nav-item">Tableau de bord</a>
-        <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
+        <a href="/admin-agence/collectes" class="nav-item is-active">Collectes</a>
         <a href="#" class="nav-item">Stocks</a>
         <a href="#" class="nav-item">Tournées de distribution</a>
         <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
         <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
         <a href="/admin-agence/planning" class="nav-item">Plannings</a>
         <a href="#" class="nav-item">Commerçants</a>
-        <a href="/admin-agence/services" class="nav-item is-active">Services</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
         <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
         <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
         <a href="#" class="nav-item">Statistiques</a>
@@ -46,7 +50,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Administration agence</span>
-        <h1>Ajouter un service</h1>
+        <h1>Collectes</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -54,49 +58,49 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Le service sera visible par les adhérents dès sa création.</p>
+      <p class="dash-subtitle">Gérez les collectes demandées par les commerçants afin de les attribuer.</p>
 
-      <div class="panel panel-form">
-        <h2>Informations du service</h2>
-        <p>Renseignez le nom, la description et la compétence requise si applicable.</p>
-
-        <form action="/admin-agence/services/creer" method="POST">
-          <div class="form-group">
-            <label for="nom">Nom du service</label>
-            <input type="text" id="nom" name="nom" placeholder="Ex : Cours de cuisine" required>
-          </div>
-
-          <div class="form-group">
-            <label for="description">Description</label>
-            <input type="text" id="description" name="description" placeholder="Décrivez brièvement le service">
-          </div>
-
-          <div class="form-group">
-            <label for="competence">Compétence requise</label>
-            <select id="competence" name="competence">
-              <option value="">Aucune compétence requise</option>
-              {{range .Competences}}
-              <option value="{{.IDCompetence}}">{{.Nom}}</option>
-              {{end}}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="statut">Statut</label>
-            <select id="statut" name="statut">
-              <option value="ACTIF">Actif</option>
-              <option value="INACTIF">Inactif</option>
-            </select>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-              <i class="fa-solid fa-plus"></i>
-              Créer le service
-            </button>
-            <a href="/admin-agence/services" class="btn btn-secondary">Annuler</a>
-          </div>
-        </form>
+      <div class="panel panel-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom_Commerçant</th>
+                <th>Prénom_Commerçant</th>
+                <th>Date_Collecte</th>
+                <th>Statut</th>
+                <th>Attribuer</th>
+            </tr>
+          </thead>
+          <tbody>
+          {{if .Collecte}}
+            {{range .Collecte}}
+            <tr data-service-id="{{.ID_Collecte}}">
+                <td>{{.ID_Collecte}}</td>
+                <td class="cell-strong">{{.Nom_Commercant}}</td>
+                <td>{{.Prenom_Commercant}}</td>
+                <td>{{.Date_Collecte.Format "02-01-2006"}}</td>
+                <td>
+                    <span class="cell-statut statut-{{.Statut}}">
+                        {{if eq .Statut "EN_ATTENTE"}}
+                            En_Attente
+                        {{else}}
+                            {{.Statut}}
+                        {{end}}
+                    </span>
+                </td>
+                <td>
+                    <a href="/admin-agence/demandes-collectes/affectation">Voir</a>
+                </td>
+            </tr>
+            {{end}}
+          {{else}}
+            <tr>
+                <td colspan="6" class="table-empty">Aucune collecte n'a encore été demandée pour votre agence.</td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
       </div>
     </main>
   </div>

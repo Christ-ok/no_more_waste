@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes collectes — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/commercant/commercant.css">
+<style>
+    /* --- Badges de statut, plus lisibles qu'un simple texte coloré --- */
+    .cell-statut {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .cell-statut::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .cell-statut.statut-EN_ATTENTE {
+      color: #A17A2E;
+      background: #FBF2DF;
+    }
+    .cell-statut.statut-PLANIFIEE {
+      color: var(--green-mid);
+      background: var(--sage);
+    }
+    .cell-statut.statut-EFFECTUEE {
+      color: var(--green-deep);
+      background: var(--sage);
+    }
+
+    /* --- En-tête de section avec bouton d'action --- */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .section-header .dash-subtitle {
+      margin: 0;
+    }
+    .btn-nouvelle-collecte {
+      flex-shrink: 0;
+    }
+
+    .data-table th {
+      text-align: left;
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-soft);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1.5px solid var(--sage-line);
+    }
+    .data-table td {
+      padding: 16px;
+      font-size: .9rem;
+      border-bottom: 1px solid var(--sage-line);
+    }
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+    .cell-id {
+      color: var(--ink-soft);
+      font-family: var(--font-body);
+      font-weight: 500;
+    }
+    .cell-date {
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .table-empty {
+      text-align: center;
+      padding: 40px 16px !important;
+      color: var(--ink-soft);
+      font-size: .9rem;
+    }
+</style>
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Commercant</span>
+
+    <nav class="sidebar-nav">
+        <a href="/commercant" class="nav-item">Tableau de bord</a>
+        <a href="#" class="nav-item">Mes produits</a>
+        <a href="/commercant/collectes" class="nav-item is-active">Mes collectes</a>
+        <a href="#" class="nav-item">Mon adhésion</a>
+        <a href="#" class="nav-item">Récapitulatifs de livraison</a>
+        <a href="/commercant/profil" class="nav-item">Mon profil</a>
+    </nav>
+
+    <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Commercant</span>
+        <h1>Mes collectes</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+
+      <div class="section-header">
+        <p class="dash-subtitle">Retrouvez l'ensemble de vos demandes de collecte et suivez leur avancement, de la demande jusqu'au passage du bénévole.</p>
+      </div>
+
+      <div class="panel panel-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+                <th>Référence</th>
+                <th>Date de collecte</th>
+                <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+          {{if .Collecte}}
+            {{range .Collecte}}
+            <tr data-service-id="{{.ID_Collecte}}">
+                <td class="cell-id">{{.ID_Collecte}}</td>
+                <td class="cell-date">{{.Date_Collecte.Format "02-01-2006"}}</td>
+                <td>
+                    <span class="cell-statut statut-{{.Statut}}">
+                        {{if eq .Statut "EN_ATTENTE"}}
+                            En attente d'attribution
+                        {{else if eq .Statut "PLANIFIEE"}}
+                            Bénévole assigné
+                        {{else if eq .Statut "EFFECTUEE"}}
+                            Collecte effectuée
+                        {{else}}
+                            {{.Statut}}
+                        {{end}}
+                    </span>
+                </td>
+            </tr>
+            {{end}}
+          {{else}}
+            <tr>
+                <td colspan="3" class="table-empty">
+                    <i class="fa-solid fa-box-open" style="font-size: 1.4rem; color: var(--sage-line); display: block; margin-bottom: 10px;"></i>
+                    Vous n'avez pas encore fait de demande de collecte.
+                </td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -8,6 +8,8 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"strconv"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,6 +19,10 @@ type CommercantData struct {
 	Nom_Entreprise string
 	Type_Commerce  string
 	Numero_Siret   string
+}
+
+func PageDemandeCollecte(response http.ResponseWriter, request *http.Request) {
+	http.ServeFile(response, request, "templates/commercant/demandes_collectes.html")
 }
 
 func AfficherPageModifierProfilCommercant(database *sql.DB) http.HandlerFunc {
@@ -182,6 +188,181 @@ func ModificationMotDePasseCommercant(database *sql.DB) http.HandlerFunc {
 		}
 
 		http.Redirect(response, request, "/commercant/profil", http.StatusSeeOther)
+
+	}, "COMMERCANT")
+}
+
+func DashboardCommercantCollecte(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		var idCommercant int
+		errQuery := database.QueryRow(`SELECT id_commercant FROM commercant WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idCommercant)
+		if errQuery != nil {
+			fmt.Printf("Erreur : %v", errQuery)
+			http.Error(response, "Erreur récupération ID commercant", http.StatusInternalServerError)
+			return
+		}
+
+		rowsCollecte, errCollecte := database.Query(`SELECT id_collecte, date_collecte, statut FROM collecte WHERE id_commercant = $1`, idCommercant)
+		if errCollecte != nil {
+			fmt.Printf("Erreur : %v", errCollecte)
+			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCollecte.Close()
+
+		var collectes_List []models.Collecte
+
+		for rowsCollecte.Next() {
+			var collecte models.Collecte
+
+			errScan := rowsCollecte.Scan(&collecte.ID_Collecte,
+				&collecte.Date_Collecte,
+				&collecte.Statut,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan collecte", http.StatusInternalServerError)
+				return
+			}
+
+			collectes_List = append(collectes_List, collecte)
+		}
+
+		data := AdminAgenceCollecteDashboard{
+			Collecte: collectes_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/commercant/collectes.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "COMMERCANT")
+}
+
+func DemandeCollectePourCommercant(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errIdAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateur)
+		if errIdAgence != nil {
+			fmt.Printf("Erreur : %v", errIdAgence)
+			http.Error(response, "Erreur récupération ID agence", http.StatusInternalServerError)
+			return
+		}
+
+		var idCommercant int
+		errID := database.QueryRow(`SELECT id_commercant FROM commercant WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idCommercant)
+		if errID != nil {
+			fmt.Printf("Erreur : %v", errID)
+			http.Error(response, "Erreur récupération ID commecant", http.StatusInternalServerError)
+			return
+		}
+
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		dateCollecteStr := request.FormValue("date_collecte")
+		if dateCollecteStr == "" {
+			http.Error(response, "Date de collecte manquante", http.StatusBadRequest)
+			return
+		}
+
+		dateCollecte, errDate := time.Parse("2006-01-02", dateCollecteStr)
+		if errDate != nil {
+			fmt.Printf("Erreur : %v", errDate)
+			http.Error(response, "Format de date invalide", http.StatusBadRequest)
+			return
+		}
+
+		libelles := request.Form["libelle[]"]
+		quantites := request.Form["quantite[]"]
+
+		if len(libelles) == 0 || len(libelles) != len(quantites) {
+			http.Error(response, "Liste de produits invalide", http.StatusBadRequest)
+			return
+		}
+
+		tx, errTx := database.Begin()
+		if errTx != nil {
+			fmt.Printf("Erreur : %v", errTx)
+			http.Error(response, "Erreur transaction", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		var idCollecte int
+		errInsertCollecte := tx.QueryRow(`INSERT INTO collecte (id_commercant, id_agence, date_collecte, statut) 
+											VALUES ($1, $2, $3, 'en_attente')
+										  RETURNING id_collecte
+		`, idCommercant, idAgence, dateCollecte).Scan(&idCollecte)
+		if errInsertCollecte != nil {
+			fmt.Printf("Erreur : %v", errInsertCollecte)
+			http.Error(response, "Erreur création collecte", http.StatusInternalServerError)
+			return
+		}
+
+		for i, libelle := range libelles {
+			if libelle == "" {
+				continue
+			}
+
+			quantite, errConv := strconv.ParseFloat(quantites[i], 64)
+			if errConv != nil {
+				fmt.Printf("Erreur : %v", errConv)
+				http.Error(response, "Quantité invalide", http.StatusBadRequest)
+				return
+			}
+
+			_, errInsertProduit := tx.Exec(`INSERT INTO produit_collecte (id_collecte, libelle, quantite)
+											VALUES ($1, $2, $3)
+			`, idCollecte, libelle, quantite)
+			if errInsertProduit != nil {
+				fmt.Printf("Erreur : %v", errInsertProduit)
+				http.Error(response, "Erreur ajout produit", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			fmt.Printf("Erreur : %v", errCommit)
+			http.Error(response, "Erreur validation demande", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Demande de collecte créée avec succès !")
+		http.Redirect(response, request, "/commercant/collectes", http.StatusSeeOther)
 
 	}, "COMMERCANT")
 }

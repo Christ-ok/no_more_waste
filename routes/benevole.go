@@ -34,6 +34,10 @@ func PagePlanningBenevole(response http.ResponseWriter, request *http.Request) {
 	http.ServeFile(response, request, "templates/benevole/planning.html")
 }
 
+func PageCreerDisponibilite(response http.ResponseWriter, request *http.Request) {
+	http.ServeFile(response, request, "templates/benevole/creer_disponibilite.html")
+}
+
 func BenevoleDisponibilite(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -112,8 +116,7 @@ func BenevoleDisponibilite(database *sql.DB) http.HandlerFunc {
 		}
 
 		fmt.Println("Disponibilité ajoutée avec succès !")
-
-		response.WriteHeader(http.StatusOK)
+		http.Redirect(response, request, "/benevole/disponibilites", http.StatusSeeOther)
 
 	}, "BENEVOLE")
 }

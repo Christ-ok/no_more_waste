@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de collecte — NO MORE WASTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/commercant/commercant.css">
+</head>
+
+<body>
+    <div class="dash-shell">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-mark">NMW</div>
+                <div class="sidebar-logo-text">NO MORE WASTE</div>
+            </div>
+
+            <div class="sidebar-space">Espace commerçant</div>
+            <nav class="sidebar-nav">
+                <a href="/commercant" class="nav-item">Tableau de bord</a>
+                <a href="#" class="nav-item">Mes produits</a>
+                <a href="/commercant/collectes/" class="nav-item is-active">Mes collectes</a>
+                <a href="#" class="nav-item">Mon adhésion</a>
+                <a href="#" class="nav-item">Récapitulatifs de livraison</a>
+                <a href="/commercant/profil" class="nav-item">Mon profil</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    Déconnexion
+                </a>
+            </div>
+        </aside>
+
+        <main class="dash-main">
+            <header class="dash-topbar">
+                <div>
+                    <span class="tag">Collecte</span>
+
+                    <h1>Demander une collecte</h1>
+                </div>
+
+                <div class="topbar-user">
+                    <span>Connecté en tant que</span>
+                    <strong>Commerçant</strong>
+                </div>
+            </header>
+
+            <section class="dash-content">
+                <p class="dash-subtitle">
+                    Renseignez les informations nécessaires afin que
+                    NO MORE WASTE puisse organiser la récupération de vos produits.
+                </p>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Informations de la collecte</h2>
+
+                            <p>
+                                Indiquez la date souhaitée ainsi que les produits
+                                à récupérer.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form action="/commercant/collecte/demande" method="POST">
+
+                        <div class="field-grid">
+                            <div class="field field-full">
+
+                                <label for="date_collecte">Date souhaitée</label>
+                                <input type="date" id="date_collecte" name="date_collecte" required>
+                                <span class="field-hint">
+                                    Choisissez la date et l'heure auxquelles vous souhaitez
+                                    que la collecte soit effectuée.
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <div class="products-section">
+                            <div class="products-header">
+                                <div>
+                                    <h2>Produits à récupérer</h2>
+
+                                    <p>Ajoutez les produits concernés par cette collecte.</p>
+                                </div>
+
+                                <button type="button" class="btn-outline" onclick="ajouterProduit()">
+                                    + Ajouter un produit
+                                </button>
+                            </div>
+
+                            <div id="products-container">
+
+                                <div class="product-row">
+
+                                    <div class="field">
+                                        <label>Produit</label>
+                                        <input type="text" name="libelle[]" placeholder="Ex : Tomates" required>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Quantité</label>
+
+                                        <input type="number" name="quantite[]" placeholder="Ex : 20" min="0.01" step="0.01" required>
+
+                                    </div>
+
+                                    <button type="button" class="remove-product" onclick="supprimerProduit(this)" title="Supprimer">
+                                        ×
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-note">
+
+                            <strong>À savoir :</strong>
+                            votre demande sera envoyée à NO MORE WASTE.
+                            Elle devra être validée et planifiée par un administrateur.
+
+                        </div>
+
+                        <div class="form-actions">
+
+                            <a href="/commercant/dashboard" class="btn-outline">
+                                Annuler
+                            </a>
+
+                            <button type="submit" class="btn-primary">
+                                Envoyer la demande
+                            </button>
+
+                        </div>
+
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+
+    function ajouterProduit() {
+
+        const container = document.getElementById("products-container");
+
+        const produit = document.createElement("div");
+
+        produit.className = "product-row";
+
+        produit.innerHTML = `
+            
+            <div class="field">
+
+                <label>
+                    Produit
+                </label>
+
+                <input
+                    type="text"
+                    name="libelle[]"
+                    placeholder="Ex : Pain"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Quantité
+                </label>
+
+                <input
+                    type="number"
+                    name="quantite[]"
+                    placeholder="Ex : 10"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="button"
+                class="remove-product"
+                onclick="supprimerProduit(this)"
+                title="Supprimer"
+            >
+                ×
+            </button>
+
+        `;
+
+        container.appendChild(produit);
+    }
+
+
+    function supprimerProduit(button) {
+
+        const container = document.getElementById("products-container");
+
+        /*
+         * On empêche la suppression
+         * s'il ne reste qu'un seul produit.
+         */
+        if (container.children.length <= 1) {
+            return;
+        }
+
+        button.parentElement.remove();
+    }
+
+</script>
+
+</body>
+
+</html>

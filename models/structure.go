@@ -229,3 +229,27 @@ type Planning_Excel struct {
 	Heure_Fin         time.Time `json:"heure_fin" db:"heure_fin"`
 	Nom_Competence    string    `json:"nom_competence" db:"nom_competence"`
 }
+
+type Collecte struct {
+	ID_Collecte       int       `json:"id_collecte" db:"id_collecte"`
+	ID_Commercant     int       `json:"id_commercant" db:"id_commercant"`
+	Nom_Commercant    string    `json:"nom_commercant" db:"nom_commercant"`
+	Prenom_Commercant string    `json:"prenom_commercant" db:"prenom_commercant"`
+	ID_Agence         int       `json:"id_agence" db:"id_agence"`
+	ID_Benevole       int       `json:"id_benevole" db:"id_benevole"`
+	ID_Planning       int       `json:"id_planning" db:"id_planning"`
+	Date_Collecte     time.Time `json:"date_collecte" db:"date_collecte"`
+	Statut            string    `json:"statut" db:"statut"`
+	PDF_Recapitulatif string    `json:"pdf_recapitulatif" db:"pdf_recapitulatif"`
+}
+
+type DemandeCollecteDashboard struct {
+	ID_Benevole     int       `json:"id_benevole" db:"id_benevole"`
+	Nom_Benevole    string    `json:"nom_benevole" db:"nom_benevole"`
+	Prenom_Benevole string    `json:"prenom_benevole" db:"prenom_benevole"`
+	ID_Planning     int       `json:"id_planning" db:"id_planning"`
+	Date_Planning   time.Time `json:"date_planning" db:"date_planning"`
+	Heure_Debut     time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin       time.Time `json:"heure_fin" db:"heure_fin"`
+	Statut_Planning string    `json:"statut_planning" db:"statut_planning"`
+}

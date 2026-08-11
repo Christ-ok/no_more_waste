@@ -49,6 +49,14 @@ type AdminAgenceBenevoleDocument struct {
 	Benevoles_Documents []models.BenevoleDocument
 }
 
+type AdminAgenceCollecteDashboard struct {
+	Collecte []models.Collecte
+}
+
+type AdminAgenceBenevolesDisponibilitesCollect struct {
+	Benevole_Disponibilites []models.DemandeCollecteDashboard
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -1734,4 +1742,152 @@ func genererPlanningExcel(database *sql.DB, idPlanning int, id_Demande int, idBe
 	}
 
 	return nil
+}
+
+func DashboardAdminAgenceCollecte(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsCollecte, errCollecte := database.Query(`SELECT c.id_collecte, u.nom, u.prenom, c.date_collecte, c.statut FROM collecte c
+													  JOIN commercant co ON c.id_commercant = co.id_commercant
+													  JOIN utilisateur u ON u.id_utilisateur = co.id_utilisateur 
+													 WHERE c.id_agence = $1
+		`, idAgence)
+		if errCollecte != nil {
+			fmt.Printf("Erreur : %v", errCollecte)
+			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCollecte.Close()
+
+		var collectes_List []models.Collecte
+
+		for rowsCollecte.Next() {
+			var collecte models.Collecte
+
+			errScan := rowsCollecte.Scan(&collecte.ID_Collecte,
+				&collecte.Nom_Commercant,
+				&collecte.Prenom_Commercant,
+				&collecte.Date_Collecte,
+				&collecte.Statut,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan collecte", http.StatusInternalServerError)
+				return
+			}
+
+			collectes_List = append(collectes_List, collecte)
+		}
+
+		data := AdminAgenceCollecteDashboard{
+			Collecte: collectes_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/collectes.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func PageAffectationBenevoleCollecte(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsBenevoleDispo, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+														  	JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+														  	JOIN planning p ON p.id_benevole = b.id_benevole
+															JOIN competence c ON b.id_competence = c.id_competence
+														  WHERE u.id_agence = $1
+														  	AND c.nom = 'Chauffeur'
+															AND b.statut = 'VALIDE'
+															AND p.statut = 'PLANIFIE'
+														  ORDER BY p.date, p.heure_debut	
+		`, idAgence)
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "Erreur récupération bénévole", http.StatusInternalServerError)
+			return
+		}
+		defer rowsBenevoleDispo.Close()
+
+		var benevolesDisponibilites_List []models.DemandeCollecteDashboard
+
+		for rowsBenevoleDispo.Next() {
+			var benevoleDispo models.DemandeCollecteDashboard
+
+			errScan := rowsBenevoleDispo.Scan(&benevoleDispo.ID_Benevole,
+				&benevoleDispo.Nom_Benevole,
+				&benevoleDispo.Prenom_Benevole,
+				&benevoleDispo.ID_Planning,
+				&benevoleDispo.Date_Planning,
+				&benevoleDispo.Heure_Debut,
+				&benevoleDispo.Heure_Fin,
+				&benevoleDispo.Statut_Planning,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan dispo benevole", http.StatusInternalServerError)
+				return
+			}
+
+			benevolesDisponibilites_List = append(benevolesDisponibilites_List, benevoleDispo)
+		}
+
+		data := AdminAgenceBenevolesDisponibilitesCollect{
+			Benevole_Disponibilites: benevolesDisponibilites_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites_collectes.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
 }
