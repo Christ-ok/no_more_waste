@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle disponibilité — NO MORE WASTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/benevole/benevole.css">
+</head>
+
+<body class="dash-body">
+<div class="dash-shell">
+
+    <aside class="sidebar">
+        <a href="/benevole" class="sidebar-logo"><span class="sidebar-logo-mark">NMW</span><span class="sidebar-logo-text">NO MORE WASTE</span></a>
+        <span class="sidebar-space">Bénévole</span>
+
+        <nav class="sidebar-nav">
+            <a href="/benevole/dashboard" class="nav-item">Tableau de bord</a>
+            <a href="/benevole/planning-excel" class="nav-item">Mon planning</a>
+            <a href="#" class="nav-item">Mes tournées</a>
+            <a href="/benevole/disponibilites" class="nav-item is-active">Mes disponibilités</a>
+            <a href="/benevole/services/historique" class="nav-item">Services Rendus</a>
+            <a href="/benevole/profil" class="nav-item">Mon profil</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form action="/logout" method="POST" class="logout-form"><button type="submit" class="btn btn-ghost btn-block">Déconnexion</button></form>
+        </div>
+    </aside>
+
+    <div class="dash-main">
+        <header class="dash-topbar">
+            <div>
+                <span class="tag">Bénévole</span>
+                <h1>Nouvelle disponibilité</h1>
+            </div>
+            <div class="topbar-user"><span>Bonjour !</span></div>
+        </header>
+
+        <main class="dash-content">
+            <p class="dash-subtitle">Indiquez quand vous êtes disponible pour participer aux activités de NO MORE WASTE.</p>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <div>
+                        <h2>Créer une disponibilité</h2>
+                        <p>Renseignez la date et les horaires pendant lesquels vous êtes disponible.</p>
+                    </div>
+                </div>
+
+                <form action="/benevole/disponibilite/creer" method="POST">
+
+                    <div class="field-grid">
+
+                        <div class="field field-full">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="heure_debut">Heure de début</label>
+                            <input type="time" id="heure_debut" name="heure_debut" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="heure_fin">Heure de fin</label>
+                            <input type="time" id="heure_fin" name="heure_fin" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="statut">Statut</label>
+                            <select id="statut" name="statut" required>
+                                <option value="" disabled selected>Sélectionnez un statut</option>
+                                <option value="DISPONIBLE">DISPONIBLE</option>
+                                <option value="ABSENT">ABSENT</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="form-note"><strong>À savoir :</strong> cette disponibilité pourra être utilisée par l'administrateur lors de la création des plannings.</div>
+
+                    <div class="form-actions">
+                        <a href="/benevole/disponibilites" class="btn btn-ghost">Annuler</a>
+                        <button type="submit" class="btn btn-primary">Enregistrer la disponibilité</button>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+    </div>
+
+</div>
+</body>
+</html>
+```

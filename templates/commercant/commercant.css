@@ -468,3 +468,96 @@
     .flash.is-visible { display: block; }
     .flash-success { background: var(--sage); color: var(--green-deep); border: 1px solid var(--sage-line); }
     .flash-error { background: #FCEEEA; color: #A14A34; border: 1px solid #E9D3CC; }
+
+            /* ================================
+            PRODUITS
+            ================================ */
+
+        .products-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid var(--sage-line);
+        }
+
+        .products-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .products-header h2 {
+            font-size: 1.15rem;
+            margin-bottom: 5px;
+        }
+
+        .products-header p {
+            margin: 0;
+            color: var(--ink-soft);
+            font-size: .9rem;
+        }
+
+
+        /* ================================
+            LIGNE PRODUIT
+            ================================ */
+
+        .product-row {
+            display: grid;
+            grid-template-columns: 1fr 180px 40px;
+            gap: 15px;
+            align-items: end;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+
+            background: var(--cream);
+            border: 1px solid var(--sage-line);
+            border-radius: 12px;
+        }
+
+
+        .remove-product {
+            width: 36px;
+            height: 36px;
+
+            border: 1px solid #E9D3CC;
+            border-radius: 50%;
+
+            background: #FFFBF9;
+            color: #A14A34;
+
+            font-size: 20px;
+
+            cursor: pointer;
+
+            transition: .15s ease;
+        }
+
+        .remove-product:hover {
+            background: #FCEEEA;
+        }
+
+
+        /* ================================
+            RESPONSIVE
+            ================================ */
+
+        @media (max-width: 700px) {
+
+            .products-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .product-row {
+                grid-template-columns: 1fr;
+            }
+
+            .remove-product {
+                justify-self: start;
+            }
+
+        }

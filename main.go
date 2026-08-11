@@ -70,6 +70,7 @@ func main() {
 	http.HandleFunc("POST /admin/administrateurs/modifier", routes.ModifyAdministrateur(db.DB))
 	http.HandleFunc("DELETE /admin/administrateurs/supprimer", routes.DeleteAdministrateur(db.DB))
 
+	http.HandleFunc("GET /benevole/disponibilite/creer", routes.PageCreerDisponibilite)
 	http.HandleFunc("POST /benevole/disponibilite/creer", routes.BenevoleDisponibilite(db.DB))
 	http.HandleFunc("GET /benevole/disponibilites", routes.DashboardBenevoleDisponibiltes(db.DB))
 	http.HandleFunc("POST /benevole/disponibilite/modifier", routes.ModifierDisponibilite(db.DB))
@@ -103,6 +104,8 @@ func main() {
 	http.HandleFunc("GET /admin-agence/demande-services", routes.DashboardAdminAgenceDemandesServices(db.DB))
 	http.HandleFunc("GET /admin-agence/demandes-services/affectation", routes.PageAffectationBenevoleService(db.DB))
 	http.HandleFunc("POST /admin-agence/demandes-services/attribuer", routes.AttributionDemandeServicePlanningBenevole(db.DB))
+	http.HandleFunc("GET /admin-agence/collectes", routes.DashboardAdminAgenceCollecte(db.DB))
+	http.HandleFunc("GET /admin-agence/demandes-collectes/affectation", routes.PageAffectationBenevoleCollecte(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))
@@ -118,6 +121,9 @@ func main() {
 	http.HandleFunc("GET /commercant/profil", routes.AfficherPageModifierProfilCommercant(db.DB))
 	http.HandleFunc("POST /commercant/profil/modifier", routes.ModifierProfilCommercant(db.DB))
 	http.HandleFunc("POST /commercant/profil/mot-de-passe", routes.ModificationMotDePasseCommercant(db.DB))
+	http.HandleFunc("GET /commercant/collectes/", routes.DashboardCommercantCollecte(db.DB))
+	http.HandleFunc("POST /commercant/collecte/demande", routes.DemandeCollectePourCommercant(db.DB))
+	http.HandleFunc("GET /commercant/collecte/demande/page", routes.PageDemandeCollecte)
 
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))
