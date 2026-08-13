@@ -106,6 +106,7 @@ func main() {
 	http.HandleFunc("POST /admin-agence/demandes-services/attribuer", routes.AttributionDemandeServicePlanningBenevole(db.DB))
 	http.HandleFunc("GET /admin-agence/collectes", routes.DashboardAdminAgenceCollecte(db.DB))
 	http.HandleFunc("GET /admin-agence/demandes-collectes/affectation", routes.PageAffectationBenevoleCollecte(db.DB))
+	http.HandleFunc("POST /admin-agence/demandes-collectes/attribuer", routes.AttributionCollectePlanningBenevole(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))

@@ -596,7 +596,11 @@ func ModificationMotDePasseBenevole(database *sql.DB) http.HandlerFunc {
 func PagePlanningExcelBenevole(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
-		sess, _ := session.Store.Get(request, "nmw-session")
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
 		idUtilisateur := sess.Values["id_utilisateur"].(int)
 
 		var idBenevole int
@@ -613,7 +617,15 @@ func PagePlanningExcelBenevole(database *sql.DB) http.HandlerFunc {
 			JOIN demande_service ds ON ds.id_planning = p.id_planning
 			JOIN service s ON s.id_service = ds.id_service
 			WHERE pe.id_benevole = $1
-			ORDER BY p.date
+
+			UNION ALL 
+
+			SELECT pe.id_planning_excel, p.date, p.heure_debut, p.heure_fin, 'Collecte' AS label FROM planning_excel pe
+			JOIN planning p ON p.id_planning = pe.id_planning
+			JOIN collecte c ON c.id_planning = p.id_planning
+			WHERE pe.id_benevole = $1
+
+			ORDER BY date
 		`, idBenevole)
 		if err != nil {
 			fmt.Printf("Erreur : %v", err)
