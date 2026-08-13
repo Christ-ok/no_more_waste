@@ -50,7 +50,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Administration agence</span>
-        <h1>Collectes</h1>
+        <h1>Attribuez des collectes à un bénévole disponible</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -94,14 +94,18 @@
                     </span>
                 </td>
                 <td>
-                    <a href="/">Attribuer</a>
+                    <form action="/admin-agence/demandes-collectes/attribuer" method="POST">
+                      <input type="hidden" name="id_collecte" value="{{$.ID_Collecte}}">
+                      <input type="hidden" name="id_planning" value="{{.ID_Planning}}">
+                      <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
+                      <button type="submit" class="btn btn-primary btn-sm">Attribuer</button>
+                  </form>
                 </td>
             </tr>
             {{end}}
           {{else}}
             <tr>
-                <td colspan="6" class="table-empty">Aucun bénévole disponible pour cette collecte.</td>
-            </tr>
+
           {{end}}
           </tbody>
         </table>

@@ -55,6 +55,7 @@ type AdminAgenceCollecteDashboard struct {
 
 type AdminAgenceBenevolesDisponibilitesCollect struct {
 	Benevole_Disponibilites []models.DemandeCollecteDashboard
+	ID_Collecte             int
 }
 
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
@@ -1836,6 +1837,25 @@ func PageAffectationBenevoleCollecte(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur parse formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idCollecteStr := request.FormValue("id_collecte")
+		if idCollecteStr == "" {
+			http.Error(response, "ID collecte manquant", http.StatusBadRequest)
+			return
+		}
+
+		idCollecte, errConv := strconv.Atoi(idCollecteStr)
+		if errConv != nil {
+			fmt.Printf("Erreur : %v", errConv)
+			http.Error(response, "Erreur conversion id_collecte", http.StatusInternalServerError)
+			return
+		}
+
 		rowsBenevoleDispo, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
 														  	JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
 														  	JOIN planning p ON p.id_benevole = b.id_benevole
@@ -1878,6 +1898,7 @@ func PageAffectationBenevoleCollecte(database *sql.DB) http.HandlerFunc {
 
 		data := AdminAgenceBenevolesDisponibilitesCollect{
 			Benevole_Disponibilites: benevolesDisponibilites_List,
+			ID_Collecte:             idCollecte,
 		}
 
 		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites_collectes.html")
@@ -1890,4 +1911,243 @@ func PageAffectationBenevoleCollecte(database *sql.DB) http.HandlerFunc {
 		tmpl.Execute(response, data)
 
 	}, "ADMIN_AGENCE")
+}
+
+func AttributionCollectePlanningBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idCollecte, errCollecte := strconv.Atoi(request.FormValue("id_collecte"))
+		if errCollecte != nil {
+			fmt.Printf("Erreur : %v", errCollecte)
+			http.Error(response, "Erreur conversion collecte", http.StatusInternalServerError)
+			return
+		}
+
+		idPlanning, errPlanning := strconv.Atoi(request.FormValue("id_planning"))
+		if errPlanning != nil {
+			fmt.Printf("Erreur : %v", errPlanning)
+			http.Error(response, "ID Planning vide", http.StatusInternalServerError)
+			return
+		}
+
+		idBenevole, errBenevole := strconv.Atoi(request.FormValue("id_benevole"))
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "ID Benevole vide", http.StatusInternalServerError)
+			return
+		}
+
+		tx, errTx := database.Begin()
+		if errTx != nil {
+			fmt.Printf("Erreur : %v", errTx)
+			http.Error(response, "Erreur ouverture transaction", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		result, errExec := tx.Exec(`UPDATE collecte SET
+										id_benevole = $1,
+										id_planning = $2,
+										statut = 'planifiee'
+									WHERE id_collecte = $3
+									AND id_agence = $4 
+		`, idBenevole, idPlanning, idCollecte, idAgence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur UPDATE table collecte", http.StatusInternalServerError)
+			return
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			http.Error(response, "Collecte introuvable", http.StatusNotFound)
+			return
+		}
+
+		resultPlanning, errUpdatePlanning := tx.Exec(`UPDATE planning SET statut = 'ATTRIBUE' WHERE id_planning = $1`, idPlanning)
+		if errUpdatePlanning != nil {
+			fmt.Printf("Erreur : %v", errUpdatePlanning)
+			http.Error(response, "Erreur Update statut Planning", http.StatusInternalServerError)
+			return
+		}
+
+		rowsPlanning, _ := resultPlanning.RowsAffected()
+
+		if rowsPlanning == 0 {
+			http.Error(response, "Planning introuvable", http.StatusNotFound)
+			return
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			fmt.Printf("Erreur : %v", errCommit)
+			http.Error(response, "Erreur commit transaction", http.StatusInternalServerError)
+			return
+		}
+
+		var nomBenevole, prenomBenevole, statutPlanning string
+		var dateCollecte, heureDebut, heureFin time.Time
+
+		errInfoPlanningExcel := database.QueryRow(`SELECT u.nom, u.prenom, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+													JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+													JOIN planning p ON p.id_planning = $2
+												   WHERE b.id_benevole = $1
+		`, idBenevole, idPlanning).Scan(&nomBenevole, &prenomBenevole, &dateCollecte, &heureDebut, &heureFin, &statutPlanning)
+		if errInfoPlanningExcel != nil {
+			fmt.Printf("Erreur : %v", errInfoPlanningExcel)
+			http.Error(response, "Erreur récupération infos planning", http.StatusInternalServerError)
+			return
+		}
+
+		if err := genererPlanningExcelCollecte(database, idPlanning, idCollecte, idBenevole, nomBenevole, prenomBenevole, dateCollecte, heureDebut, heureFin, statutPlanning); err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Collecte attribuée mais erreur lors de la génération du planning Excel", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Collecte attribuée avec succès !")
+		http.Redirect(response, request, "/admin-agence/collectes", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func genererPlanningExcelCollecte(database *sql.DB, idPlanning int, idCollecte int, idBenevole int,
+	nomBenevole string, prenomBenevole string, dateCollecte time.Time,
+	heureDebut time.Time, heureFin time.Time, statutPlanning string) error {
+
+	var nomCommercant, prenomCommercant, adresseCommercant string
+	errCommercant := database.QueryRow(`SELECT u.nom, u.prenom, u.adresse FROM collecte c
+											JOIN commercant co ON c.id_commercant = co.id_commercant
+											JOIN utilisateur u ON u.id_utilisateur = co.id_utilisateur
+										WHERE c.id_collecte = $1
+	`, idCollecte).Scan(&nomCommercant, &prenomCommercant, &adresseCommercant)
+	if errCommercant != nil {
+		return fmt.Errorf("récupération infos commerçant : %w", errCommercant)
+	}
+
+	f := excelize.NewFile()
+	sheet := "Planning"
+	f.SetSheetName("Sheet1", sheet)
+
+	f.SetCellValue(sheet, "A1", "Planning de collecte")
+	f.MergeCell(sheet, "A1", "G1")
+
+	styleTitre, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Bold:  true,
+			Size:  14,
+			Color: "33553A",
+		},
+	})
+	f.SetCellStyle(sheet, "A1", "G1", styleTitre)
+
+	f.SetCellValue(sheet, "A2", fmt.Sprintf("%s %s — %s", nomCommercant, prenomCommercant, adresseCommercant))
+	f.MergeCell(sheet, "A2", "G2")
+
+	headers := []string{"Commerçant", "Bénévole", "Prénom", "Date", "Début", "Fin", "Statut"}
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 4)
+		f.SetCellValue(sheet, cell, header)
+	}
+
+	styleHeader, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"33553A"}},
+	})
+	f.SetCellStyle(sheet, "A4", "G4", styleHeader)
+
+	f.SetCellValue(sheet, "A5", nomCommercant)
+	f.SetCellValue(sheet, "B5", nomBenevole)
+	f.SetCellValue(sheet, "C5", prenomBenevole)
+	f.SetCellValue(sheet, "D5", dateCollecte.Format("02/01/2006"))
+	f.SetCellValue(sheet, "E5", heureDebut.Format("15:04"))
+	f.SetCellValue(sheet, "F5", heureFin.Format("15:04"))
+	f.SetCellValue(sheet, "G5", statutPlanning)
+
+	f.SetColWidth(sheet, "A", "A", 25)
+	f.SetColWidth(sheet, "B", "B", 18)
+	f.SetColWidth(sheet, "C", "C", 18)
+	f.SetColWidth(sheet, "D", "D", 14)
+	f.SetColWidth(sheet, "E", "E", 12)
+	f.SetColWidth(sheet, "F", "F", 12)
+	f.SetColWidth(sheet, "G", "G", 15)
+
+	f.SetCellValue(sheet, "A7", "Produits à collecter")
+	f.MergeCell(sheet, "A7", "G7")
+	f.SetCellStyle(sheet, "A7", "G7", styleTitre)
+
+	produitHeaders := []string{"Produit", "Quantité"}
+	for i, header := range produitHeaders {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 8)
+		f.SetCellValue(sheet, cell, header)
+	}
+	f.SetCellStyle(sheet, "A8", "B8", styleHeader)
+
+	rowsProduits, errProduits := database.Query(`SELECT libelle, quantite FROM produit_collecte WHERE id_collecte = $1`, idCollecte)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits collecte : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	ligne := 9
+	for rowsProduits.Next() {
+		var libelle string
+		var quantite float64
+
+		if errScan := rowsProduits.Scan(&libelle, &quantite); errScan != nil {
+			return fmt.Errorf("scan produit collecte : %w", errScan)
+		}
+
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", ligne), libelle)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", ligne), quantite)
+		ligne++
+	}
+
+	cheminDossier := filepath.Join("stockage", "plannings")
+	if err := os.MkdirAll(cheminDossier, 0755); err != nil {
+		return fmt.Errorf("création dossier stockage : %w", err)
+	}
+
+	nomFichier := fmt.Sprintf("planning_collecte_%d.xlsx", idPlanning)
+	cheminFichier := filepath.Join(cheminDossier, nomFichier)
+
+	if err := f.SaveAs(cheminFichier); err != nil {
+		return fmt.Errorf("sauvegarde fichier excel : %w", err)
+	}
+
+	_, err := database.Exec(`
+		INSERT INTO planning_excel (id_planning, id_benevole, chemin_fichier)
+		VALUES ($1, $2, $3)
+	`, idPlanning, idBenevole, cheminFichier)
+	if err != nil {
+		return fmt.Errorf("insertion planning_excel : %w", err)
+	}
+
+	return nil
+
 }
