@@ -81,6 +81,8 @@ func main() {
 	http.HandleFunc("POST /benevole/profil/mot-de-passe", routes.ModificationMotDePasseBenevole(db.DB))
 	http.HandleFunc("GET /benevole/planning-excel", routes.PagePlanningExcelBenevole(db.DB))
 	http.HandleFunc("GET /benevole/planning-excel/telecharger", routes.TelechargerPlanningExcel(db.DB))
+	http.HandleFunc("GET /benevole/collectes", routes.DashboardBenevoleCollectes(db.DB))
+	http.HandleFunc("POST /benevole/collectes/terminer", routes.TerminerCollecte(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
@@ -107,6 +109,7 @@ func main() {
 	http.HandleFunc("GET /admin-agence/collectes", routes.DashboardAdminAgenceCollecte(db.DB))
 	http.HandleFunc("GET /admin-agence/demandes-collectes/affectation", routes.PageAffectationBenevoleCollecte(db.DB))
 	http.HandleFunc("POST /admin-agence/demandes-collectes/attribuer", routes.AttributionCollectePlanningBenevole(db.DB))
+	http.HandleFunc("GET /admin-agence/stocks", routes.DashboardAdminAgenceStocks(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))
@@ -125,6 +128,8 @@ func main() {
 	http.HandleFunc("GET /commercant/collectes/", routes.DashboardCommercantCollecte(db.DB))
 	http.HandleFunc("POST /commercant/collecte/demande", routes.DemandeCollectePourCommercant(db.DB))
 	http.HandleFunc("GET /commercant/collecte/demande/page", routes.PageDemandeCollecte)
+	http.HandleFunc("GET /commercant/recapitulatifs", routes.DashboardCommercantRecapitulatifs(db.DB))
+	http.HandleFunc("GET /commercant/recapitulatifs/telecharger", routes.TelechargerRecapitulatifCollecte(db.DB))
 
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))

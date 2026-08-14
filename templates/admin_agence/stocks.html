@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bénévoles — NO MORE WASTE</title>
+<title>Stocks — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,18 +20,18 @@
       <span class="sidebar-logo-text">NO MORE WASTE</span>
     </a>
 
-    <span class="sidebar-space">Back-office — Général</span>
+    <span class="sidebar-space">Back-office — Agence</span>
 
     <nav class="sidebar-nav">
         <a href="/admin-agence" class="nav-item">Tableau de bord</a>
         <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
-        <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
+        <a href="/admin-agence/stocks" class="nav-item is-active">Stocks</a>
         <a href="#" class="nav-item">Tournées de distribution</a>
-        <a href="/admin-agence/benevoles" class="nav-item is-active">Bénévoles</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
         <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
         <a href="/admin-agence/planning" class="nav-item">Plannings</a>
         <a href="#" class="nav-item">Commerçants</a>
-        <a href="/admin-agence/services"  class="nav-item">Services</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
         <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
         <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
         <a href="#" class="nav-item">Statistiques</a>
@@ -45,8 +45,8 @@
   <div class="dash-main">
     <header class="dash-topbar">
       <div>
-        <span class="tag">Administration générale</span>
-        <h1>Bénévoles</h1>
+        <span class="tag">Administration agence</span>
+        <h1>Stocks</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -54,63 +54,35 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Retrouvez l'ensemble des bénévoles inscrits dans votre agence.</p>
-
-      <form class="table-toolbar" action="/admin/benevoles" method="GET">
-        <input
-          type="text"
-          name="searchBenevole"
-          class="table-search"
-          placeholder="Rechercher un bénévole par nom..."
-          value="{{.BenevoleRecherche}}"
-        >
-        <button type="submit" class="btn btn-primary">Rechercher</button>
-      </form>
-
-      <a href="" class="btn btn-success">
-        <i class="fa-solid fa-plus">
-          
-        </i>
-      </a>
+      <p class="dash-subtitle">Retrouvez ici tous les produits actuellement disponibles dans l'entrepôt de votre agence.</p>
 
       <div class="panel panel-table">
-        {{if .Benevoles}}
         <table class="data-table">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Email</th>
-              <th>Adresse</th>
-              <th>Ville</th>
-              <th>Pays</th>
-              <th>Modifier</th>
-              <th>Donner planning</th>
+                <th>Code-barre</th>
+                <th>Produit</th>
+                <th>Quantité disponible</th>
+                <th>Entrée en stock</th>
             </tr>
           </thead>
           <tbody>
-            {{range .Benevoles}}
+          {{if .Stock}}
+            {{range .Stock}}
             <tr>
-              <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
-              <td>{{.Email}}</td>
-              <td>{{if .Adresse}}{{.Adresse}}{{else}}—{{end}}</td>
-              <td>{{if .Ville}}{{.Ville}}{{else}}—{{end}}</td>
-              <td>{{if .Pays}}{{.Pays}}{{else}}—{{end}}</td>
-              <td>
-                <a href="/admin/benevoles/modifier?id={{.IDUtilisateur}}" class="icon-btn" title="Modifier">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </a>
-              </td>
-
-              <td>
-                <a href="/admin-agence/benevoles/disponibilites?id={{.IDUtilisateur}}">Voir disponibilités</a>
-              </td>
+                <td class="cell-strong">{{.Code_Barre}}</td>
+                <td>{{.Libelle}}</td>
+                <td>{{.Quantite_Disponible}}</td>
+                <td>{{.Date_Entree.Format "02-01-2006"}}</td>
             </tr>
             {{end}}
+          {{else}}
+            <tr>
+                <td colspan="4" class="table-empty">Aucun produit en stock pour le moment.</td>
+            </tr>
+          {{end}}
           </tbody>
         </table>
-        {{else}}
-        <p class="table-empty">Aucun bénévole ne correspond à votre recherche.</p>
-        {{end}}
       </div>
     </main>
   </div>

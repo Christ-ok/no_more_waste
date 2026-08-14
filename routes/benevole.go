@@ -8,8 +8,12 @@ import (
 	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
+	"github.com/jung-kurt/gofpdf"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,6 +28,14 @@ type BenevoleData struct {
 
 type BenevolePlanningExcel struct {
 	Planning []models.Planning_Excel
+}
+
+type BenevoleCollecteData struct {
+	Collectes []models.CollecteDashboardBenevole
+}
+
+type CommercantRecapitulatifsData struct {
+	Recapitulatifs []models.RecapitulatifCollecte
 }
 
 func PageDashboardBenevole(response http.ResponseWriter, request *http.Request) {
@@ -709,4 +721,386 @@ func TelechargerPlanningExcel(database *sql.DB) http.HandlerFunc {
 		http.ServeFile(response, request, cheminFichier)
 
 	}, "BENEVOLE")
+}
+
+func DashboardBenevoleCollectes(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errBenevole := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errBenevole != nil {
+			fmt.Printf("Erreur récupération id_benevole : %v\n", errBenevole)
+			http.Error(response, "Bénévole introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		rowsCollectes, errRows := database.Query(`SELECT c.id_collecte, u.nom, u.prenom, c.date_collecte, c.statut FROM collecte c
+													JOIN commercant co ON co.id_commercant = c.id_commercant
+													JOIN utilisateur u ON u.id_utilisateur = co.id_utilisateur
+												  WHERE c.id_benevole = $1
+		`, idBenevole)
+		if errRows != nil {
+			fmt.Printf("Erreur : %v", errRows)
+			http.Error(response, "Erreur récupération collectes", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCollectes.Close()
+
+		var collectes_List []models.CollecteDashboardBenevole
+
+		for rowsCollectes.Next() {
+			var collecte models.CollecteDashboardBenevole
+
+			errScan := rowsCollectes.Scan(&collecte.ID_Collecte,
+				&collecte.Nom_Commercant,
+				&collecte.Prenom_Commercant,
+				&collecte.Date_Collecte,
+				&collecte.Statut_Collecte,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan collecte", http.StatusInternalServerError)
+				return
+			}
+
+			collectes_List = append(collectes_List, collecte)
+		}
+
+		data := BenevoleCollecteData{
+			Collectes: collectes_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/collectes.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
+
+func TerminerCollecte(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errBenevole := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errBenevole != nil {
+			fmt.Printf("Erreur récupération id_benevole : %v\n", errBenevole)
+			http.Error(response, "Bénévole introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idCollecteStr := request.FormValue("id_collecte")
+
+		idCollecte, errConv := strconv.Atoi(idCollecteStr)
+		if errConv != nil {
+			fmt.Printf("Erreur : %v", errConv)
+			http.Error(response, "Erreur conversion", http.StatusInternalServerError)
+			return
+		}
+
+		result, errUpdate := database.Exec(`UPDATE collecte SET statut = 'effectuee' WHERE id_collecte = $1 AND id_benevole = $2`, idCollecte, idBenevole)
+		if errUpdate != nil {
+			fmt.Printf("Erreur : %v", errUpdate)
+			http.Error(response, "Erreur update du statut de la collecte", http.StatusInternalServerError)
+			return
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			http.Error(response, "Collecte introuvable ou non attribuée à ce bénévole", http.StatusNotFound)
+			return
+		}
+
+		if errStock := genererCodesBarresEtStock(database, idCollecte); errStock != nil {
+			fmt.Printf("Erreur génération codes-barres et stock : %v\n", errStock)
+			http.Error(response, "Collecte terminée mais erreur lors de la mise en stock", http.StatusInternalServerError)
+			return
+		}
+
+		if errPdf := genererPDFRecapitulatifLivraison(database, idCollecte); errPdf != nil {
+			fmt.Printf("Erreur : %v", errPdf)
+			http.Error(response, "Collecte terminée mais erreur lors de la génération du PDF", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Collecte terminée et récapitulatif généré avec succès !")
+		http.Redirect(response, request, "/benevole/collectes", http.StatusSeeOther)
+
+	}, "BENEVOLE")
+}
+
+func genererPDFRecapitulatifLivraison(database *sql.DB, idCollecte int) error {
+
+	var nomCommercant, prenomCommercant, adresseCommercant string
+	var dateCollecte time.Time
+
+	errInfo := database.QueryRow(`SELECT u.nom, u.prenom, u.adresse, c.date_collecte FROM collecte c
+									JOIN commercant co ON c.id_commercant = co.id_commercant
+									JOIN utilisateur u ON u.id_utilisateur = co.id_utilisateur
+								  WHERE c.id_collecte = $1
+	`, idCollecte).Scan(&nomCommercant, &prenomCommercant, &adresseCommercant, &dateCollecte)
+	if errInfo != nil {
+		return fmt.Errorf("récupération infos commerçant : %w", errInfo)
+	}
+
+	rowsProduits, errProduits := database.Query(`SELECT libelle, quantite FROM produit_collecte WHERE id_collecte = $1`, idCollecte)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits collecte : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	type ligneProduit struct {
+		Libelle  string
+		Quantite float64
+	}
+	var produits_List []ligneProduit
+
+	for rowsProduits.Next() {
+		var produit ligneProduit
+		if errScan := rowsProduits.Scan(&produit.Libelle, &produit.Quantite); errScan != nil {
+			return fmt.Errorf("scan produit collecte : %w", errScan)
+		}
+		produits_List = append(produits_List, produit)
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	pdf.SetFont("Helvetica", "B", 16)
+	pdf.SetTextColor(51, 85, 58)
+	pdf.CellFormat(0, 10, "Recapitulatif de livraison", "", 1, "L", false, 0, "")
+
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(4)
+	pdf.CellFormat(0, 6, fmt.Sprintf("Collecte n. %d", idCollecte), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Commercant : %s %s", prenomCommercant, nomCommercant), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Adresse : %s", adresseCommercant), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Date de collecte : %s", dateCollecte.Format("02/01/2006")), "", 1, "L", false, 0, "")
+
+	pdf.Ln(8)
+	pdf.SetFont("Helvetica", "B", 12)
+	pdf.SetTextColor(51, 85, 58)
+	pdf.CellFormat(0, 8, "Produits collectes", "", 1, "L", false, 0, "")
+
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetFillColor(51, 85, 58)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.CellFormat(120, 8, "Produit", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(60, 8, "Quantite", "1", 1, "L", true, 0, "")
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(0, 0, 0)
+	for _, produit := range produits_List {
+		pdf.CellFormat(120, 8, produit.Libelle, "1", 0, "L", false, 0, "")
+		pdf.CellFormat(60, 8, fmt.Sprintf("%.2f", produit.Quantite), "1", 1, "L", false, 0, "")
+	}
+
+	cheminDossier := filepath.Join("stockage", "livraisons")
+	if err := os.MkdirAll(cheminDossier, 0755); err != nil {
+		return fmt.Errorf("création dossier stockage : %w", err)
+	}
+
+	nomFichier := fmt.Sprintf("livraison_%d.pdf", idCollecte)
+	cheminFichier := filepath.Join(cheminDossier, nomFichier)
+
+	if err := pdf.OutputFileAndClose(cheminFichier); err != nil {
+		return fmt.Errorf("sauvegarde fichier pdf : %w", err)
+	}
+
+	if _, err := database.Exec(`UPDATE collecte SET pdf_recapitulatif = $1 WHERE id_collecte = $2`, cheminFichier, idCollecte); err != nil {
+		return fmt.Errorf("mise à jour pdf_recapitulatif : %w", err)
+	}
+
+	return nil
+
+}
+
+func genererCodesBarresEtStock(database *sql.DB, idCollecte int) error {
+
+	var idAgence int
+	if err := database.QueryRow(`SELECT id_agence FROM collecte WHERE id_collecte = $1`, idCollecte).Scan(&idAgence); err != nil {
+		return fmt.Errorf("récupération agence collecte : %w", err)
+	}
+
+	rowsProduits, errProduits := database.Query(`SELECT id_produit_collecte, quantite FROM produit_collecte WHERE id_collecte = $1`, idCollecte)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits collecte : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	var produits_List []models.Produit
+
+	for rowsProduits.Next() {
+		var produit models.Produit
+
+		errScan := rowsProduits.Scan(&produit.ID,
+			&produit.Quantite,
+		)
+		if errScan != nil {
+			return fmt.Errorf("Erreur : %v", errScan)
+		}
+
+		produits_List = append(produits_List, produit)
+	}
+
+	tx, errTx := database.Begin()
+	if errTx != nil {
+		return fmt.Errorf("Erreur ouverture transaction : %w", errTx)
+	}
+	defer tx.Rollback()
+
+	for _, produit := range produits_List {
+
+		codeBarre := fmt.Sprintf("NMW-%d", produit.ID)
+
+		var idStock int
+		errInsertStock := tx.QueryRow(`INSERT INTO stock (id_agence, quantite_disponible, date_entree)
+									   VALUES ($1, $2, NOW())
+									   RETURNING id_stock
+		`, idAgence, produit.Quantite).Scan(&idStock)
+		if errInsertStock != nil {
+			return fmt.Errorf("Erreur  stock produit %d : %w", produit.ID, errInsertStock)
+		}
+
+		_, errUpdateProduit := tx.Exec(`UPDATE produit_collecte SET code_barre = $1, id_stock = $2 WHERE id_produit_collecte = $3`, codeBarre, idStock, produit.ID)
+		if errUpdateProduit != nil {
+			return fmt.Errorf("mise à jour produit_collecte %d : %w", produit.ID, errUpdateProduit)
+		}
+	}
+
+	if errCommit := tx.Commit(); errCommit != nil {
+		return fmt.Errorf("Commit transaction : %w", errCommit)
+	}
+
+	return nil
+}
+
+func DashboardCommercantRecapitulatifs(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idCommercant int
+		if err := database.QueryRow(`SELECT id_commercant FROM commercant WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idCommercant); err != nil {
+			http.Error(response, "Commerçant introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		rows, err := database.Query(`
+			SELECT id_collecte, date_collecte FROM collecte
+			WHERE id_commercant = $1 AND statut = 'effectuee' AND pdf_recapitulatif IS NOT NULL
+			ORDER BY date_collecte DESC
+		`, idCommercant)
+		if err != nil {
+			http.Error(response, "Erreur récupération récapitulatifs", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var recapitulatifs_List []models.RecapitulatifCollecte
+		for rows.Next() {
+			var recapitulatif models.RecapitulatifCollecte
+			if err := rows.Scan(&recapitulatif.ID_Collecte, &recapitulatif.Date_Collecte); err != nil {
+				http.Error(response, "Erreur scan récapitulatif", http.StatusInternalServerError)
+				return
+			}
+			recapitulatifs_List = append(recapitulatifs_List, recapitulatif)
+		}
+
+		data := CommercantRecapitulatifsData{
+			Recapitulatifs: recapitulatifs_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/commercant/pdf_recapitulatif.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parseFiles html", http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(response, data)
+
+	}, "COMMERCANT")
+}
+
+func TelechargerRecapitulatifCollecte(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idCollecte, err := strconv.Atoi(request.URL.Query().Get("id"))
+		if err != nil {
+			http.Error(response, "ID invalide", http.StatusBadRequest)
+			return
+		}
+
+		var cheminFichier string
+		err = database.QueryRow(`
+			SELECT c.pdf_recapitulatif FROM collecte c
+			JOIN commercant co ON co.id_commercant = c.id_commercant
+			WHERE c.id_collecte = $1 AND co.id_utilisateur = $2
+		`, idCollecte, idUtilisateur).Scan(&cheminFichier)
+		if err != nil {
+			http.Error(response, "Fichier introuvable", http.StatusNotFound)
+			return
+		}
+
+		response.Header().Set("Content-Type", "application/pdf")
+		response.Header().Set("Content-Disposition", `attachment; filename="recapitulatif.pdf"`)
+		http.ServeFile(response, request, cheminFichier)
+	}, "COMMERCANT")
 }
