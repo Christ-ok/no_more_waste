@@ -253,3 +253,29 @@ type DemandeCollecteDashboard struct {
 	Heure_Fin       time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut_Planning string    `json:"statut_planning" db:"statut_planning"`
 }
+
+type CollecteDashboardBenevole struct {
+	ID_Collecte       int       `json:"id_collecte" db:"id_collecte"`
+	Nom_Commercant    string    `json:"nom_commercant" db:"nom_commercant"`
+	Prenom_Commercant string    `json:"prenom_commercant" db:"prenom_commercant"`
+	Date_Collecte     time.Time `json:"date_collecte" db:"date_collecte"`
+	Statut_Collecte   string    `json:"statut_collecte" db:"statut_collecte"`
+}
+
+type RecapitulatifCollecte struct {
+	ID_Collecte   int
+	Date_Collecte time.Time
+}
+
+type Produit struct {
+	ID       int
+	Quantite float64
+}
+
+type StockDashboard struct {
+	ID_Stock            int
+	Libelle             string
+	Code_Barre          string
+	Quantite_Disponible float64
+	Date_Entree         time.Time
+}

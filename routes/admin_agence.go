@@ -58,6 +58,10 @@ type AdminAgenceBenevolesDisponibilitesCollect struct {
 	ID_Collecte             int
 }
 
+type AdminAgenceStockDashboard struct {
+	Stock []models.StockDashboard
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -2149,5 +2153,74 @@ func genererPlanningExcelCollecte(database *sql.DB, idPlanning int, idCollecte i
 	}
 
 	return nil
+}
 
+func DashboardAdminAgenceStocks(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsStocks, errStock := database.Query(`SELECT s.id_stock, pc.libelle, pc.code_barre, s.quantite_disponible, s.date_entree FROM stock s
+													JOIN produit_collecte pc ON pc.id_stock = s.id_stock
+												WHERE s.id_agence = $1
+												ORDER BY s.date_entree DESC
+		`, idAgence)
+		if errStock != nil {
+			fmt.Printf("Erreur : %v", errStock)
+			http.Error(response, "Erreur récupération produits", http.StatusInternalServerError)
+			return
+		}
+		defer rowsStocks.Close()
+
+		var stock_List []models.StockDashboard
+
+		for rowsStocks.Next() {
+			var stock models.StockDashboard
+
+			errScan := rowsStocks.Scan(&stock.ID_Stock,
+				&stock.Libelle,
+				&stock.Code_Barre,
+				&stock.Quantite_Disponible,
+				&stock.Date_Entree,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan valeurs stock", http.StatusInternalServerError)
+				return
+			}
+
+			stock_List = append(stock_List, stock)
+		}
+
+		data := AdminAgenceStockDashboard{
+			Stock: stock_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/stocks.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
 }

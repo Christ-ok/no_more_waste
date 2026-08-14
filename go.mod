@@ -10,6 +10,7 @@ require (
 require (
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
+	github.com/jung-kurt/gofpdf v1.16.2 // indirect
 	github.com/richardlehane/mscfb v1.0.7 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/stripe/stripe-go/v84 v84.4.1 // indirect
