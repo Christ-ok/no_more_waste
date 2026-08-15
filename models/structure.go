@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -263,8 +264,8 @@ type CollecteDashboardBenevole struct {
 }
 
 type RecapitulatifCollecte struct {
-	ID_Collecte   int
-	Date_Collecte time.Time
+	ID_Collecte   int       `json:"id_collecte" db:"id_collecte"`
+	Date_Collecte time.Time `json:"date_collecte" db:"date_collecte"`
 }
 
 type Produit struct {
@@ -273,9 +274,37 @@ type Produit struct {
 }
 
 type StockDashboard struct {
-	ID_Stock            int
-	Libelle             string
-	Code_Barre          string
-	Quantite_Disponible float64
-	Date_Entree         time.Time
+	ID_Stock            int       `json:"id_stock" db:"id_stock"`
+	Libelle             string    `json:"libelle" db:"libelle"`
+	Code_Barre          string    `json:"code_barre" db:"code_barre"`
+	Quantite_Disponible float64   `json:"quantite_disponible" db:"quantite_disponible"`
+	Date_Entree         time.Time `json:"date_entree" db:"date_entree"`
+}
+
+type TourneeDashboard struct {
+	ID_Tournee        int            `json:"id_tournee" db:"id_tournee"`
+	Nom_Destinataire  string         `json:"nom_destinataire" db:"nom_destinataire"`
+	Type_Destinataire string         `json:"type_destinataire" db:"type_destinataire"`
+	Date_Tournee      time.Time      `json:"date_tournee" db:"date_tournee"`
+	Statut            string         `json:"statut" db:"statut"`
+	Nom_Benevole      sql.NullString `json:"nom_benevole" db:"nom_benevole"`
+	Prenom_Benevole   sql.NullString `json:"prenom_benevole" db:"prenom_benevole"`
+}
+
+type StockDisponible struct {
+	ID_Stock            int     `json:"id_stock" db:"id_stock"`
+	Libelle             string  `json:"libelle" db:"libelle"`
+	Code_Barre          string  `json:"code_barre" db:"code_barre"`
+	Quantite_Disponible float64 `json:"quantite_disponible" db:"quantite_disponible"`
+}
+
+type TourneeDashboardAffectation struct {
+	ID_Benevole     int       `json:"id_benevole" db:"id_benevole"`
+	Nom_Benevole    string    `json:"nom_benevole" db:"nom_benevole"`
+	Prenom_Benevole string    `json:"prenom_benevole" db:"prenom_benevole"`
+	ID_Planning     int       `json:"id_planning" db:"id_planning"`
+	Date_Planning   time.Time `json:"date_planning" db:"date_planning"`
+	Heure_Debut     time.Time `json:"heure_debut" db:"heure_debut"`
+	Heure_Fin       time.Time `json:"heure_fin" db:"heure_fin"`
+	Statut_Planning string    `json:"statut_planning" db:"statut_planning"`
 }
