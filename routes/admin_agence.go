@@ -62,6 +62,19 @@ type AdminAgenceStockDashboard struct {
 	Stock []models.StockDashboard
 }
 
+type AdminAgenceTourneeData struct {
+	Tournee []models.TourneeDashboard
+}
+
+type AdminAgenceCreerTournee struct {
+	Stock []models.StockDisponible
+}
+
+type AdminAgenceBenevolesDisponibilitesTournee struct {
+	Benevole_Disponibilites []models.TourneeDashboardAffectation
+	ID_Tournee              int
+}
+
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -2216,6 +2229,352 @@ func DashboardAdminAgenceStocks(database *sql.DB) http.HandlerFunc {
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/stocks.html")
 		if errTmpl != nil {
 			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsTournee, errTournee := database.Query(`SELECT t.id_tournee, d.nom, d.type, t.date_tournee, t.statut, u.nom, u.prenom FROM tournee t
+													JOIN destinataire d ON d.id_destinataire = t.id_destinataire
+													LEFT JOIN benevole b ON b.id_benevole = t.id_benevole
+													LEFT JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+												   WHERE t.id_agence = $1
+												   ORDER BY t.date_tournee
+		`, idAgence)
+		if errTournee != nil {
+			fmt.Printf("Erreur : %v", errTournee)
+			http.Error(response, "Erreur récupération tournee", http.StatusInternalServerError)
+			return
+		}
+		defer rowsTournee.Close()
+
+		var tournee_List []models.TourneeDashboard
+
+		for rowsTournee.Next() {
+			var tournee models.TourneeDashboard
+
+			errScan := rowsTournee.Scan(&tournee.ID_Tournee,
+				&tournee.Nom_Destinataire,
+				&tournee.Type_Destinataire,
+				&tournee.Date_Tournee,
+				&tournee.Statut,
+				&tournee.Nom_Benevole,
+				&tournee.Prenom_Benevole,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan tournée", http.StatusInternalServerError)
+				return
+			}
+
+			tournee_List = append(tournee_List, tournee)
+		}
+
+		data := AdminAgenceTourneeData{
+			Tournee: tournee_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/tournees.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefile html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func PageCreerTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsStock, errStock := database.Query(`SELECT s.id_stock, pc.libelle, pc.code_barre, s.quantite_disponible
+												FROM stock s
+												JOIN produit_collecte pc ON pc.id_stock = s.id_stock
+												WHERE s.id_agence = $1 AND s.quantite_disponible > 0
+												ORDER BY pc.libelle
+		`, idAgence)
+		if errStock != nil {
+			fmt.Printf("Erreur : %v", errStock)
+			http.Error(response, "Erreur récupération stock", http.StatusInternalServerError)
+			return
+		}
+		defer rowsStock.Close()
+
+		var stock_List []models.StockDisponible
+
+		for rowsStock.Next() {
+			var stock models.StockDisponible
+
+			errScan := rowsStock.Scan(&stock.ID_Stock, &stock.Libelle, &stock.Code_Barre, &stock.Quantite_Disponible)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan stock", http.StatusInternalServerError)
+				return
+			}
+
+			stock_List = append(stock_List, stock)
+		}
+
+		data := AdminAgenceCreerTournee{
+			Stock: stock_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/creer_tournee.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func CreerTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		nomDestinataire := request.FormValue("nom_destinataire")
+		adresseDestinataire := request.FormValue("adresse_destinataire")
+		typeDestinataire := request.FormValue("type_destinataire")
+
+		if nomDestinataire == "" || adresseDestinataire == "" || typeDestinataire == "" {
+			http.Error(response, "Informations destinataire incomplètes", http.StatusBadRequest)
+			return
+		}
+
+		dateTournee, errDate := time.Parse("2006-01-02", request.FormValue("date_tournee"))
+		if errDate != nil {
+			fmt.Printf("Erreur : %v", errDate)
+			http.Error(response, "Format de date invalide", http.StatusBadRequest)
+			return
+		}
+
+		idStock := request.Form["id_stock[]"]
+		quantites := request.Form["quantite[]"]
+
+		if len(idStock) == 0 || len(idStock) != len(quantites) {
+			http.Error(response, "Liste de produits invalide", http.StatusBadRequest)
+			return
+		}
+
+		tx, errTx := database.Begin()
+		if errTx != nil {
+			fmt.Printf("Erreur : %v", errTx)
+			http.Error(response, "Erreur ouerture transaction", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		var idDestinataire int
+		errInsertDestinataire := tx.QueryRow(`INSERT INTO destinataire (id_agence, type, nom, adresse)
+											    VALUES ($1, $2, $3, $4) RETURNING id_destinataire
+		`, idAgence, typeDestinataire, nomDestinataire, adresseDestinataire).Scan(&idDestinataire)
+		if errInsertDestinataire != nil {
+			fmt.Printf("Erreur : %v", errInsertDestinataire)
+			http.Error(response, "Erreur Insertion Destinataire", http.StatusInternalServerError)
+			return
+		}
+
+		var idTournee int
+		errInsertTournee := tx.QueryRow(`INSERT INTO tournee (id_destinataire, id_agence, date_tournee, statut)
+										  VALUES ($1, $2, $3, 'en_attente') RETURNING id_tournee
+		`, idDestinataire, idAgence, dateTournee).Scan(&idTournee)
+		if errInsertTournee != nil {
+			fmt.Printf("Erreur : %v", errInsertTournee)
+			http.Error(response, "Erreur Insertion Tournee", http.StatusInternalServerError)
+			return
+		}
+
+		for i, idStockStr := range idStock {
+			if idStockStr == "" {
+				continue
+			}
+
+			idStock, errConvStock := strconv.Atoi(idStockStr)
+			if errConvStock != nil {
+				fmt.Printf("Erreur : %v", errConvStock)
+				http.Error(response, "Erreur conversion idStock", http.StatusInternalServerError)
+				return
+			}
+
+			quantite, errConvQuantite := strconv.ParseFloat(quantites[i], 64)
+			if errConvQuantite != nil {
+				fmt.Printf("Erreur : %v", errConvQuantite)
+				http.Error(response, "Quantité invalide", http.StatusBadRequest)
+				return
+			}
+
+			var quantiteDisponible float64
+			errCheckStock := tx.QueryRow(`SELECT quantite_disponible FROM stock WHERE id_stock = $1 AND id_agence = $2`, idStock, idAgence).Scan(&quantiteDisponible)
+			if errCheckStock != nil {
+				fmt.Printf("Erreur : %v", errCheckStock)
+				http.Error(response, "Produit en stock introuvable", http.StatusInternalServerError)
+				return
+			}
+
+			if quantite > quantiteDisponible {
+				http.Error(response, fmt.Sprintf("Quantité demandée (%.2f) supérieure au stock disponible (%.2f)", quantite, quantiteDisponible), http.StatusBadRequest)
+				return
+			}
+
+			_, errInsertProduit := tx.Exec(`INSERT INTO produit_tournee (id_tournee, id_stock, quantite) VALUES ($1, $2, $3)`, idTournee, idStock, quantite)
+			if errInsertProduit != nil {
+				fmt.Printf("Erreur : %v", errInsertProduit)
+				return
+			}
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			fmt.Printf("Erreur : %v", errCommit)
+			http.Error(response, "Erreur validation tournée", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Tournée créée avec succès !")
+		http.Redirect(response, request, "/admin-agence/tournees", http.StatusSeeOther)
+
+	}, "ADMIN_AGENCE")
+}
+
+func AfficherBenevoleDisponibleTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rowsBenevole, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+														JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+														JOIN planning p ON p.id_benevole = b.id_benevole
+														JOIN competence c ON b.id_competence = c.id_competence
+													 WHERE u.id_agence = $1
+														AND c.nom = 'Chauffeur'
+														AND b.statut = 'VALIDE'
+														AND p.statut = 'PLANIFIE'
+													 ORDER BY p.date, p.heure_debut								
+		`, idAgence)
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "Erreur récupération bénévole", http.StatusInternalServerError)
+			return
+		}
+		defer rowsBenevole.Close()
+
+		var benevolesDisponibilites_List []models.TourneeDashboardAffectation
+
+		for rowsBenevole.Next() {
+			var benevoleDispo models.TourneeDashboardAffectation
+
+			errScan := rowsBenevole.Scan(&benevoleDispo.ID_Benevole,
+				&benevoleDispo.Nom_Benevole,
+				&benevoleDispo.Prenom_Benevole,
+				&benevoleDispo.ID_Planning,
+				&benevoleDispo.Date_Planning,
+				&benevoleDispo.Heure_Debut,
+				&benevoleDispo.Heure_Fin,
+				&benevoleDispo.Statut_Planning,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan dispo benevole", http.StatusInternalServerError)
+				return
+			}
+
+			benevolesDisponibilites_List = append(benevolesDisponibilites_List, benevoleDispo)
+		}
+
+		data := AdminAgenceBenevolesDisponibilitesTournee{
+			Benevole_Disponibilites: benevolesDisponibilites_List,
+		}
+
+		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites_tournees.html")
+		if tmplErr != nil {
+			fmt.Printf("Erreur : %v", tmplErr)
 			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
 			return
 		}

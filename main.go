@@ -110,6 +110,10 @@ func main() {
 	http.HandleFunc("GET /admin-agence/demandes-collectes/affectation", routes.PageAffectationBenevoleCollecte(db.DB))
 	http.HandleFunc("POST /admin-agence/demandes-collectes/attribuer", routes.AttributionCollectePlanningBenevole(db.DB))
 	http.HandleFunc("GET /admin-agence/stocks", routes.DashboardAdminAgenceStocks(db.DB))
+	http.HandleFunc("GET /admin-agence/tournees", routes.DashboardAdminAgenceTournee(db.DB))
+	http.HandleFunc("GET /admin-agence/tournees/creer", routes.PageCreerTournee(db.DB))
+	http.HandleFunc("POST /admin-agence/tournees/creer", routes.CreerTournee(db.DB))
+	http.HandleFunc("GET /admin-agence/tournees/affectation", routes.AfficherBenevoleDisponibleTournee(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))

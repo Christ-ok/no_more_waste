@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer une tournée — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+<style>
+    .field select {
+      font-family: var(--font-body);
+      font-size: .92rem;
+      color: var(--ink);
+      background: var(--cream);
+      border: 1.5px solid var(--sage-line);
+      border-radius: 10px;
+      padding: 11px 14px;
+      transition: border-color .15s ease, background .15s ease;
+      width: 100%;
+    }
+    .field select:hover { border-color: var(--green-bright); }
+    .field select:focus {
+      outline: none;
+      border-color: var(--green-mid);
+      background: var(--white);
+    }
+
+    .products-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid var(--sage-line);
+    }
+
+    .products-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .products-header h2 { font-size: 1.15rem; margin-bottom: 5px; }
+    .products-header p { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto;
+      gap: 15px;
+      align-items: end;
+      padding: 18px;
+      margin-bottom: 12px;
+      background: var(--cream);
+      border: 1px solid var(--sage-line);
+      border-radius: 12px;
+    }
+    @media (max-width: 700px) {
+      .product-row { grid-template-columns: 1fr; }
+    }
+
+    .remove-product {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #E9D3CC;
+      border-radius: 50%;
+      background: #FFFBF9;
+      color: #A14A34;
+      font-size: 20px;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+    .remove-product:hover { background: #FCEEEA; }
+    .remove-product:disabled { opacity: .35; cursor: not-allowed; }
+
+    .field-hint-inline {
+      font-size: .78rem;
+      color: var(--ink-soft);
+      margin: 0 0 18px;
+    }
+
+    .stock-empty-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: #FBF2DF;
+      border: 1px solid #F0DDB0;
+      border-radius: 12px;
+      color: #8A6416;
+      font-size: .86rem;
+      margin-bottom: 24px;
+    }
+</style>
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
+        <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
+        <a href="/admin-agence/tournees" class="nav-item is-active">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
+        <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
+        <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration agence</span>
+        <h1>Créer une tournée</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Renseignez le destinataire de cette tournée ainsi que les produits en stock à livrer. Vous pourrez ensuite lui attribuer un bénévole chauffeur disponible.</p>
+
+      {{if not .Stock}}
+      <div class="stock-empty-warning">
+        <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px;"></i>
+        <span>Aucun produit n'est actuellement disponible en stock pour votre agence. Vous pourrez créer une tournée dès qu'une collecte aura été effectuée.</span>
+      </div>
+      {{end}}
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Informations de la tournée</h2>
+            <p>Tous les champs sont obligatoires.</p>
+          </div>
+        </div>
+
+        <form action="/admin-agence/tournees/creer" method="POST" id="form-creer-tournee">
+
+          <div class="field-grid" style="margin-bottom: 26px;">
+            <div class="field">
+              <label for="type_destinataire">Type de destinataire</label>
+              <select id="type_destinataire" name="type_destinataire" required>
+                <option value="" disabled selected>Choisir un type</option>
+                <option value="ASSOCIATION">Association caritative</option>
+                <option value="PARTICULIER">Particulier en détresse</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="date_tournee">Date de la tournée</label>
+              <input type="date" id="date_tournee" name="date_tournee" required>
+            </div>
+
+            <div class="field field-full">
+              <label for="nom_destinataire">Nom du destinataire</label>
+              <input type="text" id="nom_destinataire" name="nom_destinataire" placeholder="Ex : Restos du Cœur — antenne Nantes" required>
+            </div>
+
+            <div class="field field-full">
+              <label for="adresse_destinataire">Adresse du destinataire</label>
+              <input type="text" id="adresse_destinataire" name="adresse_destinataire" placeholder="Ex : 12 rue de la Paix, 44000 Nantes" required>
+            </div>
+          </div>
+
+          <div class="products-section">
+            <div class="products-header">
+              <div>
+                <h2>Produits à livrer</h2>
+                <p>Sélectionnez les produits en stock ainsi que la quantité à livrer pour chacun.</p>
+              </div>
+            </div>
+
+            <div id="products-container">
+              <div class="product-row">
+                <div class="field">
+                  <label>Produit</label>
+                  <select name="id_stock[]" required>
+                    <option value="" disabled selected>Choisir un produit</option>
+                    {{range .Stock}}
+                    <option value="{{.ID_Stock}}" data-max="{{.Quantite_Disponible}}">
+                      {{.Libelle}} — {{.Code_Barre}} ({{.Quantite_Disponible}} dispo.)
+                    </option>
+                    {{end}}
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Quantité</label>
+                  <input type="number" name="quantite[]" min="0.01" step="0.01" placeholder="Ex : 10" required>
+                </div>
+
+                <button type="button" class="remove-product" title="Supprimer" disabled>×</button>
+              </div>
+            </div>
+
+            <button type="button" id="btn-add-row" class="btn-outline">
+              <i class="fa-solid fa-plus"></i> Ajouter un produit
+            </button>
+          </div>
+
+          <div class="form-note" style="margin-top: 24px;">
+            <strong>À savoir :</strong> la tournée sera créée avec le statut « en attente ». Vous pourrez ensuite lui attribuer un bénévole chauffeur disponible depuis la liste des tournées.
+          </div>
+
+          <div class="form-actions">
+            <a href="/admin-agence/tournees" class="btn-outline">Annuler</a>
+            <button type="submit" class="btn-primary" {{if not .Stock}}disabled{{end}}>Créer la tournée</button>
+          </div>
+
+        </form>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<script>
+    const productsContainer = document.getElementById("products-container");
+    const btnAddRow          = document.getElementById("btn-add-row");
+    const selectTemplate      = document.querySelector('#products-container select[name="id_stock[]"]');
+
+    function rowTemplate() {
+        const row = document.createElement("div");
+        row.className = "product-row";
+        row.innerHTML = `
+            <div class="field">
+                <label>Produit</label>
+                <select name="id_stock[]" required>${selectTemplate.innerHTML}</select>
+            </div>
+            <div class="field">
+                <label>Quantité</label>
+                <input type="number" name="quantite[]" min="0.01" step="0.01" placeholder="Ex : 10" required>
+            </div>
+            <button type="button" class="remove-product" title="Supprimer">×</button>
+        `;
+        return row;
+    }
+
+    function updateRemoveButtonsState() {
+        const rows = productsContainer.querySelectorAll(".product-row");
+        const disableRemove = rows.length <= 1;
+        rows.forEach(function (row) {
+            row.querySelector(".remove-product").disabled = disableRemove;
+        });
+    }
+
+    btnAddRow.addEventListener("click", function () {
+        productsContainer.appendChild(rowTemplate());
+        updateRemoveButtonsState();
+    });
+
+    productsContainer.addEventListener("click", function (event) {
+        const btn = event.target.closest(".remove-product");
+        if (!btn || btn.disabled) return;
+
+        btn.closest(".product-row").remove();
+        updateRemoveButtonsState();
+    });
+
+    // Empêche de saisir une quantité supérieure au stock disponible pour le produit sélectionné
+    productsContainer.addEventListener("change", function (event) {
+        if (!event.target.matches('select[name="id_stock[]"]')) return;
+
+        const row = event.target.closest(".product-row");
+        const quantiteInput = row.querySelector('input[name="quantite[]"]');
+        const selectedOption = event.target.selectedOptions[0];
+        const max = selectedOption ? selectedOption.dataset.max : null;
+
+        if (max) {
+            quantiteInput.max = max;
+            quantiteInput.placeholder = `Max : ${max}`;
+        }
+    });
+
+    // Empêche de choisir une date passée
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("date_tournee").min = today;
+
+    updateRemoveButtonsState();
+</script>
+
+</body>
+</html>

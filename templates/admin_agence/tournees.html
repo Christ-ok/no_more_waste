@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournées — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+<style>
+    .cell-statut {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .cell-statut::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .cell-statut.statut-en_attente {
+      color: #A17A2E;
+      background: #FBF2DF;
+    }
+    .cell-statut.statut-planifiee {
+      color: var(--green-mid);
+      background: var(--sage);
+    }
+    .cell-statut.statut-effectuee {
+      color: var(--green-deep);
+      background: var(--sage);
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 600;
+      background: var(--sage);
+      color: var(--green-deep);
+      margin-left: 8px;
+    }
+</style>
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Agence</span>
+
+    <nav class="sidebar-nav">
+        <a href="/admin-agence" class="nav-item">Tableau de bord</a>
+        <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
+        <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
+        <a href="/admin-agence/tournees" class="nav-item is-active">Tournées de distribution</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="#" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
+        <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
+        <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
+        <a href="#" class="nav-item">Statistiques</a>
+    </nav>
+
+    <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration agence</span>
+        <h1>Tournées de distribution</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Gérez les tournées de distribution vers les associations caritatives et les particuliers en détresse.</p>
+
+      <a href="/admin-agence/tournees/creer" class="btn-primary" style="margin-bottom: 24px; display: inline-flex;">
+        <i class="fa-solid fa-plus"></i> Nouvelle tournée
+      </a>
+
+      <div class="panel panel-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+                <th>ID</th>
+                <th>Destinataire</th>
+                <th>Date</th>
+                <th>Bénévole</th>
+                <th>Statut</th>
+                <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {{if .Tournee}}
+            {{range .Tournee}}
+            <tr>
+                <td>#{{.ID_Tournee}}</td>
+                <td class="cell-strong">
+                    {{.Nom_Destinataire}}
+                    <span class="type-badge">
+                        {{if eq .Type_Destinataire "ASSOCIATION"}}Association{{else}}Particulier{{end}}
+                    </span>
+                </td>
+                <td>{{.Date_Tournee.Format "02-01-2006"}}</td>
+                <td>
+                    {{if .Nom_Benevole.Valid}}
+                        {{.Prenom_Benevole.String}} {{.Nom_Benevole.String}}
+                    {{else}}
+                        —
+                    {{end}}
+                </td>
+                <td>
+                    <span class="cell-statut statut-{{.Statut}}">
+                        {{if eq .Statut "en_attente"}}
+                            En attente d'attribution
+                        {{else if eq .Statut "planifiee"}}
+                            Bénévole assigné
+                        {{else if eq .Statut "effectuee"}}
+                            Tournée effectuée
+                        {{else}}
+                            {{.Statut}}
+                        {{end}}
+                    </span>
+                </td>
+                <td>
+                    {{if eq .Statut "en_attente"}}
+                        <a href="/admin-agence/tournees/affectation?id_tournee={{.ID_Tournee}}">Attribuer</a>
+                    {{else}}
+                        —
+                    {{end}}
+                </td>
+            </tr>
+            {{end}}
+          {{else}}
+            <tr>
+                <td colspan="6" class="table-empty">Aucune tournée n'a encore été créée pour votre agence.</td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>
