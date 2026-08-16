@@ -298,6 +298,14 @@ type StockDisponible struct {
 	Quantite_Disponible float64 `json:"quantite_disponible" db:"quantite_disponible"`
 }
 
+type TourneeDashboardBenevole struct {
+	ID_Tournee           int       `json:"id_tournee" db:"id_tournee"`
+	Nom_Destinataire     string    `json:"nom_destinataire" db:"nom_destinataire"`
+	Adresse_Destinataire string    `json:"adresse_destinataire" db:"adresse_destinataire"`
+	Date_Tournee         time.Time `json:"date_tournee" db:"date_tournee"`
+	Statut_Tournee       string    `json:"statut_tournee" db:"statut_tournee"`
+}
+
 type TourneeDashboardAffectation struct {
 	ID_Benevole     int       `json:"id_benevole" db:"id_benevole"`
 	Nom_Benevole    string    `json:"nom_benevole" db:"nom_benevole"`
@@ -307,4 +315,9 @@ type TourneeDashboardAffectation struct {
 	Heure_Debut     time.Time `json:"heure_debut" db:"heure_debut"`
 	Heure_Fin       time.Time `json:"heure_fin" db:"heure_fin"`
 	Statut_Planning string    `json:"statut_planning" db:"statut_planning"`
+}
+
+type RecapitulatifTournee struct {
+	ID_Tournee   int       `json:"id_tournee" db:"id_tournee"`
+	Date_Tournee time.Time `json:"date_tournee" db:"date_tournee"`
 }

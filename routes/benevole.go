@@ -38,6 +38,14 @@ type CommercantRecapitulatifsData struct {
 	Recapitulatifs []models.RecapitulatifCollecte
 }
 
+type BenevoleTourneeData struct {
+	Tournees []models.TourneeDashboardBenevole
+}
+
+type AdminAgenceRecapitulatifsData struct {
+	Recapitulatifs []models.RecapitulatifTournee
+}
+
 func PageDashboardBenevole(response http.ResponseWriter, request *http.Request) {
 	http.ServeFile(response, request, "templates/benevole/accueil_Benevole.html")
 }
@@ -1103,4 +1111,287 @@ func TelechargerRecapitulatifCollecte(database *sql.DB) http.HandlerFunc {
 		response.Header().Set("Content-Disposition", `attachment; filename="recapitulatif.pdf"`)
 		http.ServeFile(response, request, cheminFichier)
 	}, "COMMERCANT")
+}
+
+func DashboardBenevoleTournees(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errBenevole := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errBenevole != nil {
+			fmt.Printf("Erreur récupération id_benevole : %v\n", errBenevole)
+			http.Error(response, "Bénévole introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		rowsTournees, errRows := database.Query(`SELECT t.id_tournee, d.nom, d.adresse, t.date_tournee, t.statut FROM tournee t
+													JOIN destinataire d ON d.id_destinataire = t.id_destinataire
+												 WHERE t.id_benevole = $1
+		`, idBenevole)
+		if errRows != nil {
+			fmt.Printf("Erreur : %v", errRows)
+			http.Error(response, "Erreur récupération tournées du benevole", http.StatusInternalServerError)
+			return
+		}
+		defer rowsTournees.Close()
+
+		var tournees_List []models.TourneeDashboardBenevole
+
+		for rowsTournees.Next() {
+			var tournee models.TourneeDashboardBenevole
+
+			errScan := rowsTournees.Scan(&tournee.ID_Tournee,
+				&tournee.Nom_Destinataire,
+				&tournee.Adresse_Destinataire,
+				&tournee.Date_Tournee,
+				&tournee.Statut_Tournee,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan des tournées", http.StatusInternalServerError)
+				return
+			}
+
+			tournees_List = append(tournees_List, tournee)
+		}
+
+		data := BenevoleTourneeData{
+			Tournees: tournees_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/tournees.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
+}
+
+func TerminerTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errBenevole := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errBenevole != nil {
+			fmt.Printf("Erreur récupération id_benevole : %v\n", errBenevole)
+			http.Error(response, "Bénévole introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		if errForm := request.ParseForm(); errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idTourneeStr := request.FormValue("id_tournee")
+
+		idTournee, errConv := strconv.Atoi(idTourneeStr)
+		if errConv != nil {
+			fmt.Printf("Erreur : %v", errConv)
+			http.Error(response, "Erreur conversion", http.StatusInternalServerError)
+			return
+		}
+
+		result, errUpdate := database.Exec(`UPDATE tournee SET statut = 'effectuee' WHERE id_tournee = $1 AND id_benevole = $2`, idTournee, idBenevole)
+		if errUpdate != nil {
+			fmt.Printf("Erreur : %v", errUpdate)
+			http.Error(response, "Erreur update du statut de la tournée", http.StatusInternalServerError)
+			return
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			http.Error(response, "Collecte introuvable ou non attribuée à ce bénévole", http.StatusNotFound)
+			return
+		}
+
+		if errStock := decrementerStockTournee(database, idTournee); errStock != nil {
+			fmt.Printf("Erreur décrémentation stock : %v\n", errStock)
+			http.Error(response, "Tournée terminée mais erreur lors de la mise à jour du stock", http.StatusInternalServerError)
+			return
+		}
+
+		if errPdf := genererPDFRecapitulatifLivraisonTournee(database, idTournee); errPdf != nil {
+			fmt.Printf("Erreur : %v", errPdf)
+			http.Error(response, "Tournée terminée mais erreur lors de la génération du PDF", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Tournée terminée, stock mis à jour et récapitulatif généré avec succès !")
+		http.Redirect(response, request, "/benevole/tournees", http.StatusSeeOther)
+
+	}, "BENEVOLE")
+}
+
+func decrementerStockTournee(database *sql.DB, idTournee int) error {
+
+	rowsProduits, errProduits := database.Query(`SELECT id_stock, quantite FROM produit_tournee WHERE id_tournee = $1`, idTournee)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits tournée : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	type ligneProduit struct {
+		ID_Stock int
+		Quantite float64
+	}
+
+	var produits_List []ligneProduit
+
+	for rowsProduits.Next() {
+		var produit ligneProduit
+
+		if errScan := rowsProduits.Scan(&produit.ID_Stock, &produit.Quantite); errScan != nil {
+			return fmt.Errorf("scan produit tournée : %w", errScan)
+		}
+		produits_List = append(produits_List, produit)
+	}
+
+	tx, errTx := database.Begin()
+	if errTx != nil {
+		return fmt.Errorf("ouverture transaction : %w", errTx)
+	}
+	defer tx.Rollback()
+
+	for _, produit := range produits_List {
+
+		result, errUpdate := tx.Exec(`UPDATE stock SET quantite_disponible = quantite_disponible - $1
+									  WHERE id_stock = $2 AND quantite_disponible >= $1`,
+			produit.Quantite, produit.ID_Stock)
+		if errUpdate != nil {
+			return fmt.Errorf("décrémentation stock %d : %w", produit.ID_Stock, errUpdate)
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			return fmt.Errorf("stock insuffisant pour le produit id_stock=%d", produit.ID_Stock)
+		}
+	}
+
+	if errCommit := tx.Commit(); errCommit != nil {
+		return fmt.Errorf("commit transaction : %w", errCommit)
+	}
+
+	return nil
+}
+
+func genererPDFRecapitulatifLivraisonTournee(database *sql.DB, idTournee int) error {
+
+	var nomDestinataire, typeDestinataire, adresseDestinataire string
+	var dateTournee time.Time
+
+	errInfo := database.QueryRow(`SELECT d.nom, d.type, d.adresse, t.date_tournee FROM tournee t
+									JOIN destinataire d ON d.id_destinataire = t.id_destinataire
+								  WHERE t.id_tournee = $1
+	`, idTournee).Scan(&nomDestinataire, &typeDestinataire, &adresseDestinataire, &dateTournee)
+	if errInfo != nil {
+		return fmt.Errorf("récupération infos destinataire : %w", errInfo)
+	}
+
+	rowsProduits, errProduits := database.Query(`SELECT pc.libelle, pt.quantite FROM produit_tournee pt
+													JOIN stock s ON s.id_stock = pt.id_stock
+													JOIN produit_collecte pc ON pc.id_stock = s.id_stock
+												 WHERE pt.id_tournee = $1
+	`, idTournee)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits tournée : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	type ligneProduit struct {
+		Libelle  string
+		Quantite float64
+	}
+
+	var produits_List []ligneProduit
+
+	for rowsProduits.Next() {
+		var produit ligneProduit
+
+		if errScan := rowsProduits.Scan(&produit.Libelle, &produit.Quantite); errScan != nil {
+			return fmt.Errorf("scan produit tournée : %w", errScan)
+		}
+
+		produits_List = append(produits_List, produit)
+	}
+
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	pdf.SetFont("Helvetica", "B", 16)
+	pdf.SetTextColor(51, 85, 58)
+	pdf.CellFormat(0, 10, "Recapitulatif de livraison", "", 1, "L", false, 0, "")
+
+	pdf.SetFont("Helvetica", "", 11)
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(4)
+	pdf.CellFormat(0, 6, fmt.Sprintf("Tournee n. %d", idTournee), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Destinataire : %s (%s)", nomDestinataire, typeDestinataire), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Adresse : %s", adresseDestinataire), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, fmt.Sprintf("Date de la tournee : %s", dateTournee.Format("02/01/2006")), "", 1, "L", false, 0, "")
+
+	pdf.Ln(8)
+	pdf.SetFont("Helvetica", "B", 12)
+	pdf.SetTextColor(51, 85, 58)
+	pdf.CellFormat(0, 8, "Produits livres", "", 1, "L", false, 0, "")
+
+	pdf.SetFont("Helvetica", "B", 10)
+	pdf.SetFillColor(51, 85, 58)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.CellFormat(120, 8, "Produit", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(60, 8, "Quantite", "1", 1, "L", true, 0, "")
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(0, 0, 0)
+	for _, produit := range produits_List {
+		pdf.CellFormat(120, 8, produit.Libelle, "1", 0, "L", false, 0, "")
+		pdf.CellFormat(60, 8, fmt.Sprintf("%.2f", produit.Quantite), "1", 1, "L", false, 0, "")
+	}
+
+	cheminDossier := filepath.Join("stockage", "livraisons")
+	if err := os.MkdirAll(cheminDossier, 0755); err != nil {
+		return fmt.Errorf("création dossier stockage : %w", err)
+	}
+
+	nomFichier := fmt.Sprintf("livraison_tournee_%d.pdf", idTournee)
+	cheminFichier := filepath.Join(cheminDossier, nomFichier)
+
+	if err := pdf.OutputFileAndClose(cheminFichier); err != nil {
+		return fmt.Errorf("sauvegarde fichier pdf : %w", err)
+	}
+
+	if _, err := database.Exec(`UPDATE tournee SET pdf_recapitulatif = $1 WHERE id_tournee = $2`, cheminFichier, idTournee); err != nil {
+		return fmt.Errorf("mise à jour pdf_recapitulatif : %w", err)
+	}
+
+	return nil
 }
