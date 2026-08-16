@@ -2528,6 +2528,18 @@ func AfficherBenevoleDisponibleTournee(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		if errForm := request.ParseForm(); errForm != nil {
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idTournee, errConv := strconv.Atoi(request.FormValue("id_tournee"))
+		if errConv != nil {
+			fmt.Printf("Erreur : %v", errConv)
+			http.Error(response, "ID tournée invalide", http.StatusBadRequest)
+			return
+		}
+
 		rowsBenevole, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
 														JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
 														JOIN planning p ON p.id_benevole = b.id_benevole
@@ -2570,6 +2582,7 @@ func AfficherBenevoleDisponibleTournee(database *sql.DB) http.HandlerFunc {
 
 		data := AdminAgenceBenevolesDisponibilitesTournee{
 			Benevole_Disponibilites: benevolesDisponibilites_List,
+			ID_Tournee:              idTournee,
 		}
 
 		tmpl, tmplErr := template.ParseFiles("./templates/admin_agence/benevoles_disponibilites_tournees.html")
@@ -2581,5 +2594,329 @@ func AfficherBenevoleDisponibleTournee(database *sql.DB) http.HandlerFunc {
 
 		tmpl.Execute(response, data)
 
+	}, "ADMIN_AGENCE")
+}
+
+func AttributionTourneePlanningBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		errForm := request.ParseForm()
+		if errForm != nil {
+			fmt.Printf("Erreur : %v", errForm)
+			http.Error(response, "Erreur formulaire", http.StatusInternalServerError)
+			return
+		}
+
+		idTournee, errTournee := strconv.Atoi(request.FormValue("id_tournee"))
+		if errTournee != nil {
+			fmt.Printf("Erreur : %v", errTournee)
+			http.Error(response, "Erreur conversion tournee", http.StatusInternalServerError)
+			return
+		}
+
+		idPlanning, errPlanning := strconv.Atoi(request.FormValue("id_planning"))
+		if errPlanning != nil {
+			fmt.Printf("Erreur : %v", errPlanning)
+			http.Error(response, "ID Planning vide", http.StatusInternalServerError)
+			return
+		}
+
+		idBenevole, errBenevole := strconv.Atoi(request.FormValue("id_benevole"))
+		if errBenevole != nil {
+			fmt.Printf("Erreur : %v", errBenevole)
+			http.Error(response, "ID Benevole vide", http.StatusInternalServerError)
+			return
+		}
+
+		tx, errTx := database.Begin()
+		if errTx != nil {
+			fmt.Printf("Erreur : %v", errTx)
+			http.Error(response, "Erreur ouverture transaction", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
+		result, errExec := tx.Exec(`UPDATE tournee SET 
+										id_benevole = $1,
+										id_planning = $2,
+										statut = 'planifiee'
+									WHERE id_tournee = $3
+									AND id_agence = $4
+		`, idBenevole, idPlanning, idTournee, idAgence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur update tournee", http.StatusInternalServerError)
+			return
+		}
+
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			http.Error(response, "Tournée introuvable", http.StatusNotFound)
+			return
+		}
+
+		resultPlanning, errUpdatePlanning := tx.Exec(`UPDATE planning SET statut = 'ATTRIBUE' WHERE id_planning = $1`, idPlanning)
+		if errUpdatePlanning != nil {
+			fmt.Printf("Erreur : %v", errUpdatePlanning)
+			http.Error(response, "Erreur update planning tournee", http.StatusInternalServerError)
+			return
+		}
+
+		rowsPlanning, _ := resultPlanning.RowsAffected()
+		if rowsPlanning == 0 {
+			http.Error(response, "Planning introuvable", http.StatusNotFound)
+			return
+		}
+
+		if errCommit := tx.Commit(); errCommit != nil {
+			fmt.Printf("Erreur : %v", errCommit)
+			http.Error(response, "Erreur commit transaction", http.StatusInternalServerError)
+			return
+		}
+
+		var nomBenevole, prenomBenevole, statutPlanning string
+		var dateTournee, heureDebut, heureFin time.Time
+
+		errInfoPlanningExcel := database.QueryRow(`SELECT u.nom, u.prenom, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
+													JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
+													JOIN planning p ON p.id_planning = $2
+												   WHERE b.id_benevole = $1
+		`, idBenevole, idAgence).Scan(&nomBenevole, &prenomBenevole, &dateTournee, &heureDebut, &heureFin, &statutPlanning)
+		if errInfoPlanningExcel != nil {
+			fmt.Printf("Erreur : %v", errInfoPlanningExcel)
+			http.Error(response, "Erreur récupération planning", http.StatusInternalServerError)
+			return
+		}
+
+		if err := genererPlanningExcelTournee(database, idPlanning, idTournee, idBenevole, nomBenevole, prenomBenevole, dateTournee, heureDebut, heureFin, statutPlanning); err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Erreur génération planning tournée", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("Tournée attribuée avec succès !")
+		http.Redirect(response, request, "/admin-agence/tournees", http.StatusInternalServerError)
+
+	}, "ADMIN_AGENCE")
+}
+
+func genererPlanningExcelTournee(database *sql.DB, idPlanning int, idTournee int, idBenevole int,
+	nomBenevole string, prenomBenevole string, dateTournee time.Time,
+	heureDebut time.Time, heureFin time.Time, statutPlanning string) error {
+
+	var nomDestinataire, adresseDestinataire string
+	errDestinataire := database.QueryRow(`SELECT d.nom, d.adresse FROM tournee t
+												JOIN destinataire d ON d.id_destinataire = t.id_destinataire
+											  WHERE t.id_tournee = $1
+		`, idTournee).Scan(&nomDestinataire, &adresseDestinataire)
+	if errDestinataire != nil {
+		return fmt.Errorf("Récupération infos destinataire : %w", errDestinataire)
+	}
+
+	f := excelize.NewFile()
+	sheet := "Planning"
+	f.SetSheetName("Sheet1", sheet)
+
+	f.SetCellValue(sheet, "A1", "Planning de tournee")
+	f.MergeCell(sheet, "A1", "G1")
+
+	styleTitre, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{
+			Bold:  true,
+			Size:  14,
+			Color: "33553A",
+		},
+	})
+	f.SetCellStyle(sheet, "A1", "G1", styleTitre)
+
+	f.SetCellValue(sheet, "A2", fmt.Sprintf("%s — %s", nomDestinataire, adresseDestinataire))
+	f.MergeCell(sheet, "A2", "G2")
+
+	headers := []string{"Destinataire", "Bénévole", "Nom", "Date", "Début", "Fin", "Statut"}
+	for i, header := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 4)
+		f.SetCellValue(sheet, cell, header)
+	}
+
+	styleHeader, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill: excelize.Fill{Type: "pattern", Pattern: 1, Color: []string{"33553A"}},
+	})
+	f.SetCellStyle(sheet, "A4", "G4", styleHeader)
+
+	f.SetCellValue(sheet, "A5", nomDestinataire)
+	f.SetCellValue(sheet, "B5", nomBenevole)
+	f.SetCellValue(sheet, "C5", prenomBenevole)
+	f.SetCellValue(sheet, "D5", dateTournee.Format("02/01/2006"))
+	f.SetCellValue(sheet, "E5", heureDebut.Format("15:04"))
+	f.SetCellValue(sheet, "F5", heureFin.Format("15:04"))
+	f.SetCellValue(sheet, "G5", statutPlanning)
+
+	f.SetColWidth(sheet, "A", "A", 25)
+	f.SetColWidth(sheet, "B", "B", 18)
+	f.SetColWidth(sheet, "C", "C", 18)
+	f.SetColWidth(sheet, "D", "D", 14)
+	f.SetColWidth(sheet, "E", "E", 12)
+	f.SetColWidth(sheet, "F", "F", 12)
+	f.SetColWidth(sheet, "G", "G", 15)
+
+	f.SetCellValue(sheet, "A7", "Produits à déposer")
+	f.MergeCell(sheet, "A7", "G7")
+	f.SetCellStyle(sheet, "A7", "G7", styleTitre)
+
+	produitHeaders := []string{"Produit", "Quantité"}
+	for i, header := range produitHeaders {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 8)
+		f.SetCellValue(sheet, cell, header)
+	}
+	f.SetCellStyle(sheet, "A8", "B8", styleHeader)
+
+	rowsProduits, errProduits := database.Query(`SELECT pc.libelle, pt.quantite FROM produit_tournee pt
+													JOIN stock s ON s.id_stock = pt.id_stock
+													JOIN produit_collecte pc ON pc.id_stock = s.id_stock
+												 WHERE pt.id_tournee = $1
+	`, idTournee)
+	if errProduits != nil {
+		return fmt.Errorf("récupération produits collecte : %w", errProduits)
+	}
+	defer rowsProduits.Close()
+
+	ligne := 9
+	for rowsProduits.Next() {
+		var libelle string
+		var quantite float64
+
+		if errScan := rowsProduits.Scan(&libelle, &quantite); errScan != nil {
+			return fmt.Errorf("scan produit tournée : %w", errScan)
+		}
+
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", ligne), libelle)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", ligne), quantite)
+		ligne++
+	}
+
+	cheminDossier := filepath.Join("stockage", "plannings")
+	if err := os.MkdirAll(cheminDossier, 0755); err != nil {
+		return fmt.Errorf("création dossier stockage : %w", err)
+	}
+
+	nomFichier := fmt.Sprintf("planning_tournee_%d.xlsx", idPlanning)
+	cheminFichier := filepath.Join(cheminDossier, nomFichier)
+
+	if err := f.SaveAs(cheminFichier); err != nil {
+		return fmt.Errorf("sauvegarde fichier excel : %w", err)
+	}
+
+	_, err := database.Exec(`
+			INSERT INTO planning_excel (id_planning, id_benevole, chemin_fichier)
+			VALUES ($1, $2, $3)
+		`, idPlanning, idBenevole, cheminFichier)
+	if err != nil {
+		return fmt.Errorf("insertion planning_excel : %w", err)
+	}
+
+	return nil
+}
+
+func DashboardAdminAgenceRecapitulatifs(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		rows, err := database.Query(`SELECT id_tournee, date_tournee FROM tournee
+									 WHERE id_agence = $1
+		`, idAgence)
+		if err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Erreur récupération tournées", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var recapitulatifs_List []models.RecapitulatifTournee
+
+		for rows.Next() {
+			var recapitulatif models.RecapitulatifTournee
+
+			if errScan := rows.Scan(&recapitulatif.ID_Tournee, &recapitulatif.Date_Tournee); errScan != nil {
+				http.Error(response, "Erreur scan récapitulatif", http.StatusInternalServerError)
+				return
+			}
+
+			recapitulatifs_List = append(recapitulatifs_List, recapitulatif)
+		}
+
+		data := AdminAgenceRecapitulatifsData{
+			Recapitulatifs: recapitulatifs_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/pdf_recapitulatif_tournee.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parseFiles html", http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func TelechargerRecapitulatifTournee(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		idTournee, err := strconv.Atoi(request.URL.Query().Get("id"))
+		if err != nil {
+			http.Error(response, "ID invalide", http.StatusBadRequest)
+			return
+		}
+
+		var cheminFichier string
+		err = database.QueryRow(`SELECT t.pdf_recapitulatif FROM tournee t
+								  WHERE t.id_tournee = $1
+		`, idTournee).Scan(&cheminFichier)
+		if err != nil {
+			fmt.Printf("Erreur : %v", err)
+			http.Error(response, "Fichier introuvable", http.StatusNotFound)
+			return
+		}
+
+		response.Header().Set("Content-Type", "application/pdf")
+		response.Header().Set("Content-Disposition", `attachment; filename="recapitulatif.pdf"`)
+		http.ServeFile(response, request, cheminFichier)
 	}, "ADMIN_AGENCE")
 }

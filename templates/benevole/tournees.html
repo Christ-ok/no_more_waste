@@ -4,27 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historique des services — NO MORE WASTE</title>
+    <title>Mes collectes — NO MORE WASTE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/benevole/benevole.css">
 
     <style>
-        .cell-statut.statut-EN_ATTENTE {
+        .cell-statut.statut-en_attente {
             color: #B8860B;
         }
 
-        .cell-statut.statut-ATTRIBUE {
+        .cell-statut.statut-planifiee {
             color: var(--green-mid);
         }
 
-        .cell-statut.statut-TERMINE {
+        .cell-statut.statut-effectuee {
             color: var(--green-deep);
-        }
-
-        .cell-statut.statut-ANNULE {
-            color: var(--ink-soft);
         }
     </style>
 
@@ -49,9 +45,9 @@
             <a href="/benevole/dashboard" class="nav-item">Tableau de bord</a>
             <a href="/benevole/planning-excel" class="nav-item">Mon planning</a>
             <a href="/benevole/collectes" class="nav-item">Mes collectes</a>
-            <a href="/benevole/tournees" class="nav-item">Mes tournées</a>
+            <a href="/benevole/tournees" class="nav-item is-active">Mes tournées</a>
             <a href="/benevole/disponibilites" class="nav-item">Mes disponibilités</a>
-            <a href="/benevole/services/historique" class="nav-item is-active">Services Rendus</a>
+            <a href="/benevole/services/historique" class="nav-item">Services Rendus</a>
             <a href="/benevole/profil" class="nav-item">Mon profil</a>
         </nav>
 
@@ -65,15 +61,8 @@
         <header class="dash-topbar">
 
             <div>
-
-                <span class="tag">
-                    Espace bénévole
-                </span>
-
-                <h1>
-                    Historique des services
-                </h1>
-
+                <span class="tag">Espace bénévol</span>
+                <h1>Mes tournées</h1>
             </div>
 
             <div class="topbar-user">
@@ -82,46 +71,59 @@
         </header>
 
         <main class="dash-content">
-            <p class="dash-subtitle">Consultez les services qui vous ont été attribués ainsi que leur état d'avancement.</p>
+            <p class="dash-subtitle">Consultez les tournées qui vous ont été attribuées ainsi que leur état d'avancement.</p>
 
             <div class="panel panel-table">
-                {{if .Demandes}}
+                {{if .Tournees}}
                 <table class="data-table">
 
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Service</th>
+                            <th>Destinataire</th>
+                            <th>Adresse</th>
                             <th>Date</th>
-                            <th>Adhérent</th>
                             <th>Statut</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {{range .Demandes}}
-                        <tr data-demande-id="{{.ID_Demande_Service}}">
-                            <td>{{.ID_Demande_Service}}</td>
-                            <td class="cell-strong">{{.Nom_Service}}</td>
-                            <td>{{.Date_Demande.Format "02-01-2006"}}</td>
-                            <td>{{.Prenom_Adherent}} {{.Nom_Adherent}}</td>
+                        {{range .Tournees}}
+                        <tr data-collecte-id="{{.ID_Tournee}}">
+                            <td>{{.ID_Tournee}}</td>
+                            <td class="cell-strong">{{.Nom_Destinataire}}</td>
+                            <td class="cell-strong">{{.Adresse_Destinataire}}</td>
+                            <td>{{.Date_Tournee.Format "02-01-2006"}}</td>
                             <td>
-                                <span class="cell-statut statut-{{.Statut}}">
+                                <span class="cell-statut statut-{{.Statut_Tournee}}">
 
-                                    {{if eq .Statut "EN_ATTENTE"}}
+                                    {{if eq .Statut_Tournee "en_attente"}}
                                         En attente
 
-                                    {{else if eq .Statut "ATTRIBUE"}}
-                                        Attribué
+                                    {{else if eq .Statut_Tournee "planifiee"}}
+                                        Planifiée
 
-                                    {{else if eq .Statut "TERMINE"}}
-                                        Terminé
+                                    {{else if eq .Statut_Tournee "effectuee"}}
+                                        Effectuée
 
                                     {{else}}
-                                        Annulé
+                                        {{.Statut_Tournee}}
 
                                     {{end}}
                                 </span>
+                            </td>
+                            <td>
+                                {{if eq .Statut_Tournee "planifiee"}}
+                                    <form action="/benevole/tournees/terminer" method="POST" onsubmit="return confirm('Confirmer que cette tournée a bien été effectuée ?');">
+                                        <input type="hidden" name="id_tournee" value="{{.ID_Tournee}}">
+                                        <button type="submit" class="btn-primary btn-sm">
+                                            Tournée terminée
+                                        </button>
+                                    </form>
+                                {{else}}
+                                    —
+                                {{end}}
                             </td>
                         </tr>
 
@@ -129,7 +131,7 @@
                     </tbody>
                 </table>
                 {{else}}
-                <p class="table-empty">Aucun service ne vous a encore été attribué.</p>
+                <p class="table-empty">Aucune tournée ne vous a encore été attribuée.</p>
                 {{end}}
             </div>
         </main>

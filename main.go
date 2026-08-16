@@ -82,7 +82,9 @@ func main() {
 	http.HandleFunc("GET /benevole/planning-excel", routes.PagePlanningExcelBenevole(db.DB))
 	http.HandleFunc("GET /benevole/planning-excel/telecharger", routes.TelechargerPlanningExcel(db.DB))
 	http.HandleFunc("GET /benevole/collectes", routes.DashboardBenevoleCollectes(db.DB))
+	http.HandleFunc("GET /benevole/tournees", routes.DashboardBenevoleTournees(db.DB))
 	http.HandleFunc("POST /benevole/collectes/terminer", routes.TerminerCollecte(db.DB))
+	http.HandleFunc("POST /benevole/tournees/terminer", routes.TerminerTournee(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
@@ -114,6 +116,9 @@ func main() {
 	http.HandleFunc("GET /admin-agence/tournees/creer", routes.PageCreerTournee(db.DB))
 	http.HandleFunc("POST /admin-agence/tournees/creer", routes.CreerTournee(db.DB))
 	http.HandleFunc("GET /admin-agence/tournees/affectation", routes.AfficherBenevoleDisponibleTournee(db.DB))
+	http.HandleFunc("POST /admin-agence/tournees/attribution", routes.AttributionTourneePlanningBenevole(db.DB))
+	http.HandleFunc("GET /admin-agence/recapitulatifs", routes.DashboardAdminAgenceRecapitulatifs(db.DB))
+	http.HandleFunc("GET /admin-agence/recapitulatifs/telecharger", routes.TelechargerRecapitulatifTournee(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))

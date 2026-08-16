@@ -31,6 +31,7 @@
         <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
         <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
         <a href="/admin-agence/tournees" class="nav-item is-active">Tournées de distribution</a>
+        <a href="/admin-agence/recapitulatifs" class="nav-item">Récapitulatifs Livraison</a>
         <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
         <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
         <a href="/admin-agence/planning" class="nav-item">Plannings</a>
@@ -94,8 +95,8 @@
                     </span>
                 </td>
                 <td>
-                    <form action="#" method="POST">
-                      <input type="hidden" name="id_collecte" value="{{$.ID_Tournee}}">
+                    <form action="/admin-agence/tournees/attribution" method="POST">
+                      <input type="hidden" name="id_tournee" value="{{$.ID_Tournee}}">
                       <input type="hidden" name="id_planning" value="{{.ID_Planning}}">
                       <input type="hidden" name="id_benevole" value="{{.ID_Benevole}}">
                       <button type="submit" class="btn btn-primary btn-sm">Attribuer</button>
