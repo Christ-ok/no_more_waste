@@ -1,0 +1,60 @@
+services:
+  app:
+    build: 
+      context: .
+      target: dev
+    container_name: nmw_dev
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.dev
+    volumes:
+      - .:/app
+      - go_modules:/root/go/pkg/mod
+      - uploadsdata:/app/uploads
+      - stockagedata:/app/stockage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18.1
+    container_name: nmw_db_dev
+    restart: always
+    env_file:
+      - .env.dev
+    volumes:
+      - dbdata:/var/lib/postgresql
+      - ./dump-no_more_waste_dev.sql:/docker-entrypoint-initdb.d/dump.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: nmw_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nmw.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+
+volumes:
+  dbdata:
+  pgadmindata:
+  go_modules:
+  uploadsdata:
+  stockagedata:
+
+       
+

@@ -9,18 +9,15 @@ import (
 	"no_more_waste/session"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/stripe/stripe-go/v84"
 )
 
 func main() {
 
-	godotenv.Load()
-
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
-	db.Init(".env")
+	db.Init()
 	fmt.Println("Connexion à la base de données réussie")
 	db.DB.Exec("SET timezone TO 'Europe/Paris'")
 

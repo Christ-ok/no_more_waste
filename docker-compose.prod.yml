@@ -1,0 +1,40 @@
+services:
+  app:
+    build: 
+      context: .
+      target: prod
+    container_name: nmw_prod
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    volumes:
+      - uploadsdata:/app/uploads
+      - stockagedata:/app/stockage
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18.1
+    container_name: nmw_db_prod
+    restart: always
+    env_file:
+      - .env.prod
+    volumes:
+      - dbdata:/var/lib/postgresql
+      - ./dump-no_more_waste_prod.sql:/docker-entrypoint-initdb.d/dump.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  dbdata:
+  uploadsdata:
+  stockagedata:
+
+       
+
