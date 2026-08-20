@@ -6,16 +6,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-func Init(envPath string) {
-	if err := godotenv.Load(envPath); err != nil {
-		fmt.Printf("Error loading .env from %s; %v", envPath, err)
-	}
+func Init() {
 
 	host := os.Getenv("POSTGRES_HOST")
 	port := os.Getenv("POSTGRES_PORT")
