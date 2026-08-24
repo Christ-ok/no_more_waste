@@ -1,0 +1,132 @@
+{
+  "common.welcome": "Bienvenue",
+  "common.login": "Connexion",
+  "common.logout": "Déconnexion",
+  "common.save": "Enregistrer",
+  "common.cancel": "Annuler",
+  "common.register": "Inscription",
+
+  "login.email": "Adresse e-mail",
+  "login.password": "Mot de passe",
+  "login.not_yet_account": "Pas encore de compte ?",
+  "login.welcome_back": "Bon retour",
+  "login.every_day_counts": "Chaque jour compte pour ne rien perdre.",
+  "login.description": "Connectez-vous pour retrouver vos tournées, vos dons et votre espace personnel.",
+  "login.title": "Content de vous revoir",
+  "login.subtitle": "Entrez vos identifiants pour accéder à votre compte.",
+  "login.forgot_password": "Mot de passe oublié ?",
+  "login.password_placeholder": "Votre mot de passe",
+  "login.remember_me": "Rester connecté sur cet appareil.",
+  "login.submit": "Se connecter",
+  "login.create_account": "Créer un compte",
+
+  "register.internal_error": "Erreur interne",
+  "register.invalid_form": "Formulaire invalide ou fichier trop volumineux (max 10 Mo)",
+  "register.password_mismatch": "Les mots de passe ne correspondent pas",
+  "register.invalid_role": "Rôle invalide",
+  "register.invalid_agency": "Agence invalide",
+  "register.account_creation_error": "Impossible de créer le compte (email déjà utilisé ?)",
+  "register.profile_error": "Impossible d'enregistrer les informations du profil",
+  "register.title": "Créer votre compte",
+"register.subtitle": "Rejoignez NO MORE WASTE et participez à la lutte contre le gaspillage alimentaire.",
+"register.first_name": "Prénom",
+"register.last_name": "Nom",
+"register.phone": "Téléphone",
+"register.address": "Adresse",
+"register.city": "Ville",
+"register.postal_code": "Code postal",
+"register.country": "Pays",
+"register.agency": "Agence",
+"register.choose_agency": "Choisissez une agence",
+
+"register.confirmation": "Confirmation du mot de passe",
+
+"register.role_question": "Quel profil souhaitez-vous créer ?",
+"register.choose_profile": "Choisissez votre profil",
+"register.role_volunteer": "Bénévole",
+"register.role_merchant": "Commerçant",
+"register.role_member": "Adhérent",
+"register.role_association": "Association",
+
+"register.driver_license": "Je possède le permis de conduire",
+
+"register.skill": "Compétence",
+"register.choose_skill": "Choisissez une compétence",
+"register.skill_proof": "Justificatif de compétence",
+"register.skill_proof_example": "Exemple : diplôme, certificat ou autre justificatif au format PDF.",
+"register.availability_note": "Vos disponibilités pourront être renseignées après votre inscription.",
+
+"register.company_name": "Nom de l'entreprise",
+"register.business_type": "Type de commerce",
+"register.siret_number": "Numéro SIRET",
+"register.siret_placeholder": "12345678901234",
+
+"register.terms": "J'accepte les conditions générales d'utilisation",
+"register.submit": "Créer mon compte",
+
+"register.already_registered": "Vous avez déjà un compte ?",
+"register.already_member": "Vous avez déjà un compte ?",
+
+"register.join_association": "Rejoignez-nous",
+"register.one_account": "Un compte,",
+"register.multiple_ways": "plusieurs façons d'agir.",
+"register.description": "Que vous soyez bénévole, commerçant, adhérent ou association, chacun peut contribuer à réduire le gaspillage.",
+
+"register.password_minimum": "8 caractères minimum",
+"register.retype_password": "Retapez votre mot de passe",
+
+"register.image_alt": "Des bénévoles participant aux actions de NO MORE WASTE",
+
+  "home.lang": "fr",
+
+  "home.title": "NO MORE WASTE — Ensemble contre le gaspillage alimentaire",
+
+  "home.nav.mission": "Notre mission",
+  "home.nav.volunteering": "Bénévolat",
+  "home.nav.services": "Services",
+
+  "home.hero.tag": "Depuis 2013 · Paris",
+  "home.hero.title": "Ce qui allait être<br>jeté peut encore<br><em>nourrir</em>.",
+  "home.hero.description": "Chaque jour, NO MORE WASTE récupère les invendus des commerçants et les produits proches de leur date limite chez les particuliers, pour les redistribuer là où ils sont nécessaires.",
+  "home.hero.volunteer_button": "Devenir bénévole",
+  "home.hero.discover_button": "Découvrir l'association ↓",
+  "home.hero.image_alt": "Bénévoles triant des denrées alimentaires données pour l'association",
+  "home.hero.volunteers": "200+ bénévoles",
+
+  "home.mission.tag": "Notre fonctionnement",
+  "home.mission.title": "Trois gestes, un même objectif : ne rien perdre.",
+
+  "home.mission.collect.title": "Collecter",
+  "home.mission.collect.description": "Des tournées quotidiennes récupèrent les invendus commerciaux et les dons de particuliers, jusqu'au bâtiment d'entreposage.",
+
+  "home.mission.redistribute.title": "Redistribuer",
+  "home.mission.redistribute.description": "Les produits sont référencés, stockés puis livrés aux associations caritatives et aux particuliers en détresse.",
+
+  "home.mission.involve.title": "Impliquer",
+  "home.mission.involve.description": "Adhérents, bénévoles et salariés s'organisent ensemble pour faire vivre l'association au quotidien.",
+
+  "home.volunteering.tag": "Une équipe qui grandit",
+  "home.volunteering.title": "De Paris à l'international.",
+  "home.volunteering.description": "Née à Paris, l'association s'est développée à Nantes, Marseille et Limoges, puis à l'étranger, à Naples, Porto et Dublin. Aujourd'hui, 14 salariés et plus de 200 bénévoles organisent collectes, tournées et services solidaires.",
+  "home.volunteering.image_alt": "Distribution de denrées alimentaires par des bénévoles",
+
+  "home.volunteering.stats.creation": "année de création",
+  "home.volunteering.stats.cities": "villes actives",
+  "home.volunteering.stats.volunteers": "bénévoles engagés",
+
+  "home.services.tag": "Pour les adhérents",
+  "home.services.title": "Des services pour éviter le gaspillage au quotidien",
+  "home.services.anti_waste": "Conseils anti-gaspi",
+  "home.services.cooking": "Cours de cuisine",
+  "home.services.vehicles": "Partage de véhicules",
+  "home.services.help": "Entraide entre particuliers",
+  "home.services.repair": "Services de réparation",
+  "home.services.childcare": "Gardiennage",
+
+  "home.cta.image_alt": "Légumes frais sauvés du gaspillage, présentés en cagette",
+  "home.cta.title": "Rejoignez le mouvement.",
+  "home.cta.description": "Créez votre compte pour devenir bénévole, adhérer à l'association ou proposer vos invendus à la collecte.",
+  "home.cta.button": "Je m'inscris",
+
+  "home.footer.copyright": "© 2026 NO MORE WASTE — Association de lutte contre le gaspillage alimentaire"
+}

@@ -1,81 +1,125 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connexion — NO MORE WASTE</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="auth.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{t "common.login"}} — NO MORE WASTE</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth.css">
 </head>
+
 <body class="auth-body">
 
-<header class="site-header">
-  <div class="container header-inner">
-    <a href="/" class="logo">
-      <span class="logo-mark">NMW</span>
-      <span class="logo-text">NO MORE WASTE</span>
-    </a>
-    <div class="header-actions">
-      <span class="header-hint">Pas encore de compte ?</span>
-      <a href="/inscription" class="btn btn-ghost">Inscription</a>
-    </div>
-  </div>
-</header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <span class="logo-mark">NMW</span>
+        <span class="logo-text">NO MORE WASTE</span>
+      </a>
 
-<main class="auth-main">
-  <div class="auth-wrap auth-wrap-tight">
-
-    <!-- Panneau image -->
-    <aside class="auth-side">
-      <img src="https://images.pexels.com/photos/27567597/pexels-photo-27567597.jpeg?auto=compress&cs=tinysrgb&w=1000"
-           alt="Légumes frais sauvés du gaspillage, présentés en cagette">
-      <div class="auth-side-copy">
-        <span class="tag">Bon retour</span>
-        <h2>Chaque jour compte<br>pour ne rien perdre.</h2>
-        <p>Connectez-vous pour retrouver vos tournées, vos dons
-        et votre espace personnel.</p>
+      <div class="header-actions">
+        <span class="header-hint">
+          {{t "login.not_yet_account"}}
+        </span>
+        <a href="/inscription" class="btn btn-ghost">
+          {{t "common.register"}}
+        </a>
       </div>
-    </aside>
+    </div>
+  </header>
 
-    <!-- Formulaire -->
-    <section class="auth-card">
-      <span class="tag">Connexion</span>
-      <h1>Content de vous revoir</h1>
-      <p class="auth-lead">Entrez vos identifiants pour accéder à votre compte.</p>
+  <main class="auth-main">
+    <div class="auth-wrap auth-wrap-tight">
 
-      <form class="auth-form" action="/connexion" method="POST">
+      <aside class="auth-side">
+        <img
+          src="https://images.pexels.com/photos/27567597/pexels-photo-27567597.jpeg?auto=compress&cs=tinysrgb&w=1000"
+          alt="{{t "login.image_alt"}}">
 
-        <div class="field">
-          <label for="email">Adresse e-mail</label>
-          <input type="email" id="email" name="email" placeholder="camille.martin@email.com" required>
+        <div class="auth-side-copy">
+          <span class="tag">
+            {{t "login.welcome_back"}}
+          </span>
+          <h2>
+            {{t "login.every_day_counts"}}<br>
+          </h2>
+          <p>
+            {{t "login.description"}}
+          </p>
         </div>
+      </aside>
 
-        <div class="field">
-          <div class="field-label-row">
-            <label for="mot_de_passe">Mot de passe</label>
-            <a href="/mot-de-passe-oublie" class="field-link">Mot de passe oublié ?</a>
+      <section class="auth-card">
+        <span class="tag">
+          {{t "common.login"}}
+        </span>
+
+        <h1>
+          {{t "login.title"}}
+        </h1>
+
+        <p class="auth-lead">
+          {{t "login.subtitle"}}
+        </p>
+
+        <form class="auth-form" action="/connexion" method="POST">
+          <div class="field">
+            <label for="email">
+              {{t "login.email"}}
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="camille.martin@email.com"
+              required>
           </div>
-          <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="Votre mot de passe" required>
-        </div>
 
-        <label class="checkbox-field">
-          <input type="checkbox" name="se_souvenir">
-          <span>Rester connecté sur cet appareil.</span>
-        </label>
+          <div class="field">
+            <div class="field-label-row">
+              <label for="mot_de_passe">
+                {{t "login.password"}}
+              </label>
+              <a href="/mot-de-passe-oublie" class="field-link">
+                {{t "login.forgot_password"}}
+              </a>
+            </div>
+            <input
+              type="password"
+              id="mot_de_passe"
+              name="mot_de_passe"
+              placeholder="{{t "login.password_placeholder"}}"
+              required>
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-lg btn-block">Se connecter</button>
-      </form>
+          <label class="checkbox-field">
+            <input type="checkbox" name="se_souvenir">
+            <span>
+              {{t "login.remember_me"}}
+            </span>
+          </label>
 
-      <p class="auth-switch">
-        Pas encore de compte ? <a href="/inscription">Créer un compte</a>
-      </p>
-    </section>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">
+            {{t "login.submit"}}
+          </button>
+        </form>
 
-  </div>
-</main>
+        <p class="auth-switch">
+          {{t "login.not_yet_account"}}
+          <a href="/inscription">
+            {{t "login.create_account"}}
+          </a>
+        </p>
+      </section>
+
+    </div>
+  </main>
 
 </body>
 </html>

@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"no_more_waste/i18n"
+	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"os"
 	"path/filepath"
@@ -18,25 +20,34 @@ import (
 
 func PageInscription(database *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
+		language := middleware.GetLanguage(request)
+
+		fmt.Println("LANGUE ACTUELLE :", language)
 
 		competences, err := getCompetences(database)
 		if err != nil {
 			fmt.Println("Erreur récupération compétences :", err)
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 
 		agences, agenceErr := getAgences(database)
 		if agenceErr != nil {
 			fmt.Println("Erreur récupération agences :", err)
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 
-		tmpl, err := template.ParseFiles("templates/inscription.html")
+		tmpl, err := template.New("inscription.html").
+			Funcs(template.FuncMap{
+				"t": func(key string) string {
+					return i18n.Traduction(language, key)
+				},
+			}).
+			ParseFiles("templates/inscription.html")
 		if err != nil {
 			fmt.Println("Erreur parsing template :", err)
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 
@@ -95,9 +106,12 @@ func getCompetences(database *sql.DB) ([]models.Competence, error) {
 
 func Signin(database *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
+		language := middleware.GetLanguage(request)
+
+		fmt.Println("LANGUE ACTUELLE :", language)
 
 		if err := request.ParseMultipartForm(10 << 20); err != nil {
-			http.Error(response, "Formulaire invalide ou fichier trop volumineux (max 10 Mo)", http.StatusBadRequest)
+			http.Error(response, i18n.Traduction(language, "register.invalid_form"), http.StatusBadRequest)
 			return
 		}
 
@@ -113,13 +127,13 @@ func Signin(database *sql.DB) http.HandlerFunc {
 
 		motDePasse := request.FormValue("mot_de_passe")
 		if motDePasse == "" || motDePasse != request.FormValue("confirmation") {
-			http.Error(response, "Les mots de passe ne correspondent pas", http.StatusBadRequest)
+			http.Error(response, i18n.Traduction(language, "register.password_mismatch"), http.StatusBadRequest)
 			return
 		}
 
 		hashedPassword, errHash := bcrypt.GenerateFromPassword([]byte(motDePasse), bcrypt.DefaultCost)
 		if errHash != nil {
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 		utilisateur.MotDePasse = string(hashedPassword)
@@ -130,19 +144,19 @@ func Signin(database *sql.DB) http.HandlerFunc {
 		if err := database.QueryRow(
 			"SELECT id_role FROM role WHERE nom = $1", roleNom,
 		).Scan(&idRole); err != nil {
-			http.Error(response, "Rôle invalide", http.StatusBadRequest)
+			http.Error(response, i18n.Traduction(language, "register.invalid_role"), http.StatusBadRequest)
 			return
 		}
 
 		idAgence, errAgenceConv := strconv.Atoi(request.FormValue("id_agence"))
 		if errAgenceConv != nil {
-			http.Error(response, "Agence invalide", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.invalid_agency"), http.StatusBadRequest)
 			return
 		}
 
 		tx, errTx := database.Begin()
 		if errTx != nil {
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 		defer tx.Rollback()
@@ -157,18 +171,18 @@ func Signin(database *sql.DB) http.HandlerFunc {
 			utilisateur.Pays, idRole, idAgence,
 		).Scan(&idUtilisateur)
 		if errInsert != nil {
-			http.Error(response, "Impossible de créer le compte (email déjà utilisé ?)", http.StatusConflict)
+			http.Error(response, i18n.Traduction(language, "register.account_creation_error"), http.StatusConflict)
 			return
 		}
 
 		if err := insertProfilRole(tx, request, roleNom, idUtilisateur); err != nil {
 			fmt.Println("Erreur insertion profil rôle :", err)
-			http.Error(response, "Impossible d'enregistrer les informations du profil", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.profile_error"), http.StatusInternalServerError)
 			return
 		}
 
 		if err := tx.Commit(); err != nil {
-			http.Error(response, "Erreur interne", http.StatusInternalServerError)
+			http.Error(response, i18n.Traduction(language, "register.internal_error"), http.StatusInternalServerError)
 			return
 		}
 

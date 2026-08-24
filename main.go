@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	db "no_more_waste/database"
+	"no_more_waste/i18n"
 	"no_more_waste/middleware"
 	"no_more_waste/routes"
 	"no_more_waste/session"
@@ -15,6 +18,13 @@ import (
 
 func main() {
 
+	if err := i18n.Init(); err != nil {
+		log.Fatalf("Erreur initialisation i18n : %v", err)
+	}
+
+	fmt.Println(i18n.Traduction("fr", "login.title"))
+	fmt.Println(i18n.Traduction("en", "login.title"))
+
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	db.Init()
@@ -23,8 +33,10 @@ func main() {
 
 	session.Init()
 
-	fs := http.FileServer(http.Dir("./templates"))
-	http.Handle("/", fs)
+	http.HandleFunc("GET /", PageAccueil)
+
+	cssFs := http.FileServer(http.Dir("./templates"))
+	http.Handle("GET /style.css", cssFs)
 
 	if err := os.MkdirAll("./stockage/plannings", 0755); err != nil {
 		fmt.Println("Erreur création dossier plannings :", err)
@@ -36,6 +48,7 @@ func main() {
 	http.HandleFunc("GET /connexion", PageConnexion)
 	http.HandleFunc("POST /connexion", Login(db.DB))
 	http.HandleFunc("POST /logout", middleware.Logout)
+	http.HandleFunc("GET /language", middleware.ChangeLanguage)
 
 	http.HandleFunc("GET /admin", PageAdminGeneral)
 	http.HandleFunc("GET /admin-agence", PageAdminAgence)
@@ -138,10 +151,36 @@ func main() {
 	http.HandleFunc("GET /commercant/recapitulatifs/telecharger", routes.TelechargerRecapitulatifCollecte(db.DB))
 
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
-	http.Handle("/uploads/", http.StripPrefix("/uploads/", uploadsFs))
+	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", uploadsFs))
+
+	handler := middleware.Language(http.DefaultServeMux)
 
 	fmt.Println("Serveur lancé")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		fmt.Println("Erreur :", err)
+	}
+}
+
+func PageAccueil(response http.ResponseWriter, request *http.Request) {
+	language := middleware.GetLanguage(request)
+
+	tmpl, err := template.New("index.html").
+		Funcs(template.FuncMap{
+			"t": func(key string) string {
+				return i18n.Traduction(language, key)
+			},
+			"tHTML": func(key string) template.HTML {
+				return template.HTML(i18n.Traduction(language, key))
+			},
+		}).
+		ParseFiles("templates/index.html")
+	if err != nil {
+		fmt.Printf("Erreur parsing template accueil : %v", err)
+		http.Error(response, i18n.Traduction(language, "home.internal_error"), http.StatusInternalServerError)
+		return
+	}
+
+	if err := tmpl.Execute(response, nil); err != nil {
+		fmt.Println("Erreur exécution template accueil :", err)
 	}
 }

@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
-
+	"no_more_waste/i18n"
+	"no_more_waste/middleware"
 	"no_more_waste/models"
 	"no_more_waste/session"
 
@@ -58,6 +60,7 @@ func Login(database *sql.DB) http.HandlerFunc {
 
 		sess, sessErr := session.Store.Get(request, "nmw-session")
 		if sessErr != nil {
+			fmt.Printf("ERREUR SESSION GET : %v\n", sessErr)
 			http.Error(response, "Erreur lors de la création de la session", http.StatusInternalServerError)
 			return
 		}
@@ -104,7 +107,28 @@ func RedirectionSelonRole(roleNom string) string {
 }
 
 func PageConnexion(response http.ResponseWriter, request *http.Request) {
-	http.ServeFile(response, request, "templates/connexion.html")
+	language := middleware.GetLanguage(request)
+	fmt.Println("LANGUE ACTUELLE :", language)
+	fmt.Println("TRADUCTION TEST :", i18n.Traduction(language, "login.title"))
+
+	tmpl, err := template.New("connexion.html").Funcs(template.FuncMap{
+		"t": func(key string) string {
+			return i18n.Traduction(language, key)
+		},
+	}).
+		ParseFiles("templates/connexion.html")
+
+	if err != nil {
+		http.Error(response, "Erreur lors du chargement de la page", http.StatusInternalServerError)
+		fmt.Println("Erreur template connexion :", err)
+		return
+	}
+
+	err = tmpl.ExecuteTemplate(response, "connexion.html", nil)
+
+	if err != nil {
+		fmt.Println("Erreur exécution template connexion :", err)
+	}
 }
 
 func PageBenevole(response http.ResponseWriter, request *http.Request) {

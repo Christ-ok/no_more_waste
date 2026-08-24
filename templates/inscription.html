@@ -1,205 +1,217 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inscription — NO MORE WASTE</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="auth.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>{{t "common.register"}} — NO MORE WASTE</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth.css">
 </head>
+
 <body class="auth-body">
 
-<header class="site-header">
-  <div class="container header-inner">
-    <a href="/" class="logo">
-      <span class="logo-mark">NMW</span>
-      <span class="logo-text">NO MORE WASTE</span>
-    </a>
-    <div class="header-actions">
-      <span class="header-hint">Déjà inscrit ?</span>
-      <a href="/connexion" class="btn btn-ghost">Connexion</a>
-    </div>
-  </div>
-</header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <span class="logo-mark">NMW</span>
+        <span class="logo-text">NO MORE WASTE</span>
+      </a>
 
-<main class="auth-main">
-  <div class="auth-wrap">
-
-    <aside class="auth-side">
-      <img src="https://images.pexels.com/photos/6995201/pexels-photo-6995201.jpeg?auto=compress&cs=tinysrgb&w=1000"
-           alt="Bénévoles triant des denrées alimentaires données pour l'association">
-      <div class="auth-side-copy">
-        <span class="tag">Rejoindre l'association</span>
-        <h2>Un compte,<br>plusieurs façons d'agir.</h2>
-        <p>Bénévole, commerçant, adhérent ou association relais :
-        chacun trouve sa place chez NO MORE WASTE.</p>
+      <div class="header-actions">
+        <span class="header-hint">{{t "register.already_member"}}</span>
+        <a href="/connexion" class="btn btn-ghost">{{t "common.login"}}</a>
       </div>
-    </aside>
+    </div>
+  </header>
 
-    <section class="auth-card">
-      <span class="tag">Inscription</span>
-      <h1>Créer mon compte</h1>
-      <p class="auth-lead">Quelques informations suffisent pour commencer.</p>
+  <main class="auth-main">
+    <div class="auth-wrap">
 
-      <form class="auth-form" action="/inscription" method="POST" enctype="multipart/form-data">
+      <aside class="auth-side">
+        <img src="https://images.pexels.com/photos/6995201/pexels-photo-6995201.jpeg?auto=compress&cs=tinysrgb&w=1000" alt="{{t "register.image_alt"}}">
 
-        <div class="field-row">
-          <div class="field">
-            <label for="prenom">Prénom</label>
-            <input type="text" id="prenom" name="prenom" placeholder="Camille" required>
+        <div class="auth-side-copy">
+          <span class="tag">{{t "register.join_association"}}</span>
+          <h2>{{t "register.one_account"}}<br>{{t "register.multiple_ways"}}</h2>
+          <p>{{t "register.description"}}</p>
+        </div>
+      </aside>
+
+      <section class="auth-card">
+        <span class="tag">{{t "common.register"}}</span>
+
+        <h1>{{t "register.title"}}</h1>
+
+        <p class="auth-lead">{{t "register.subtitle"}}</p>
+
+        <form class="auth-form" action="/inscription" method="POST" enctype="multipart/form-data">
+
+          <div class="field-row">
+            <div class="field">
+              <label for="prenom">{{t "register.first_name"}}</label>
+              <input type="text" id="prenom" name="prenom" placeholder="Camille" required>
+            </div>
+
+            <div class="field">
+              <label for="nom">{{t "register.last_name"}}</label>
+              <input type="text" id="nom" name="nom" placeholder="Martin" required>
+            </div>
           </div>
+
           <div class="field">
-            <label for="nom">Nom</label>
-            <input type="text" id="nom" name="nom" placeholder="Martin" required>
+            <label for="email">{{t "login.email"}}</label>
+            <input type="email" id="email" name="email" placeholder="camille.martin@email.com" required>
           </div>
-        </div>
 
-        <div class="field">
-          <label for="email">Adresse e-mail</label>
-          <input type="email" id="email" name="email" placeholder="camille.martin@email.com" required>
-        </div>
-
-        <div class="field">
-          <label for="telephone">Téléphone</label>
-          <input type="tel" id="telephone" name="telephone" placeholder="06 12 34 56 78">
-        </div>
-
-        <div class="field">
-          <label for="adresse">Adresse</label>
-          <input type="text" id="adresse" name="adresse" placeholder="12 rue des Lilas">
-        </div>
-
-        <div class="field-row">
           <div class="field">
-            <label for="ville">Ville</label>
-            <input type="text" id="ville" name="ville" placeholder="Paris">
+            <label for="telephone">{{t "register.phone"}}</label>
+            <input type="tel" id="telephone" name="telephone" placeholder="06 12 34 56 78">
           </div>
+
           <div class="field">
-            <label for="code_postal">Code postal</label>
-            <input type="text" id="code_postal" name="code_postal" placeholder="75000">
+            <label for="adresse">{{t "register.address"}}</label>
+            <input type="text" id="adresse" name="adresse" placeholder="12 rue des Lilas">
           </div>
-        </div>
 
-        <div class="field">
-          <label for="pays">Pays</label>
-          <input type="text" id="pays" name="pays" placeholder="France" value="France">
-        </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="ville">{{t "register.city"}}</label>
+              <input type="text" id="ville" name="ville" placeholder="Paris">
+            </div>
 
-        <div class="field">
-          <label for="id_agence">Agence de rattachement</label>
-          <select id="id_agence" name="id_agence" required>
-            <option value="" disabled selected>Choisir une agence</option>
-            {{range .Agences}}
-            <option value="{{.IDAgence}}">{{.Nom}}</option>
-            {{end}}
-          </select>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="mot_de_passe">Mot de passe</label>
-            <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="8 caractères minimum" minlength="8" required>
+            <div class="field">
+              <label for="code_postal">{{t "register.postal_code"}}</label>
+              <input type="text" id="code_postal" name="code_postal" placeholder="75000">
+            </div>
           </div>
+
           <div class="field">
-            <label for="confirmation">Confirmation</label>
-            <input type="password" id="confirmation" name="confirmation" placeholder="Retapez le mot de passe" minlength="8" required>
+            <label for="pays">{{t "register.country"}}</label>
+            <input type="text" id="pays" name="pays" placeholder="France" value="France">
           </div>
-        </div>
-
-        <div class="field">
-          <label for="role">Je m'inscris en tant que</label>
-          <select id="role" name="role" required>
-            <option value="" disabled selected>Choisir un profil</option>
-            <option value="BENEVOLE">Bénévole</option>
-            <option value="COMMERCANT">Commerçant</option>
-            <option value="ADHERENT">Adhérent</option>
-            <option value="ASSOCIATION">Association bénéficiaire</option>
-          </select>
-        </div>
-
-        <div class="role-fields" data-role="BENEVOLE" hidden>
-          <label class="checkbox-field">
-            <input type="checkbox" name="permis">
-            <span>Je possède le permis de conduire.</span>
-          </label>
 
           <div class="field">
-            <label for="competence">Compétence</label>
-            <select id="competence" name="competence">
-              <option value="" disabled selected>Choisir une compétence</option>
-              {{range .Competences}}
-              <option value="{{.IDCompetence}}">{{.Nom}}</option>
+            <label for="id_agence">{{t "register.agency"}}</label>
+            <select id="id_agence" name="id_agence" required>
+              <option value="" disabled selected>{{t "register.choose_agency"}}</option>
+              {{range .Agences}}
+                <option value="{{.IDAgence}}">{{.Nom}}</option>
               {{end}}
             </select>
           </div>
 
-          <div class="field">
-            <label for="justificatif">Justificatif de compétence (PDF)</label>
-            <input type="file" id="justificatif" name="justificatif" accept="application/pdf" data-required="true">
-            <span class="field-hint">Ex : permis de conduire pour la compétence Chauffeur.</span>
-          </div>
-
-          <p class="role-fields-note">Vous pourrez renseigner vos disponibilités depuis votre espace bénévole une fois votre compte créé.</p>
-        </div>
-
-        <div class="role-fields" data-role="COMMERCANT" hidden>
-          <div class="field">
-            <label for="nom_entreprise">Nom de l'entreprise</label>
-            <input type="text" id="nom_entreprise" name="nom_entreprise" placeholder="Boulangerie du Marché" data-required="true">
-          </div>
           <div class="field-row">
             <div class="field">
-              <label for="type_commerce">Type de commerce</label>
-              <input type="text" id="type_commerce" name="type_commerce" placeholder="Boulangerie">
+              <label for="mot_de_passe">{{t "login.password"}}</label>
+              <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="{{t "register.password_minimum"}}" minlength="8" required>
             </div>
+
             <div class="field">
-              <label for="numero_siret">Numéro SIRET</label>
-              <input type="text" id="numero_siret" name="numero_siret" placeholder="14 chiffres" data-required="true">
+              <label for="confirmation">{{t "register.confirmation"}}</label>
+              <input type="password" id="confirmation" name="confirmation" placeholder="{{t "register.retype_password"}}" minlength="8" required>
             </div>
           </div>
-        </div>
 
-        <label class="checkbox-field">
-          <input type="checkbox" name="cgu" required>
-          <span>J'accepte les conditions d'utilisation de NO MORE WASTE.</span>
-        </label>
+          <div class="field">
+            <label for="role">{{t "register.role_question"}}</label>
+            <select id="role" name="role" required>
+              <option value="" disabled selected>{{t "register.choose_profile"}}</option>
+              <option value="BENEVOLE">{{t "register.role_volunteer"}}</option>
+              <option value="COMMERCANT">{{t "register.role_merchant"}}</option>
+              <option value="ADHERENT">{{t "register.role_member"}}</option>
+              <option value="ASSOCIATION">{{t "register.role_association"}}</option>
+            </select>
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-lg btn-block">Créer mon compte</button>
-      </form>
+          <div class="role-fields" data-role="BENEVOLE" hidden>
+            <label class="checkbox-field">
+              <input type="checkbox" name="permis">
+              <span>{{t "register.driver_license"}}</span>
+            </label>
 
-      <script>
-        const selectRole = document.getElementById("role");
-        const blocsRole = document.querySelectorAll(".role-fields");
+            <div class="field">
+              <label for="competence">{{t "register.skill"}}</label>
+              <select id="competence" name="competence">
+                <option value="" disabled selected>{{t "register.choose_skill"}}</option>
+                {{range .Competences}}
+                  <option value="{{.IDCompetence}}">{{.Nom}}</option>
+                {{end}}
+              </select>
+            </div>
 
-        function appliquerRole() {
-          const roleChoisi = selectRole.value;
+            <div class="field">
+              <label for="justificatif">{{t "register.skill_proof"}}</label>
+              <input type="file" id="justificatif" name="justificatif" accept="application/pdf" data-required="true">
+              <span class="field-hint">{{t "register.skill_proof_example"}}</span>
+            </div>
 
-          blocsRole.forEach((bloc) => {
-            const estConcerne = bloc.dataset.role === roleChoisi;
-            bloc.hidden = !estConcerne;
+            <p class="role-fields-note">{{t "register.availability_note"}}</p>
+          </div>
 
-            bloc.querySelectorAll("input").forEach((champ) => {
-              if (champ.dataset.required === "true") {
-                champ.required = estConcerne;
-              }
+          <div class="role-fields" data-role="COMMERCANT" hidden>
+            <div class="field">
+              <label for="nom_entreprise">{{t "register.company_name"}}</label>
+              <input type="text" id="nom_entreprise" name="nom_entreprise" placeholder="Boulangerie du Marché" data-required="true">
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="type_commerce">{{t "register.business_type"}}</label>
+                <input type="text" id="type_commerce" name="type_commerce" placeholder="Boulangerie">
+              </div>
+
+              <div class="field">
+                <label for="numero_siret">{{t "register.siret_number"}}</label>
+                <input type="text" id="numero_siret" name="numero_siret" placeholder="{{t "register.siret_placeholder"}}" data-required="true">
+              </div>
+            </div>
+          </div>
+
+          <label class="checkbox-field">
+            <input type="checkbox" name="cgu" required>
+            <span>{{t "register.terms"}}</span>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-block">{{t "register.submit"}}</button>
+        </form>
+
+        <script>
+          const selectRole = document.getElementById("role");
+          const blocsRole = document.querySelectorAll(".role-fields");
+
+          function appliquerRole() {
+            const roleChoisi = selectRole.value;
+
+            blocsRole.forEach((bloc) => {
+              const estConcerne = bloc.dataset.role === roleChoisi;
+              bloc.hidden = !estConcerne;
+
+              bloc.querySelectorAll("input").forEach((champ) => {
+                if (champ.dataset.required === "true") {
+                  champ.required = estConcerne;
+                }
+              });
             });
-          });
-        }
+          }
 
-        selectRole.addEventListener("change", appliquerRole);
-        appliquerRole();
-      </script>
+          selectRole.addEventListener("change", appliquerRole);
+          appliquerRole();
+        </script>
 
-      <p class="auth-switch">
-        Déjà membre ? <a href="/connexion">Se connecter</a>
-      </p>
-    </section>
+        <p class="auth-switch">
+          {{t "register.already_member"}}
+          <a href="/connexion">{{t "common.login"}}</a>
+        </p>
+      </section>
 
-  </div>
-</main>
+    </div>
+  </main>
 
 </body>
 </html>

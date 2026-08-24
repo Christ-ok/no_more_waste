@@ -338,3 +338,24 @@ a { color: inherit; text-decoration: none; }
   html { scroll-behavior: auto; }
   .btn { transition: none; }
 }
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.language-switcher a {
+  transition: color .15s ease;
+}
+
+.language-switcher a:hover {
+  color: var(--green-mid);
+}
+
+.language-switcher span {
+  color: var(--sage-line);
+}

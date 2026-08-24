@@ -1,0 +1,133 @@
+{
+  "common.welcome": "Welcome",
+  "common.login": "Login",
+  "common.logout": "Logout",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.register": "Registration",
+
+  "login.email": "Email address",
+  "login.password": "Password",
+  "login.not_yet_account": "Don't have an account yet?",
+  "login.welcome_back": "Welcome back",
+  "login.every_day_counts": "Every day counts so nothing goes to waste.",
+  "login.description": "Log in to find your routes, donations and personal space.",
+  "login.title": "Nice to see you again",
+  "login.subtitle": "Enter your credentials to access your account.",
+  "login.forgot_password": "Forgot your password?",
+  "login.password_placeholder": "Your password",
+  "login.remember_me": "Stay logged in on this device.",
+  "login.submit": "Log in",
+  "login.create_account": "Create an account",
+
+  "register.internal_error": "Internal error",
+  "register.invalid_form": "Invalid form or file too large (max 10 MB)",
+  "register.password_mismatch": "Passwords do not match",
+  "register.invalid_role": "Invalid role",
+  "register.invalid_agency": "Invalid agency",
+  "register.account_creation_error": "Unable to create the account (email already in use?)",
+  "register.profile_error": "Unable to save profile information",
+
+  "register.title": "Create your account",
+"register.subtitle": "Join NO MORE WASTE and help fight food waste.",
+"register.first_name": "First name",
+"register.last_name": "Last name",
+"register.phone": "Phone",
+"register.address": "Address",
+"register.city": "City",
+"register.postal_code": "Postal code",
+"register.country": "Country",
+"register.agency": "Agency",
+"register.choose_agency": "Choose an agency",
+
+"register.confirmation": "Confirm password",
+
+"register.role_question": "What type of profile would you like to create?",
+"register.choose_profile": "Choose your profile",
+"register.role_volunteer": "Volunteer",
+"register.role_merchant": "Merchant",
+"register.role_member": "Member",
+"register.role_association": "Association",
+
+"register.driver_license": "I have a driving licence",
+
+"register.skill": "Skill",
+"register.choose_skill": "Choose a skill",
+"register.skill_proof": "Proof of skill",
+"register.skill_proof_example": "Example: diploma, certificate or other proof in PDF format.",
+"register.availability_note": "Your availability can be provided after registration.",
+
+"register.company_name": "Company name",
+"register.business_type": "Business type",
+"register.siret_number": "SIRET number",
+"register.siret_placeholder": "12345678901234",
+
+"register.terms": "I accept the terms and conditions",
+"register.submit": "Create my account",
+
+"register.already_registered": "Already have an account?",
+"register.already_member": "Already have an account?",
+
+"register.join_association": "Join us",
+"register.one_account": "One account,",
+"register.multiple_ways": "many ways to make a difference.",
+"register.description": "Whether you are a volunteer, merchant, member or association, everyone can help reduce waste.",
+
+"register.password_minimum": "8 characters minimum",
+"register.retype_password": "Re-enter your password",
+
+"register.image_alt": "Volunteers taking part in NO MORE WASTE activities",
+
+  "home.lang": "en",
+
+  "home.title": "NO MORE WASTE — Together against food waste",
+
+  "home.nav.mission": "Our mission",
+  "home.nav.volunteering": "Volunteering",
+  "home.nav.services": "Services",
+
+  "home.hero.tag": "Since 2013 · Paris",
+  "home.hero.title": "What was going to be<br>thrown away can still<br><em>feed</em>.",
+  "home.hero.description": "Every day, NO MORE WASTE collects unsold goods from retailers and products nearing their expiration date from individuals, then redistributes them where they are needed.",
+  "home.hero.volunteer_button": "Become a volunteer",
+  "home.hero.discover_button": "Discover the association ↓",
+  "home.hero.image_alt": "Volunteers sorting donated food for the association",
+  "home.hero.volunteers": "200+ volunteers",
+
+  "home.mission.tag": "How it works",
+  "home.mission.title": "Three actions, one common goal: waste nothing.",
+
+  "home.mission.collect.title": "Collect",
+  "home.mission.collect.description": "Daily collection rounds pick up unsold goods from businesses and donations from individuals and bring them to the storage facility.",
+
+  "home.mission.redistribute.title": "Redistribute",
+  "home.mission.redistribute.description": "Products are catalogued, stored and then delivered to charities and individuals in need.",
+
+  "home.mission.involve.title": "Get involved",
+  "home.mission.involve.description": "Members, volunteers and employees work together to keep the association running every day.",
+
+  "home.volunteering.tag": "A growing team",
+  "home.volunteering.title": "From Paris to the world.",
+  "home.volunteering.description": "Founded in Paris, the association has expanded to Nantes, Marseille and Limoges, and internationally to Naples, Porto and Dublin. Today, 14 employees and more than 200 volunteers organize collections, delivery rounds and solidarity services.",
+  "home.volunteering.image_alt": "Distribution of donated food by volunteers",
+
+  "home.volunteering.stats.creation": "year founded",
+  "home.volunteering.stats.cities": "active cities",
+  "home.volunteering.stats.volunteers": "committed volunteers",
+
+  "home.services.tag": "For members",
+  "home.services.title": "Services to reduce waste every day",
+  "home.services.anti_waste": "Anti-waste advice",
+  "home.services.cooking": "Cooking classes",
+  "home.services.vehicles": "Vehicle sharing",
+  "home.services.help": "Mutual assistance",
+  "home.services.repair": "Repair services",
+  "home.services.childcare": "Childcare",
+
+  "home.cta.image_alt": "Fresh vegetables saved from waste, displayed in a crate",
+  "home.cta.title": "Join the movement.",
+  "home.cta.description": "Create your account to become a volunteer, join the association or offer your unsold goods for collection.",
+  "home.cta.button": "Sign up",
+
+  "home.footer.copyright": "© 2026 NO MORE WASTE — Association fighting food waste"
+}
