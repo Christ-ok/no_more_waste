@@ -31,6 +31,7 @@ WORKDIR /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app/server .
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/i18n ./i18n
 
 RUN mkdir -p /app/uploads
 RUN mkdir -p /app/stockage/livraisons
