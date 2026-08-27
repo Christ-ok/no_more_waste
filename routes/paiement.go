@@ -88,6 +88,10 @@ func CreerSessionPaiementAdhesion(database *sql.DB) http.HandlerFunc {
 func StripeWebhookAdhesion(database *sql.DB, webhookSecret string) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 
+		fmt.Println(">>> WEBHOOK STRIPE REÇU")
+		fmt.Println(">>> METHOD :", request.Method)
+		fmt.Println(">>> PATH :", request.URL.Path)
+
 		body, errRead := io.ReadAll(request.Body)
 		if errRead != nil {
 			http.Error(response, errRead.Error(), http.StatusInternalServerError)
@@ -104,10 +108,14 @@ func StripeWebhookAdhesion(database *sql.DB, webhookSecret string) http.HandlerF
 			return
 		}
 
+		fmt.Println(">>> SIGNATURE STRIPE VALIDEE :")
+
 		if event.Type != "checkout.session.completed" {
 			response.WriteHeader(http.StatusOK)
 			return
 		}
+
+		fmt.Println(">>> EVENT TYPE :", event.Type)
 
 		var checkoutSess stripe.CheckoutSession
 		if err := json.Unmarshal(event.Data.Raw, &checkoutSess); err != nil {
@@ -119,6 +127,11 @@ func StripeWebhookAdhesion(database *sql.DB, webhookSecret string) http.HandlerF
 			response.WriteHeader(http.StatusOK)
 			return
 		}
+
+		fmt.Println(">>> ID ADHERENT :", checkoutSess.Metadata["id_adherent"])
+		fmt.Println(">>> TYPE :", checkoutSess.Metadata["type"])
+		fmt.Println(">>> SESSION ID :", checkoutSess.ID)
+		fmt.Println(">>> TRAITEMENT COTISATION...")
 
 		handleCotisationAdherent(database, checkoutSess)
 		response.WriteHeader(http.StatusOK)
@@ -165,17 +178,25 @@ func handleCotisationAdherent(database *sql.DB, checkoutSess stripe.CheckoutSess
 		return
 	}
 
-	_, errUpdate := tx.Exec(`
+	log.Printf(">>> TENTATIVE UPDATE ADHERENT ID %d", idAdherent)
+
+	resultUpdate, errUpdate := tx.Exec(`
 		UPDATE adherent
 		SET statut          = 'ACTIF',
 		    date_adhesion   = COALESCE(date_adhesion, NOW()),
 		    date_expiration = NOW() + INTERVAL '1 year'
 		WHERE id_adherent = $1
 	`, idAdherent)
+
+	log.Printf(">>> UPDATE EXECUTE")
+
 	if errUpdate != nil {
 		log.Printf("Erreur mise à jour adhérent : %v", errUpdate)
 		return
 	}
+
+	rowsUpdated, _ := resultUpdate.RowsAffected()
+	log.Printf(">>> NOMBRE D'ADHERENTS MIS A JOUR : %d", rowsUpdated)
 
 	if errCommit := tx.Commit(); errCommit != nil {
 		log.Printf("Erreur commit transaction : %v", errCommit)
