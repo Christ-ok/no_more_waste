@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournées — NO MORE WASTE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+</head>
+<body class="dash-body">
+
+<div class="dash-shell">
+
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      <span class="sidebar-logo-mark">NMW</span>
+      <span class="sidebar-logo-text">NO MORE WASTE</span>
+    </a>
+
+    <span class="sidebar-space">Back-office — Général</span>
+
+    <nav class="sidebar-nav">
+      <a href="/admin/statistiques" class="nav-item">Tableau de bord</a>
+      <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
+      <a href="/admin/collectes" class="nav-item">Collectes</a>
+      <a href="/admin/stock" class="nav-item">Stocks</a>
+      <a href="/admin/tournees" class="nav-item is-active">Tournées de distribution</a>
+      <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
+      <a href="/admin/commercants" class="nav-item">Commerçants</a>
+      <a href="/admin/adherents" class="nav-item">Adhérents</a>
+      <a href="/admin/services" class="nav-item">Services</a>
+    </nav>
+
+    <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-topbar">
+      <div>
+        <span class="tag">Administration générale</span>
+        <h1>Tournées de distribution</h1>
+      </div>
+      <div class="topbar-user">
+        <span>Bonjour !</span>
+      </div>
+    </header>
+
+    <main class="dash-content">
+      <p class="dash-subtitle">Retrouvez l'ensemble des tournées planifiées ou réalisées, toutes agences confondues.</p>
+
+      <div class="panel panel-table">
+        {{if .Tournee}}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Destinataire</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Tournee}}
+            <tr>
+              <td class="cell-strong">{{.Nom_Destinataire}}</td>
+              <td>{{.Type_Destinataire}}</td>
+              <td>{{.Date_Tournee.Format "02/01/2006"}}</td>
+              <td>{{.Statut}}</td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+        {{else}}
+        <p class="table-empty">Aucune tournée enregistrée pour le moment.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+</div>
+
+</body>
+</html>

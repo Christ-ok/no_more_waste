@@ -46,6 +46,15 @@ type AdminAgenceRecapitulatifsData struct {
 	Recapitulatifs []models.RecapitulatifTournee
 }
 
+type BenevoleStatistiques struct {
+	Planning      int
+	Collecte      int
+	Tournee       int
+	Disponibilite int
+	Service       int
+	Competence    string
+}
+
 func PageDashboardBenevole(response http.ResponseWriter, request *http.Request) {
 	http.ServeFile(response, request, "templates/benevole/accueil_Benevole.html")
 }
@@ -643,6 +652,13 @@ func PagePlanningExcelBenevole(database *sql.DB) http.HandlerFunc {
 			SELECT pe.id_planning_excel, p.date, p.heure_debut, p.heure_fin, 'Collecte' AS label FROM planning_excel pe
 			JOIN planning p ON p.id_planning = pe.id_planning
 			JOIN collecte c ON c.id_planning = p.id_planning
+			WHERE pe.id_benevole = $1
+
+			UNION ALL 
+
+			SELECT pe.id_planning_excel, p.date, p.heure_debut, p.heure_fin, 'Tournee' AS label FROM planning_excel pe
+			JOIN planning p ON p.id_planning = pe.id_planning
+			JOIN tournee t ON t.id_planning = p.id_planning
 			WHERE pe.id_benevole = $1
 
 			ORDER BY date
@@ -1394,4 +1410,95 @@ func genererPDFRecapitulatifLivraisonTournee(database *sql.DB, idTournee int) er
 	}
 
 	return nil
+}
+
+func StatistiquesGeneralsBenevole(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "ID manquant", http.StatusInternalServerError)
+			return
+		}
+
+		var idBenevole int
+		errBenevole := database.QueryRow(`SELECT id_benevole FROM benevole WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idBenevole)
+		if errBenevole != nil {
+			fmt.Printf("Erreur récupération id_benevole : %v\n", errBenevole)
+			http.Error(response, "Bénévole introuvable", http.StatusInternalServerError)
+			return
+		}
+
+		var planning, collecte, tournee, disponibilite, service int
+		var competence string
+
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM planning WHERE id_benevole = $1`, idBenevole).Scan(&planning)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération planning", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_benevole = $1`, idBenevole).Scan(&collecte)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM tournee WHERE id_benevole = $1`, idBenevole).Scan(&tournee)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération tournee", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM disponibilite WHERE id_benevole = $1 AND date_disponibilite >= NOW()`, idBenevole).Scan(&disponibilite)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération disponibilite", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM demande_service WHERE id_benevole = $1`, idBenevole).Scan(&service)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT c.nom FROM benevole b 
+										JOIN competence c ON c.id_competence = b.id_competence
+									 WHERE b.id_benevole = $1`, idBenevole).Scan(&competence)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération competence", http.StatusInternalServerError)
+			return
+		}
+
+		data := BenevoleStatistiques{
+			Planning:      planning,
+			Collecte:      collecte,
+			Tournee:       tournee,
+			Disponibilite: disponibilite,
+			Service:       service,
+			Competence:    competence,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/benevole/accueil_Benevole.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "BENEVOLE")
 }

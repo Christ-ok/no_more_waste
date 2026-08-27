@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"no_more_waste/middleware"
@@ -19,10 +20,16 @@ import (
 
 const stripePriceCotisationAdherent = "price_1TzCXjATxxp0L3EN5bLW7Bgf"
 
-const urlBase = "http://localhost:8080"
-
 func CreerSessionPaiementAdhesion(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		urlBase := os.Getenv("APP_URL")
+
+		if urlBase == "" {
+			fmt.Println("ERREUR : APP_URL EST VIDE")
+			http.Error(response, "APP_URL non configurée", http.StatusInternalServerError)
+			return
+		}
 
 		sess, sessErr := session.Store.Get(request, "nmw-session")
 		if sessErr != nil {
@@ -109,8 +116,6 @@ func StripeWebhookAdhesion(database *sql.DB, webhookSecret string) http.HandlerF
 		}
 
 		if checkoutSess.Metadata["type"] != "cotisation_adherent" {
-			// Pas notre flux, on ignore (utile si le webhook est mutualisé
-			// avec d'autres types de paiement plus tard).
 			response.WriteHeader(http.StatusOK)
 			return
 		}
@@ -134,7 +139,7 @@ func handleCotisationAdherent(database *sql.DB, checkoutSess stripe.CheckoutSess
 		return
 	}
 
-	montant := checkoutSess.AmountTotal / 100 // Stripe travaille en centimes
+	montant := checkoutSess.AmountTotal / 100
 
 	tx, errTx := database.Begin()
 	if errTx != nil {

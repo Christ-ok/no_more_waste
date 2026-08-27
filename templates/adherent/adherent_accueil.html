@@ -22,7 +22,7 @@
     <span class="sidebar-space">Espace adhérent</span>
 
     <nav class="sidebar-nav">
-      <a href="/adherent" class="nav-item is-active">Tableau de bord</a>
+      <a href="/adherent/statistiques" class="nav-item is-active">Tableau de bord</a>
       <a href="/adherent/services" class="nav-item">Services disponibles</a>
       <a href="/adherent/services/rejoint" class="nav-item">Services Demandés</a>
       <a href="/adherent/services/historique" class="nav-item">Historique Services</a>
@@ -50,32 +50,58 @@
       <p class="dash-subtitle">Découvrez les services de l'association et gérez vos inscriptions.</p>
 
       <div class="stat-grid">
+
         <div class="stat-card">
           <span class="stat-label">Statut d'adhésion</span>
-          <span class="stat-value">Actif</span>
+          <span class="stat-value">{{.Statut_Adhesion}}</span>
           <span class="stat-hint">Cotisation annuelle à jour</span>
         </div>
+
         <div class="stat-card">
           <span class="stat-label">Services disponibles</span>
-          <span class="stat-value">—</span>
+          <span class="stat-value">{{.Service}}</span>
           <span class="stat-hint">Conseils, cuisine, partage, réparation...</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Mes inscriptions en cours</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Voir le détail dans « Mes inscriptions »</span>
+          <span class="stat-label">Mes demandes de services</span>
+          <span class="stat-value">{{.Demande}}</span>
+          <span class="stat-hint">Voir le détail dans « Services Demandés »</span>
         </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Services réalisés</span>
+          <span class="stat-value">{{.Historique}}</span>
+          <span class="stat-hint">Historique de vos services rendus</span>
+        </div>
+
         <div class="stat-card">
           <span class="stat-label">Renouvellement</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Rappel automatique avant expiration</span>
+          {{if .Date_Adhesion.Valid}}
+            <span class="stat-value">{{.Date_Adhesion.Time.Format "02/01/2006"}}</span>
+            <span class="stat-hint">Date d'expiration de votre adhésion</span>
+          {{else}}
+            <span class="stat-value">Non renseigné</span>
+            <span class="stat-hint">Vous devez payer votre adhésion</span>
+          {{end}}
         </div>
+
       </div>
 
       <div class="panel">
         <h2>Explorez les services de l'association</h2>
         <p>Cours de cuisine, partage de véhicules, entraide entre particuliers, réparation, gardiennage... Découvrez tout ce qui est accessible grâce à votre cotisation.</p>
       </div>
+
+      <div class="panel">
+        <h2>Accès rapides</h2>
+        <div class="quick-links">
+          <a href="/adherent/services" class="btn btn-primary">Voir les services disponibles</a>
+          <a href="/adherent/services/rejoint" class="btn btn-primary">Mes services demandés</a>
+          <a href="/adherent/adhesion" class="btn btn-primary">Gérer mon adhésion</a>
+        </div>
+      </div>
+
     </main>
   </div>
 

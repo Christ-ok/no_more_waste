@@ -25,7 +25,8 @@ type AdminAgenceDashboardPlanning struct {
 }
 
 type AdminAgenceDashboardPlanningAfficher struct {
-	Planning []models.PlanningAfficheDashboard
+	Planning          []models.PlanningAfficheDashboard
+	BenevoleRecherche string
 }
 
 type AdminAgenceDashboardServicesAfficher struct {
@@ -47,6 +48,7 @@ type AdminAgenceBenevolesDisponibilites struct {
 
 type AdminAgenceBenevoleDocument struct {
 	Benevoles_Documents []models.BenevoleDocument
+	BenevoleRecherche   string
 }
 
 type AdminAgenceCollecteDashboard struct {
@@ -63,7 +65,8 @@ type AdminAgenceStockDashboard struct {
 }
 
 type AdminAgenceTourneeData struct {
-	Tournee []models.TourneeDashboard
+	Tournee   []models.TourneeDashboard
+	ID_Agence int
 }
 
 type AdminAgenceCreerTournee struct {
@@ -73,6 +76,29 @@ type AdminAgenceCreerTournee struct {
 type AdminAgenceBenevolesDisponibilitesTournee struct {
 	Benevole_Disponibilites []models.TourneeDashboardAffectation
 	ID_Tournee              int
+}
+
+type AdminAgenceStatistiqueData struct {
+	Collecte      int
+	Stock         int
+	Tournee       int
+	Recapitulatif int
+	Benevole      int
+	Document      int
+	Planning      int
+	Commercant    int
+	Adherent      int
+	Service       int
+}
+
+type AdminAgenceCommercant struct {
+	Commercant          []models.Commercant
+	CommercantRecherche string
+}
+
+type AdminAgenceAdherent struct {
+	Adherent          []models.Adherent
+	AdherentRecherche string
 }
 
 func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
@@ -97,11 +123,18 @@ func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rowsBenevole, errBenevole := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.adresse, u.ville, u.pays FROM utilisateur u
 													JOIN benevole b ON b.id_utilisateur = u.id_utilisateur
 													WHERE u.id_agence = $1
+													AND (
+														LOWER(u.nom) LIKE LOWER($2) OR
+														LOWER(u.prenom) LIKE LOWER($2) OR
+														LOWER(u.email) LIKE LOWER($2)
 
-		`, idAgence)
+													)
+		`, idAgence, "%"+recherche+"%")
 
 		if errBenevole != nil {
 			fmt.Printf("Voici l'erreur à la ligne 32 : %v\n", errBenevole)
@@ -134,7 +167,8 @@ func DashboardAdminAgenceBenevoles(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminDashboardDataBenevole{
-			Benevoles: benevoles_List,
+			Benevoles:         benevoles_List,
+			BenevoleRecherche: recherche,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/benevoles.html")
@@ -392,7 +426,7 @@ func DashboardAdminAgenceCreerPlanning(database *sql.DB) http.HandlerFunc {
 		}
 
 		fmt.Println("Disponibilité créée avec succès !")
-		http.Redirect(response, request, "/admin-agence/benevoles/disponibilites", http.StatusSeeOther)
+		http.Redirect(response, request, "/admin-agence/benevoles", http.StatusSeeOther)
 
 	}, "ADMIN_AGENCE")
 }
@@ -433,12 +467,18 @@ func DashboardAdminAgenceAfficherPlanning(database *sql.DB) http.HandlerFunc {
 			fmt.Printf("Erreur mise à jour planning expirés : %v", errUpdate)
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rowsPlanning, rowsErr := database.Query(`SELECT p.id_planning, u.nom, u.prenom, p.date, p.heure_debut, p.heure_fin,  p.statut FROM planning p
 												JOIN benevole b ON b.id_benevole = p.id_benevole
 												JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
-												WHERE u.id_agence = $1 ORDER BY p.date, p.heure_debut 
-		`, idAgence)
-
+												WHERE u.id_agence = $1
+												AND (
+													LOWER(u.nom) LIKE LOWER($2) OR
+													LOWER(u.prenom) LIKE LOWER($2)
+												)
+												ORDER BY p.date, p.heure_debut
+		`, idAgence, "%"+recherche+"%")
 		if rowsErr != nil {
 			fmt.Printf("Voici l'erreur à la ligne 372 : %v\n", rowsErr)
 			http.Error(response, "Erreur lors de la récupération des planning", http.StatusInternalServerError)
@@ -470,7 +510,8 @@ func DashboardAdminAgenceAfficherPlanning(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminAgenceDashboardPlanningAfficher{
-			Planning: planning_List,
+			Planning:          planning_List,
+			BenevoleRecherche: recherche,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/planning.html")
@@ -1327,11 +1368,17 @@ func DashboardAdminAgenceDocumentsBenevoles(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rows, errRows := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, c.nom , b.statut, b.justificatif FROM benevole b
 											JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
 											LEFT JOIN competence c ON c.id_competence = b.id_competence
 										WHERE u.id_agence = $1	
-		`, idAgence)
+										AND (
+											LOWER(u.nom) LIKE LOWER($2) OR
+											LOWER(u.prenom) LIKE LOWER($2)
+										)
+		`, idAgence, "%"+recherche+"%")
 		if errRows != nil {
 			fmt.Printf("Erreur : %v", errRows)
 			http.Error(response, "Erreur récupération documents", http.StatusInternalServerError)
@@ -1367,6 +1414,7 @@ func DashboardAdminAgenceDocumentsBenevoles(database *sql.DB) http.HandlerFunc {
 
 		data := AdminAgenceBenevoleDocument{
 			Benevoles_Documents: benevolesDocuments_List,
+			BenevoleRecherche:   recherche,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/benevoles_documents.html")
@@ -2700,7 +2748,7 @@ func AttributionTourneePlanningBenevole(database *sql.DB) http.HandlerFunc {
 													JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
 													JOIN planning p ON p.id_planning = $2
 												   WHERE b.id_benevole = $1
-		`, idBenevole, idAgence).Scan(&nomBenevole, &prenomBenevole, &dateTournee, &heureDebut, &heureFin, &statutPlanning)
+		`, idBenevole, idPlanning).Scan(&nomBenevole, &prenomBenevole, &dateTournee, &heureDebut, &heureFin, &statutPlanning)
 		if errInfoPlanningExcel != nil {
 			fmt.Printf("Erreur : %v", errInfoPlanningExcel)
 			http.Error(response, "Erreur récupération planning", http.StatusInternalServerError)
@@ -2714,7 +2762,7 @@ func AttributionTourneePlanningBenevole(database *sql.DB) http.HandlerFunc {
 		}
 
 		fmt.Println("Tournée attribuée avec succès !")
-		http.Redirect(response, request, "/admin-agence/tournees", http.StatusInternalServerError)
+		http.Redirect(response, request, "/admin-agence/tournees", http.StatusSeeOther)
 
 	}, "ADMIN_AGENCE")
 }
@@ -2918,5 +2966,278 @@ func TelechargerRecapitulatifTournee(database *sql.DB) http.HandlerFunc {
 		response.Header().Set("Content-Type", "application/pdf")
 		response.Header().Set("Content-Disposition", `attachment; filename="recapitulatif.pdf"`)
 		http.ServeFile(response, request, cheminFichier)
+	}, "ADMIN_AGENCE")
+}
+
+func StatistiquesGenerales(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			fmt.Printf("Erreur récupération session : %v\n", sessErr)
+			http.Error(response, "Erreur récupération de session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		var collecte, stock, tournee, benevole, document, planning, commercant, adherent, service int
+
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_agence = $1`, idAgence).Scan(&collecte)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM stock WHERE id_agence = $1`, idAgence).Scan(&stock)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération stock", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM tournee WHERE id_agence = $1`, idAgence).Scan(&tournee)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération tournee", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM service WHERE id_agence = $1`, idAgence).Scan(&service)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM utilisateur WHERE id_agence = $1 AND id_role = 4`, idAgence).Scan(&benevole)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération benevole", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT (*) FROM utilisateur u 
+										JOIN benevole b ON b.id_utilisateur = u.id_utilisateur 
+									WHERE u.id_agence = $1 AND b.justificatif IS NOT NULL`, idAgence).Scan(&document)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération document bénévole", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM utilisateur u
+										JOIN benevole b ON b.id_utilisateur = u.id_utilisateur
+										JOIN planning p ON p.id_benevole = b.id_benevole
+									WHERE u.id_agence = $1`, idAgence).Scan(&planning)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération planning", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM utilisateur WHERE id_agence = $1 AND id_role = 3`, idAgence).Scan(&commercant)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération commercant", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM utilisateur WHERE id_agence = $1 AND id_role = 5`, idAgence).Scan(&adherent)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération adherent", http.StatusInternalServerError)
+			return
+		}
+
+		data := AdminAgenceStatistiqueData{
+			Collecte:   collecte,
+			Stock:      stock,
+			Tournee:    tournee,
+			Benevole:   benevole,
+			Document:   document,
+			Planning:   planning,
+			Commercant: commercant,
+			Adherent:   adherent,
+			Service:    service,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/adminAgence_accueil.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v\n", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceCommercant(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			fmt.Printf("Erreur récupération agence : %v\n", errAgence)
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		recherche := request.URL.Query().Get("recherche")
+
+		rowsCommercant, errCommercant := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.adresse, c.nom_entreprise FROM utilisateur u
+															JOIN commercant c ON c.id_utilisateur = u.id_utilisateur
+														WHERE u.id_agence = $1 
+														AND (
+															LOWER(u.nom) LIKE LOWER($2) OR
+															LOWER(u.prenom) LIKE LOWER($2) OR
+															LOWER(u.email) LIKE LOWER ($2)
+														)
+		`, idAgence, "%"+recherche+"%")
+		if errCommercant != nil {
+			fmt.Printf("Erreur : %v", errCommercant)
+			http.Error(response, "Erreur récupération commerçant", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCommercant.Close()
+
+		var commercants_List []models.Commercant
+
+		for rowsCommercant.Next() {
+			var commercant models.Commercant
+
+			errScan := rowsCommercant.Scan(&commercant.IDUtilisateur,
+				&commercant.Nom,
+				&commercant.Prenom,
+				&commercant.Email,
+				&commercant.Adresse,
+				&commercant.NomEntreprise,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan", http.StatusInternalServerError)
+				return
+			}
+
+			commercants_List = append(commercants_List, commercant)
+		}
+
+		data := AdminAgenceCommercant{
+			Commercant:          commercants_List,
+			CommercantRecherche: recherche,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/commercants.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_AGENCE")
+}
+
+func DashboardAdminAgenceAdherent(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateurAdmin, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		idAgence, errAgence := middleware.GetIDAgenceUtilisateur(database, idUtilisateurAdmin)
+		if errAgence != nil {
+			fmt.Printf("Erreur récupération agence : %v\n", errAgence)
+			http.Error(response, "Agence introuvable pour cet utilisateur", http.StatusForbidden)
+			return
+		}
+
+		recherche := request.URL.Query().Get("recherche")
+
+		rowsAdherent, errAdherent := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.adresse, a.date_adhesion, a.date_expiration FROM utilisateur u
+														JOIN adherent a ON a.id_utilisateur = u.id_utilisateur
+													WHERE u.id_agence = $1
+													AND (
+														LOWER(u.nom) LIKE LOWER($2) OR
+														LOWER(u.prenom) LIKE LOWER($2) OR
+														LOWER(u.email) LIKE LOWER($2)	
+													) 
+		`, idAgence, "%"+recherche+"%")
+		if errAdherent != nil {
+			fmt.Printf("Erreur : %v", errAdherent)
+			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
+			return
+		}
+		defer rowsAdherent.Close()
+
+		var adherents_List []models.Adherent
+
+		for rowsAdherent.Next() {
+			var adherent models.Adherent
+
+			errScan := rowsAdherent.Scan(&adherent.IDUtilisateur,
+				&adherent.Nom,
+				&adherent.Prenom,
+				&adherent.Email,
+				&adherent.Adresse,
+				&adherent.DateAdhesion,
+				&adherent.DateExpiration,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan adherent", http.StatusInternalServerError)
+				return
+			}
+
+			adherents_List = append(adherents_List, adherent)
+		}
+
+		data := AdminAgenceAdherent{
+			Adherent:          adherents_List,
+			AdherentRecherche: recherche,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/adherents.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
 	}, "ADMIN_AGENCE")
 }

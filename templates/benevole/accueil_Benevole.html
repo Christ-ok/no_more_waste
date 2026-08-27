@@ -22,7 +22,7 @@
     <span class="sidebar-space">Espace bénévole</span>
 
     <nav class="sidebar-nav">
-      <a href="/benevole/dashboard" class="nav-item is-active">Tableau de bord</a>
+      <a href="/benevole/statistiques" class="nav-item is-active">Tableau de bord</a>
       <a href="/benevole/planning-excel" class="nav-item">Mon planning</a>
       <a href="/benevole/collectes" class="nav-item">Mes collectes</a>
       <a href="/benevole/tournees" class="nav-item">Mes tournées</a>
@@ -52,32 +52,60 @@
       <p class="dash-subtitle">Retrouvez vos missions, votre planning et vos disponibilités en un seul endroit.</p>
 
       <div class="stat-grid">
+
         <div class="stat-card">
-          <span class="stat-label">Statut de candidature</span>
-          <span class="stat-value">Validé</span>
-          <span class="stat-hint">Vous êtes affecté à des missions</span>
+          <span class="stat-label">Plannings</span>
+          <span class="stat-value">{{.Planning}}</span>
+          <span class="stat-hint">Plannings qui vous sont assignés</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Missions ce mois-ci</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Collectes et tournées prévues</span>
+          <span class="stat-label">Collectes</span>
+          <span class="stat-value">{{.Collecte}}</span>
+          <span class="stat-hint">Collectes auxquelles vous participez</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Prochaine mission</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Voir le détail dans « Mon planning »</span>
+          <span class="stat-label">Tournées</span>
+          <span class="stat-value">{{.Tournee}}</span>
+          <span class="stat-hint">Tournées de distribution assignées</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Compétences déclarées</span>
-          <span class="stat-value">—</span>
+          <span class="stat-label">Disponibilités à venir</span>
+          <span class="stat-value">{{.Disponibilite}}</span>
+          <span class="stat-hint">Créneaux déclarés à partir d'aujourd'hui</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Demandes de services</span>
+          <span class="stat-value">{{.Service}}</span>
+          <span class="stat-hint">Services auxquels vous avez répondu</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Compétence déclarée</span>
+          <span class="stat-value">{{.Competence}}</span>
           <span class="stat-hint">Modifiable depuis votre profil</span>
         </div>
+
       </div>
 
       <div class="panel">
         <h2>Votre planning arrive bientôt</h2>
         <p>Les plannings sont édités quotidiennement par votre agence et vous seront envoyés ici, ainsi que par e-mail au format Excel.</p>
       </div>
+
+      <div class="panel">
+        <h2>Accès rapides</h2>
+        <div class="quick-links">
+          <a href="/benevole/collectes" class="btn btn-primary">Voir mes collectes</a>
+          <a href="/benevole/tournees" class="btn btn-primary">Voir mes tournées</a>
+          <a href="/benevole/disponibilites" class="btn btn-primary">Gérer mes disponibilités</a>
+          <a href="/benevole/planning-excel" class="btn btn-primary">Télécharger mon planning</a>
+        </div>
+      </div>
+
     </main>
   </div>
 

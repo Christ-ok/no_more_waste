@@ -27,6 +27,10 @@ type Utilisateur struct {
 type Commercant struct {
 	IDCommercant   int        `json:"id_commercant" db:"id_commercant"`
 	IDUtilisateur  int        `json:"id_utilisateur" db:"id_utilisateur"`
+	Nom            string     `json:"nom" db:"nom"`
+	Prenom         string     `json:"prenom" db:"prenom"`
+	Email          string     `json:"email" db:"email"`
+	Adresse        string     `json:"adresse" db:"adresse"`
 	NomEntreprise  string     `json:"nom_entreprise" db:"nom_entreprise"`
 	TypeCommerce   string     `json:"type_commerce" db:"type_commerce"`
 	NumeroSiret    string     `json:"numero_siret" db:"numero_siret"`
@@ -47,6 +51,10 @@ type Benevole struct {
 type Adherent struct {
 	IDAdherent     int        `json:"id_adherent" db:"id_adherent"`
 	IDUtilisateur  int        `json:"id_utilisateur" db:"id_utilisateur"`
+	Nom            string     `json:"nom" db:"nom"`
+	Prenom         string     `json:"prenom" db:"prenom"`
+	Email          string     `json:"email" db:"email"`
+	Adresse        string     `json:"adresse" db:"adresse"`
 	DateAdhesion   *time.Time `json:"date_adhesion,omitempty" db:"date_adhesion"`
 	DateExpiration *time.Time `json:"date_expiration,omitempty" db:"date_expiration"`
 	Cotisation     float64    `json:"cotisation" db:"cotisation"`

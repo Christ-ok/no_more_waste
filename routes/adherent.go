@@ -25,6 +25,14 @@ type AdhesionPageData struct {
 	Erreur         string
 }
 
+type StatistiquesAdherent struct {
+	Service         int
+	Demande         int
+	Historique      int
+	Date_Adhesion   sql.NullTime
+	Statut_Adhesion string
+}
+
 func PageAdhesionAdherent(database *sql.DB) http.HandlerFunc {
 	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
 
@@ -361,7 +369,7 @@ func RejoindreServiceAdherent(database *sql.DB) http.HandlerFunc {
 		}
 
 		fmt.Println("Demande de service envoyé avec succès !")
-		http.Redirect(response, request, "adherent/services", http.StatusSeeOther)
+		http.Redirect(response, request, "/adherent/services", http.StatusSeeOther)
 
 	}, "ADHERENT")
 }
@@ -453,9 +461,7 @@ func HistoriqueServiceAdherent(database *sql.DB) http.HandlerFunc {
 		}
 
 		var idAdherent int
-		errAdherent := database.QueryRow(
-			`SELECT id_adherent FROM adherent WHERE id_utilisateur = $1`, idUtilisateur,
-		).Scan(&idAdherent)
+		errAdherent := database.QueryRow(`SELECT id_adherent FROM adherent WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idAdherent)
 		if errAdherent != nil {
 			fmt.Printf("Erreur : %v", errAdherent)
 			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
@@ -505,6 +511,94 @@ func HistoriqueServiceAdherent(database *sql.DB) http.HandlerFunc {
 		if errTmpl != nil {
 			fmt.Printf("Erreur : %v", errTmpl)
 			http.Error(response, "Erreur parse html file", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADHERENT")
+}
+
+func StatistiquesGeneralesAdherent(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		var idAdherent int
+		errAdherent := database.QueryRow(`SELECT id_adherent FROM adherent WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idAdherent)
+		if errAdherent != nil {
+			fmt.Printf("Erreur : %v", errAdherent)
+			http.Error(response, "Erreur récupération adhérent", http.StatusInternalServerError)
+			return
+		}
+
+		var service, demande, historique_service int
+		var date_expiration sql.NullTime
+		var statut_adhesion string
+
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM service`).Scan(&service)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération service", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM demande_service WHERE id_adherent = $1`, idAdherent).Scan(&demande)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération demande", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM demande_service WHERE id_adherent = $1 AND id_benevole IS NOT NULL AND id_planning IS NOT NULL`, idAdherent).Scan(&historique_service)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération historique", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT date_expiration FROM adherent WHERE id_adherent = $1`, idAdherent).Scan(&date_expiration)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération date adhesion", http.StatusInternalServerError)
+			return
+		}
+
+		if date_expiration.Valid {
+			fmt.Printf("Date d'adhésion : %v", date_expiration.Time.Format("02/01/2006"))
+		} else {
+			fmt.Println("Date d'adhésion non renseignée")
+		}
+
+		errExec = database.QueryRow(`SELECT statut FROM adherent WHERE id_adherent = $1`, idAdherent).Scan(&statut_adhesion)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération statut adhesion", http.StatusInternalServerError)
+			return
+		}
+
+		data := StatistiquesAdherent{
+			Service:         service,
+			Demande:         demande,
+			Historique:      historique_service,
+			Date_Adhesion:   date_expiration,
+			Statut_Adhesion: statut_adhesion,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/adherent/adherent_accueil.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
 			return
 		}
 

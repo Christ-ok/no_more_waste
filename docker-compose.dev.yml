@@ -42,7 +42,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@nmw.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "8081:80"
+      - "8082:80"
     depends_on:
       db:
         condition: service_healthy

@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Back-office — Général — NO MORE WASTE</title>
+<title>Statistiques — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="/admin_general/adminGeneral.css">
 </head>
 <body class="dash-body">
@@ -22,17 +23,15 @@
     <span class="sidebar-space">Back-office — Général</span>
 
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item is-active">Tableau de bord</a>
+      <a href="/admin/statistiques" class="nav-item is-active">Tableau de bord</a>
       <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
-      <a href="#" class="nav-item">Collectes</a>
-      <a href="#" class="nav-item">Stocks</a>
-      <a href="#" class="nav-item">Tournées de distribution</a>
+      <a href="/admin/collectes" class="nav-item">Collectes</a>
+      <a href="/admin/stock" class="nav-item">Stocks</a>
+      <a href="/admin/tournees" class="nav-item">Tournées de distribution</a>
       <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
       <a href="/admin/commercants" class="nav-item">Commerçants</a>
-      <a href="#" class="nav-item">Adhérents</a>
-      <a href="#" class="nav-item">Associations bénéficiaires</a>
-      <a href="#" class="nav-item">Services</a>
-      <a href="#" class="nav-item">Statistiques</a>
+      <a href="/admin/adherents" class="nav-item">Adhérents</a>
+      <a href="/admin/services" class="nav-item">Services</a>
     </nav>
 
     <form action="/logout" method="POST" class="logout-form">
@@ -46,41 +45,90 @@
         <span class="tag">Administration générale</span>
         <h1>Tableau de bord général</h1>
       </div>
+
       <div class="topbar-user">
         <span>Bonjour !</span>
       </div>
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Vue d'ensemble sur toutes les agences de NO MORE WASTE, en France et à l'international.</p>
+
+      <p class="dash-subtitle">
+        Vue d'ensemble des données de NO MORE WASTE, toutes agences confondues.
+      </p>
 
       <div class="stat-grid">
+
         <div class="stat-card">
-          <span class="stat-label">Agences actives</span>
-          <span class="stat-value">7</span>
-          <span class="stat-hint">Paris, Nantes, Marseille, Limoges, Naples, Porto, Dublin</span>
+          <span class="stat-label">Administrateurs agences</span>
+          <span class="stat-value">{{.Administrateur}}</span>
+          <span class="stat-hint">Administrateurs enregistrés</span>
         </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Collectes</span>
+          <span class="stat-value">{{.Collecte}}</span>
+          <span class="stat-hint">Collectes enregistrées</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Stocks</span>
+          <span class="stat-value">{{.Stock}}</span>
+          <span class="stat-hint">Stocks enregistrés</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Tournées</span>
+          <span class="stat-value">{{.Tournee}}</span>
+          <span class="stat-hint">Tournées de distribution</span>
+        </div>
+
         <div class="stat-card">
           <span class="stat-label">Bénévoles</span>
-          <span class="stat-value">200+</span>
-          <span class="stat-hint">Sur l'ensemble des agences</span>
+          <span class="stat-value">{{.Benevole}}</span>
+          <span class="stat-hint">Bénévoles enregistrés</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Salariés</span>
-          <span class="stat-value">14</span>
-          <span class="stat-hint">Répartis entre le siège et les agences</span>
+          <span class="stat-label">Commerçants</span>
+          <span class="stat-value">{{.Commercant}}</span>
+          <span class="stat-hint">Commerçants enregistrés</span>
         </div>
+
         <div class="stat-card">
-          <span class="stat-label">Commerçants adhérents</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Toutes agences confondues</span>
+          <span class="stat-label">Adhérents</span>
+          <span class="stat-value">{{.Adherent}}</span>
+          <span class="stat-hint">Adhérents enregistrés</span>
         </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Services</span>
+          <span class="stat-value">{{.Service}}</span>
+          <span class="stat-hint">Services enregistrés</span>
+        </div>
+
       </div>
 
       <div class="panel">
-        <h2>Renouvellements d'adhésion à venir</h2>
-        <p>Les commerçants dont l'adhésion arrive à expiration apparaîtront ici, pour déclencher un rappel automatique de renouvellement.</p>
+        <h2>Vue d'ensemble</h2>
+        <p>Retrouvez ici les principales statistiques de NO MORE WASTE, toutes agences confondues.</p>
       </div>
+
+      <div class="panel">
+        <h2>Accès rapides</h2>
+
+        <div class="quick-links">
+          <a href="/admin/administrateurs" class="btn btn-primary">Gérer les administrateurs</a>
+          <a href="/admin/collectes" class="btn btn-primary">Gérer les collectes</a>
+          <a href="admin/stock" class="btn btn-primary">Gérer les stocks</a>
+          <a href="admin/tournees" class="btn btn-primary">Gérer les tournées</a>
+          <a href="/admin/benevoles" class="btn btn-primary">Gérer les bénévoles</a>
+          <a href="/admin/commercants" class="btn btn-primary">Gérer les commerçants</a>
+          <a href="admin/adherents" class="btn btn-primary">Gérer les adhérents</a>
+          <a href="admin/services" class="btn btn-primary">Gérer les services</a>
+        </div>
+      </div>
+
     </main>
   </div>
 

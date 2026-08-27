@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administrateurs — NO MORE WASTE</title>
+<title>Adhérents — NO MORE WASTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,13 +24,13 @@
 
     <nav class="sidebar-nav">
       <a href="/admin/statistiques" class="nav-item">Tableau de bord</a>
-      <a href="/admin/administrateurs" class="nav-item is-active">Administrateurs Agences</a>
+      <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
       <a href="/admin/collectes" class="nav-item">Collectes</a>
       <a href="/admin/stock" class="nav-item">Stocks</a>
       <a href="/admin/tournees" class="nav-item">Tournées de distribution</a>
       <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
       <a href="/admin/commercants" class="nav-item">Commerçants</a>
-      <a href="/admin/adherents" class="nav-item">Adhérents</a>
+      <a href="/admin/adherents" class="nav-item is-active">Adhérents</a>
       <a href="/admin/services" class="nav-item">Services</a>
     </nav>
 
@@ -43,7 +43,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Administration générale</span>
-        <h1>Administrateurs</h1>
+        <h1>Adhérents</h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -51,88 +51,49 @@
     </header>
 
     <main class="dash-content">
-      <p class="dash-subtitle">Retrouvez l'ensemble des administratuers de NO-MORE-WASTE.</p>
+      <p class="dash-subtitle">Retrouvez l'ensemble des adhérents particuliers, toutes agences confondues.</p>
 
-      <form class="table-toolbar" action="/admin/administrateurs" method="GET">
-        <input type="text" name="recherche" class="table-search" placeholder="Rechercher un administrateur par son nom..." value="{{.AdministrateurRecherche}}">
+      <form class="table-toolbar" action="/admin/adherents" method="GET">
+        <input type="text" name="recherche" class="table-search" placeholder="Rechercher par adhérent par son nom..." value="{{.AdherentRecherche}}">
         <button type="submit" class="btn btn-primary">Rechercher</button>
       </form>
 
-      {{if .AdministrateurRecherche}}
-        <a href="/admin/administrateurs" class="btn btn-primary">X</a>
+      {{if .AdherentRecherche}}
+        <a href="/admin/adherents" class="btn btn-primary">X</a>
       {{end}}
 
-      <a href="/admin/administrateurs/creer" class="btn btn-success">
-        <i class="fa-solid fa-plus">
-          Nouvel administrateur
-        </i>
-      </a>
-
       <div class="panel panel-table">
-        {{if .Administrateurs}}
+        {{if .Adherent}}
         <table class="data-table">
           <thead>
             <tr>
               <th>Nom</th>
               <th>Email</th>
-              <th>Ville</th>
-              <th>Pays</th>
-              <th>Agence</th>
-              <th>Modifier</th>
-              <th>Supprimer</th>
+              <th>Adresse</th>
+              <th>Date d'adhésion</th>
+              <th>Date d'expiration</th>
             </tr>
           </thead>
           <tbody>
-            {{range .Administrateurs}}
+            {{range .Adherent}}
             <tr>
               <td class="cell-strong">{{.Prenom}} {{.Nom}}</td>
               <td>{{.Email}}</td>
-              <td>{{if .Ville}}{{.Ville}}{{else}}—{{end}}</td>
-              <td>{{if .Pays}}{{.Pays}}{{else}}—{{end}}</td>
-              <td>{{if .NomAgence}}{{.NomAgence}}{{else}}-{{end}}</td>
-              <td>
-                <a href="/admin/administrateurs/modifier?id={{.IDUtilisateur}}" class="icon-btn" title="Modifier">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </a>
-              </td>
-
-              <td>
-                <button type="button" class="icon-btn" onclick="AdministrateurDelete('{{.IDUtilisateur}}')" title="Supprimer">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
-              </td>
+              <td>{{if .Adresse}}{{.Adresse}}{{else}}—{{end}}</td>
+              <td>{{.DateAdhesion.Format "02/01/2006"}}</td>
+              <td>{{.DateExpiration.Format "02/01/2006"}}</td>
             </tr>
             {{end}}
           </tbody>
         </table>
         {{else}}
-        <p class="table-empty">Aucun administrateur ne correspond à votre recherche.</p>
+        <p class="table-empty">Aucun adhérent enregistré pour le moment.</p>
         {{end}}
       </div>
     </main>
   </div>
 
 </div>
-
-<script>
-  function AdministrateurDelete(id) {
-    if (!confirm("Supprimer cet administrateur ?")) return;
-
-    fetch("/admin/administrateurs/supprimer?id=" + id, {
-      method: "DELETE",
-      credentials: "include",
-    }).then(res => {
-      if (res.ok) {
-        location.reload();
-      } else {
-        res.text().then(text => alert("Erreur Suppression : " + text));
-      }
-    }).catch(err => {
-      console.error(err);
-      alert("Erreur réseau lors de la suppression");
-    });
-  }
-</script>
 
 </body>
 </html>

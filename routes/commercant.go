@@ -21,6 +21,13 @@ type CommercantData struct {
 	Numero_Siret   string
 }
 
+type StatistiqueCommercant struct {
+	Collecte      int
+	Recapitulatif int
+	Nom_Commerce  string
+	Type_Commerce string
+}
+
 func PageDemandeCollecte(response http.ResponseWriter, request *http.Request) {
 	http.ServeFile(response, request, "templates/commercant/demandes_collectes.html")
 }
@@ -363,6 +370,79 @@ func DemandeCollectePourCommercant(database *sql.DB) http.HandlerFunc {
 
 		fmt.Println("Demande de collecte créée avec succès !")
 		http.Redirect(response, request, "/commercant/collectes", http.StatusSeeOther)
+
+	}, "COMMERCANT")
+}
+
+func StatistiquesCommercant(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur récupération session", http.StatusInternalServerError)
+			return
+		}
+
+		idUtilisateur, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Erreur récupération ID", http.StatusInternalServerError)
+			return
+		}
+
+		var idCommercant int
+		errID := database.QueryRow(`SELECT id_commercant FROM commercant WHERE id_utilisateur = $1`, idUtilisateur).Scan(&idCommercant)
+		if errID != nil {
+			fmt.Printf("Erreur : %v", errID)
+			http.Error(response, "Erreur récupération ID commecant", http.StatusInternalServerError)
+			return
+		}
+
+		var collecte, recapitulatif int
+		var nom_commerce, type_commerce string
+
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_commercant = $1`, idCommercant).Scan(&collecte)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(pdf_recapitulatif) FROM collecte WHERE id_commercant = $1`, idCommercant).Scan(&recapitulatif)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération pdf_recapitulatif", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT nom_entreprise FROM commercant WHERE id_commercant = $1`, idCommercant).Scan(&nom_commerce)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération nom_entreprise", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT type_commerce FROM commercant WHERE id_commercant = $1`, idCommercant).Scan(&type_commerce)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération type_commerce", http.StatusInternalServerError)
+			return
+		}
+
+		data := StatistiqueCommercant{
+			Collecte:      collecte,
+			Recapitulatif: recapitulatif,
+			Nom_Commerce:  nom_commerce,
+			Type_Commerce: type_commerce,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/commercant/commercant_accueil.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
 
 	}, "COMMERCANT")
 }

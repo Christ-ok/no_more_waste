@@ -33,10 +33,35 @@ func main() {
 
 	session.Init()
 
-	http.HandleFunc("GET /", PageAccueil)
+	http.HandleFunc("GET /style.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/style.css")
+	})
 
-	cssFs := http.FileServer(http.Dir("./templates"))
-	http.Handle("GET /style.css", cssFs)
+	http.HandleFunc("GET /auth.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/auth.css")
+	})
+
+	http.HandleFunc("GET /admin_agence/adminAgence.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/admin_agence/adminAgence.css")
+	})
+
+	http.HandleFunc("GET /admin_general/adminGeneral.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/admin_general/adminGeneral.css")
+	})
+
+	http.HandleFunc("GET /benevole/benevole.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/benevole/benevole.css")
+	})
+
+	http.HandleFunc("GET /commercant/commercant.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/commercant/commercant.css")
+	})
+
+	http.HandleFunc("GET /adherent/adherent.css", func(response http.ResponseWriter, request *http.Request) {
+		http.ServeFile(response, request, "./templates/adherent/adherent.css")
+	})
+
+	http.HandleFunc("GET /", PageAccueil)
 
 	if err := os.MkdirAll("./stockage/plannings", 0755); err != nil {
 		fmt.Println("Erreur création dossier plannings :", err)
@@ -80,6 +105,13 @@ func main() {
 	http.HandleFunc("POST /admin/administrateurs/modifier", routes.ModifyAdministrateur(db.DB))
 	http.HandleFunc("DELETE /admin/administrateurs/supprimer", routes.DeleteAdministrateur(db.DB))
 
+	http.HandleFunc("GET /admin/collectes", routes.DashboardAdministrateurCollectes(db.DB))
+	http.HandleFunc("GET /admin/stock", routes.DashboardAdministrateurStock(db.DB))
+	http.HandleFunc("GET /admin/tournees", routes.DashboardAdministrateurTournees(db.DB))
+	http.HandleFunc("GET /admin/adherents", routes.DashboardAdministrateurAdherents(db.DB))
+	http.HandleFunc("GET /admin/services", routes.DashboardAdministrateurServices(db.DB))
+	http.HandleFunc("GET /admin/statistiques", routes.StatistiquesAdministrateurGenerals(db.DB))
+
 	http.HandleFunc("GET /benevole/disponibilite/creer", routes.PageCreerDisponibilite)
 	http.HandleFunc("POST /benevole/disponibilite/creer", routes.BenevoleDisponibilite(db.DB))
 	http.HandleFunc("GET /benevole/disponibilites", routes.DashboardBenevoleDisponibiltes(db.DB))
@@ -95,6 +127,7 @@ func main() {
 	http.HandleFunc("GET /benevole/tournees", routes.DashboardBenevoleTournees(db.DB))
 	http.HandleFunc("POST /benevole/collectes/terminer", routes.TerminerCollecte(db.DB))
 	http.HandleFunc("POST /benevole/tournees/terminer", routes.TerminerTournee(db.DB))
+	http.HandleFunc("GET /benevole/statistiques", routes.StatistiquesGeneralsBenevole(db.DB))
 
 	http.HandleFunc("GET /admin-agence/benevoles", routes.DashboardAdminAgenceBenevoles(db.DB))
 	http.HandleFunc("GET /admin-agence/benevoles/disponibilites", routes.DashboardAdminAgenceGererDisponibilite(db.DB))
@@ -129,6 +162,9 @@ func main() {
 	http.HandleFunc("POST /admin-agence/tournees/attribution", routes.AttributionTourneePlanningBenevole(db.DB))
 	http.HandleFunc("GET /admin-agence/recapitulatifs", routes.DashboardAdminAgenceRecapitulatifs(db.DB))
 	http.HandleFunc("GET /admin-agence/recapitulatifs/telecharger", routes.TelechargerRecapitulatifTournee(db.DB))
+	http.HandleFunc("GET /admin-agence/statistiques", routes.StatistiquesGenerales(db.DB))
+	http.HandleFunc("GET /admin-agence/commercants", routes.DashboardAdminAgenceCommercant(db.DB))
+	http.HandleFunc("GET /admin-agence/adherents", routes.DashboardAdminAgenceAdherent(db.DB))
 
 	http.HandleFunc("GET /adherent/profil", routes.AfficherPageModififierProfilAdherent(db.DB))
 	http.HandleFunc("POST /adherent/profil/modifier", routes.ModifierProfilAdherent(db.DB))
@@ -140,6 +176,7 @@ func main() {
 	http.HandleFunc("POST /adherent/services/rejoindre", routes.RejoindreServiceAdherent(db.DB))
 	http.HandleFunc("GET /adherent/services/rejoint", routes.AfficherServiceRejointAdherent(db.DB))
 	http.HandleFunc("GET /adherent/services/historique", routes.HistoriqueServiceAdherent(db.DB))
+	http.HandleFunc("GET /adherent/statistiques", routes.StatistiquesGeneralesAdherent(db.DB))
 
 	http.HandleFunc("GET /commercant/profil", routes.AfficherPageModifierProfilCommercant(db.DB))
 	http.HandleFunc("POST /commercant/profil/modifier", routes.ModifierProfilCommercant(db.DB))
@@ -149,6 +186,7 @@ func main() {
 	http.HandleFunc("GET /commercant/collecte/demande/page", routes.PageDemandeCollecte)
 	http.HandleFunc("GET /commercant/recapitulatifs", routes.DashboardCommercantRecapitulatifs(db.DB))
 	http.HandleFunc("GET /commercant/recapitulatifs/telecharger", routes.TelechargerRecapitulatifCollecte(db.DB))
+	http.HandleFunc("GET /commercant/statistiques", routes.StatistiquesCommercant(db.DB))
 
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", uploadsFs))

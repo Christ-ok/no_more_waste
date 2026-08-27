@@ -19,8 +19,8 @@ type AdminDashboardDataBenevole struct {
 }
 
 type AdminDashboardDataCommercant struct {
-	Commercants        []models.CommercantAffichageDashboard
-	CommercantRecherce string
+	Commercants         []models.CommercantAffichageDashboard
+	CommercantRecherche string
 }
 
 type AdminDashboardDataAdministrateur struct {
@@ -32,6 +32,22 @@ type AdminDashboardDataAdministrateur struct {
 type AdminModifyDataAdministrateur struct {
 	Administrateur models.AdministrateurAffichageDashboard
 	Agences        []models.Agence
+}
+
+type AdminDashboardDataStock struct {
+	Stock     []models.StockDashboard
+	ID_Agence int
+}
+
+type AdminDashboardStatistique struct {
+	Administrateur int
+	Collecte       int
+	Stock          int
+	Tournee        int
+	Benevole       int
+	Commercant     int
+	Adherent       int
+	Service        int
 }
 
 func PageCreerBenevole(response http.ResponseWriter, request *http.Request) {
@@ -98,10 +114,16 @@ func DashboardAdministrateurBenevoles(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		rowsBenevole, errBenevole := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.telephone, u.adresse, u.ville, u.pays, b.statut FROM utilisateur u 
-                                                    JOIN benevole b ON b.id_utilisateur = u.id_utilisateur`,
-		)
+		recherche := request.URL.Query().Get("recherche")
 
+		rowsBenevole, errBenevole := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.telephone, u.adresse, u.ville, u.pays, b.statut FROM utilisateur u 
+                                                    JOIN benevole b ON b.id_utilisateur = u.id_utilisateur
+													AND (
+														LOWER(u.nom) LIKE LOWER($1) OR
+														LOWER(u.prenom) LIKE LOWER($1) OR 
+														LOWER(u.email) LIKE LOWER($1)
+													)
+		`, "%"+recherche+"%")
 		if errBenevole != nil {
 			fmt.Printf("Voici l'erreur à la ligne 25 : %v\n", errBenevole)
 			http.Error(response, "Erreur lors de la récupération des bénévoles", http.StatusInternalServerError)
@@ -133,7 +155,8 @@ func DashboardAdministrateurBenevoles(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminDashboardDataBenevole{
-			Benevoles: benevoles_List,
+			Benevoles:         benevoles_List,
+			BenevoleRecherche: recherche,
 		}
 
 		tmpl, err := template.ParseFiles("./templates/admin_general/benevoles.html")
@@ -259,8 +282,7 @@ func FormModifyBenevole(database *sql.DB) http.HandlerFunc {
             JOIN benevole b
             ON u.id_utilisateur = b.id_utilisateur
             WHERE u.id_utilisateur = $1         
-        `, id).Scan(
-			&benevole.IDUtilisateur,
+        `, id).Scan(&benevole.IDUtilisateur,
 			&benevole.Nom,
 			&benevole.Prenom,
 			&benevole.Email,
@@ -330,47 +352,18 @@ func ModifyBenevole(database *sql.DB) http.HandlerFunc {
 		}
 		defer tx.Rollback()
 
-		_, err = tx.Exec(`
-            UPDATE utilisateur
-            SET
-                nom = $1,
-                prenom = $2,
-                email = $3,
-                telephone = $4,
-                adresse = $5,
-                ville = $6,
-                code_postal = $7,
-                pays = $8
+		_, err = tx.Exec(`UPDATE utilisateurSET nom = $1, prenom = $2, email = $3, telephone = $4, adresse = $5, ville = $6, code_postal = $7, pays = $8
             WHERE id_utilisateur = $9              
-        `,
-			benevole.Nom,
-			benevole.Prenom,
-			benevole.Email,
-			benevole.Telephone,
-			benevole.Adresse,
-			benevole.Ville,
-			benevole.CodePostal,
-			benevole.Pays,
-			id,
-		)
+        `, benevole.Nom, benevole.Prenom, benevole.Email, benevole.Telephone, benevole.Adresse, benevole.Ville, benevole.CodePostal, benevole.Pays, id)
 		if err != nil {
 			fmt.Printf("Erreur modification utilisateur : %v\n", err)
 			http.Error(response, "Erreur lors de la mise à jour des données utilisateur", http.StatusInternalServerError)
 			return
 		}
 
-		_, err = tx.Exec(`
-            UPDATE benevole
-            SET
-                permis = $1,
-                disponibilite = $2,
-                statut = $3
+		_, err = tx.Exec(`UPDATE benevole SET permis = $1, disponibilite = $2, statut = $3
             WHERE id_utilisateur = $4
-        `,
-			benevole.Permis,
-			benevole.Disponibilite,
-			benevole.Statut,
-			id,
+        `, benevole.Permis, benevole.Disponibilite, benevole.Statut, id,
 		)
 		if err != nil {
 			fmt.Printf("Erreur modification bénévole : %v\n", err)
@@ -432,9 +425,16 @@ func DashboardAdministrateurCommercant(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rowsCommercant, errCommercant := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.telephone, u.adresse, u.ville, u.pays, c.nom_entreprise, c.type_commerce, c.numero_siret, c.statut
-															FROM utilisateur u JOIN commercant c ON u.id_utilisateur = c.id_utilisateur`,
-		)
+															FROM utilisateur u JOIN commercant c ON u.id_utilisateur = c.id_utilisateur
+															AND (
+																LOWER(u.nom) LIKE LOWER($1) OR
+																LOWER(u.prenom) LIKE LOWER($1) OR
+																LOWER(u.email) LIKE LOWER($1)
+															)
+		`, "%"+recherche+"%")
 		if errCommercant != nil {
 			fmt.Printf("Voici l'erreur à la ligne 25 : %v\n", errCommercant)
 			http.Error(response, "Erreur lors de la récupération des bénévoles", http.StatusInternalServerError)
@@ -469,7 +469,8 @@ func DashboardAdministrateurCommercant(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminDashboardDataCommercant{
-			Commercants: commercants_List,
+			Commercants:         commercants_List,
+			CommercantRecherche: recherche,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/commercants.html")
@@ -538,11 +539,9 @@ func CreateCommercant(database *sql.DB) http.HandlerFunc {
 		defer tx.Rollback()
 
 		var idUtilisateur int
-		errInsert := tx.QueryRow(
-			`INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, telephone, adresse, ville, code_postal, pays, id_role)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-			RETURNING id_utilisateur`,
-			nom, prenom, email, string(hashedPassword), telephone, adresse, ville, codePostal, pays, idRole,
+		errInsert := tx.QueryRow(`INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, telephone, adresse, ville, code_postal, pays, id_role)
+									VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+								RETURNING id_utilisateur`, nom, prenom, email, string(hashedPassword), telephone, adresse, ville, codePostal, pays, idRole,
 		).Scan(&idUtilisateur)
 		if errInsert != nil {
 			fmt.Printf("Erreur insertion utilisateur : %v\n", errInsert)
@@ -550,8 +549,7 @@ func CreateCommercant(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		_, errExec := tx.Exec(
-			`INSERT INTO commercant (id_utilisateur, nom_entreprise, type_commerce, numero_siret, statut)
+		_, errExec := tx.Exec(`INSERT INTO commercant (id_utilisateur, nom_entreprise, type_commerce, numero_siret, statut)
 			VALUES ($1, $2, $3, $4, $5)`, idUtilisateur, nomEntriprise, typeCommerce, numeroSiret, statut,
 		)
 		if errExec != nil {
@@ -599,8 +597,7 @@ func FormModifyCommercant(database *sql.DB) http.HandlerFunc {
             JOIN commercant c
             ON u.id_utilisateur = c.id_utilisateur
             WHERE u.id_utilisateur = $1         
-        `, id).Scan(
-			&commercant.IDutilisateur,
+        `, id).Scan(&commercant.IDutilisateur,
 			&commercant.Nom,
 			&commercant.Prenom,
 			&commercant.Email,
@@ -673,28 +670,9 @@ func ModifyCommercant(database *sql.DB) http.HandlerFunc {
 		}
 		defer tx.Rollback()
 
-		_, err = tx.Exec(`
-			UPDATE utilisateur
-			SET
-				nom = $1,
-				prenom = $2,
-				email = $3,
-				telephone = $4,
-				adresse = $5,
-				ville = $6,
-				code_postal = $7,
-				pays = $8
+		_, err = tx.Exec(`UPDATE utilisateur SET nom = $1, prenom = $2, email = $3, telephone = $4, adresse = $5, ville = $6, code_postal = $7, pays = $8
 			WHERE id_utilisateur = $9
-		`,
-			commercant.Nom,
-			commercant.Prenom,
-			commercant.Email,
-			commercant.Telephone,
-			commercant.Adresse,
-			commercant.Ville,
-			commercant.CodePostal,
-			commercant.Pays,
-			id,
+		`, commercant.Nom, commercant.Prenom, commercant.Email, commercant.Telephone, commercant.Adresse, commercant.Ville, commercant.CodePostal, commercant.Pays, id,
 		)
 		if err != nil {
 			fmt.Printf("Erreur modification utilisateur : %v\n", err)
@@ -702,20 +680,9 @@ func ModifyCommercant(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		_, err = tx.Exec(`
-			UPDATE commercant
-			SET
-				nom_entreprise = $1,
-				type_commerce = $2,
-				numero_siret = $3,
-				statut = $4
+		_, err = tx.Exec(`UPDATE commercant SET nom_entreprise = $1, type_commerce = $2, numero_siret = $3, statut = $4
 			WHERE id_utilisateur = $5 
-		`,
-			commercant.NomEntriprise,
-			commercant.TypeCommerce,
-			commercant.NumeroSiret,
-			commercant.Statut,
-			id,
+		`, commercant.NomEntriprise, commercant.TypeCommerce, commercant.NumeroSiret, commercant.Statut, id,
 		)
 		if err != nil {
 			fmt.Printf("Erreur modification commercant : %v\n", err)
@@ -777,6 +744,8 @@ func DashboardAdministrateurAdmins(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rowsAdmin, errAdmin := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.telephone, u.adresse, u.ville, u.pays, 
 													COALESCE(u.id_agence, 0),
 													COALESCE(a.nom, 'Aucune agence'),
@@ -784,8 +753,13 @@ func DashboardAdministrateurAdmins(database *sql.DB) http.HandlerFunc {
 												FROM utilisateur u
 												JOIN role r ON r.id_role = u.id_role
 												LEFT JOIN agence a ON a.id_agence = u.id_agence
-												WHERE r.nom = 'ADMIN_AGENCE'`,
-		)
+												WHERE r.nom = 'ADMIN_AGENCE'
+												AND (
+													LOWER(u.nom) LIKE LOWER($1) OR
+													LOWER(u.prenom) LIKE LOWER($1) OR
+													LOWER(u.email) LIKE LOWER($1)
+												)
+		`, "%"+recherche+"%")
 
 		if errAdmin != nil {
 			fmt.Printf("Erreur récupération administrateurs : %v\n", errAdmin)
@@ -799,8 +773,7 @@ func DashboardAdministrateurAdmins(database *sql.DB) http.HandlerFunc {
 		for rowsAdmin.Next() {
 			var administrateur models.AdministrateurAffichageDashboard
 
-			errQuery := rowsAdmin.Scan(
-				&administrateur.IDUtilisateur,
+			errQuery := rowsAdmin.Scan(&administrateur.IDUtilisateur,
 				&administrateur.Nom,
 				&administrateur.Prenom,
 				&administrateur.Email,
@@ -821,7 +794,8 @@ func DashboardAdministrateurAdmins(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminDashboardDataAdministrateur{
-			Administrateurs: administrateurs_List,
+			Administrateurs:         administrateurs_List,
+			AdministrateurRecherche: recherche,
 		}
 
 		tmpl, err := template.ParseFiles("./templates/admin_general/administrateurs.html")
@@ -989,30 +963,9 @@ func ModifyAdministrateur(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		_, err := database.Exec(`
-			UPDATE utilisateur
-			SET
-				nom = $1,
-				prenom = $2,
-				email = $3,
-				telephone = $4,
-				adresse = $5,
-				ville = $6,
-				code_postal = $7,
-				pays = $8,
-				id_agence = $9
+		_, err := database.Exec(`UPDATE utilisateur SET nom = $1, prenom = $2, email = $3, telephone = $4, adresse = $5, ville = $6, code_postal = $7, pays = $8, id_agence = $9
 			WHERE id_utilisateur = $10
-		`,
-			request.FormValue("nom"),
-			request.FormValue("prenom"),
-			request.FormValue("email"),
-			request.FormValue("telephone"),
-			request.FormValue("adresse"),
-			request.FormValue("ville"),
-			request.FormValue("code_postal"),
-			request.FormValue("pays"),
-			idAgence,
-			id,
+		`, request.FormValue("nom"), request.FormValue("prenom"), request.FormValue("email"), request.FormValue("telephone"), request.FormValue("adresse"), request.FormValue("ville"), request.FormValue("code_postal"), request.FormValue("pays"), idAgence, id,
 		)
 		if err != nil {
 			fmt.Printf("Erreur modification administrateur : %v\n", err)
@@ -1043,6 +996,445 @@ func DeleteAdministrateur(database *sql.DB) http.HandlerFunc {
 
 		response.WriteHeader(http.StatusOK)
 		fmt.Println("Administrateur supprimé, id :", id)
+
+	}, "ADMIN_GENERAL")
+}
+
+func DashboardAdministrateurCollectes(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		rowsCollecte, errCollecte := database.Query(`SELECT id_collecte, id_agence, date_collecte, statut FROM collecte`)
+		if errCollecte != nil {
+			fmt.Printf("Erreur : %v", errCollecte)
+			http.Error(response, "Erreur récupération collecte", 500)
+			return
+		}
+		defer rowsCollecte.Close()
+
+		var collecte_List []models.Collecte
+
+		for rowsCollecte.Next() {
+			var collecte models.Collecte
+
+			errScan := rowsCollecte.Scan(&collecte.ID_Collecte,
+				&collecte.ID_Agence,
+				&collecte.Date_Collecte,
+				&collecte.Statut)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur scan collecte", 500)
+				return
+			}
+
+			collecte_List = append(collecte_List, collecte)
+		}
+
+		data := AdminAgenceCollecteDashboard{
+			Collecte: collecte_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/collectes.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", 500)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_GENERAL")
+}
+
+func DashboardAdministrateurStock(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		rowsStock, errStock := database.Query(`SELECT s.id_stock, s.id_agence, pc.libelle, pc.code_barre, s.quantite_disponible, s.date_entree FROM stock s
+												JOIN produit_collecte pc ON pc.id_stock = s.id_stock
+											   ORDER BY s.date_entree DESC`)
+		if errStock != nil {
+			fmt.Printf("Erreur : %v", errStock)
+			http.Error(response, "Erreur récupération stock", 500)
+			return
+		}
+		defer rowsStock.Close()
+
+		var stock_List []models.StockDashboard
+		var idAgence int
+
+		for rowsStock.Next() {
+			var stock models.StockDashboard
+
+			errScan := rowsStock.Scan(&stock.ID_Stock, &idAgence, &stock.Libelle, &stock.Code_Barre, &stock.Quantite_Disponible, &stock.Date_Entree)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan stock", 500)
+				return
+			}
+
+			stock_List = append(stock_List, stock)
+		}
+
+		data := AdminDashboardDataStock{
+			Stock:     stock_List,
+			ID_Agence: idAgence,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/stock.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", 500)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_GENERAL")
+}
+
+func DashboardAdministrateurTournees(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		rowsTournee, errTournee := database.Query(`SELECT t.id_tournee, t.id_agence, d.nom, d.type, t.date_tournee, t.statut FROM tournee t
+													JOIN destinataire d ON d.id_destinataire = t.id_destinataire
+												   ORDER BY t.date_tournee`)
+		if errTournee != nil {
+			fmt.Printf("Erreur : %v", errTournee)
+			http.Error(response, "Erreur récupération tournee", 500)
+			return
+		}
+		defer rowsTournee.Close()
+
+		var tournee_List []models.TourneeDashboard
+		var idAgence int
+
+		for rowsTournee.Next() {
+			var tournee models.TourneeDashboard
+
+			errScan := rowsTournee.Scan(&tournee.ID_Tournee,
+				&idAgence,
+				&tournee.Nom_Destinataire,
+				&tournee.Type_Destinataire,
+				&tournee.Date_Tournee,
+				&tournee.Statut,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan tournée", http.StatusInternalServerError)
+				return
+			}
+
+			tournee_List = append(tournee_List, tournee)
+		}
+
+		data := AdminAgenceTourneeData{
+			Tournee:   tournee_List,
+			ID_Agence: idAgence,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/tournees.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", 500)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_GENERAL")
+}
+
+func DashboardAdministrateurAdherents(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		recherche := request.URL.Query().Get("recherche")
+
+		rowsAdherent, errAdherent := database.Query(`SELECT u.id_utilisateur, u.nom, u.prenom, u.email, u.adresse, a.date_adhesion, a.date_expiration FROM utilisateur u
+														JOIN adherent a ON a.id_utilisateur = u.id_utilisateur
+														AND (
+															LOWER(u.nom) LIKE LOWER($1) OR
+															LOWER(u.prenom) LIKE LOWER($1) OR
+															LOWER(u.email) LIKE LOWER($1)
+														)
+		`, "%"+recherche+"%")
+		if errAdherent != nil {
+			fmt.Printf("Erreur : %v", errAdherent)
+			http.Error(response, "Erreur Récupération adhérents", 500)
+			return
+		}
+		defer rowsAdherent.Close()
+
+		var adherents_List []models.Adherent
+
+		for rowsAdherent.Next() {
+			var adherent models.Adherent
+
+			errScan := rowsAdherent.Scan(&adherent.IDUtilisateur,
+				&adherent.Nom,
+				&adherent.Prenom,
+				&adherent.Email,
+				&adherent.Adresse,
+				&adherent.DateAdhesion,
+				&adherent.DateExpiration,
+			)
+			if errScan != nil {
+				fmt.Printf("Erreur : %v", errScan)
+				http.Error(response, "Erreur Scan adherent", http.StatusInternalServerError)
+				return
+			}
+
+			adherents_List = append(adherents_List, adherent)
+		}
+
+		data := AdminAgenceAdherent{
+			Adherent:          adherents_List,
+			AdherentRecherche: recherche,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/adherents.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", http.StatusInternalServerError)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_GENERAL")
+}
+
+func DashboardAdministrateurServices(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		rowsServices, errServices := database.Query(`SELECT s.id_service, s.nom, s.description, c.nom AS competence, s.statut FROM service s
+														JOIN competence c ON c.id_competence = s.id_competence
+													 ORDER BY s.id_service
+		`)
+		if errServices != nil {
+			fmt.Printf("Erreur : %v", errServices)
+			http.Error(response, "Erreur récupération services", 500)
+			return
+		}
+		defer rowsServices.Close()
+
+		var services_List []models.Service
+
+		for rowsServices.Next() {
+			var service models.Service
+			var competence sql.NullString
+
+			errQuery := rowsServices.Scan(&service.ID_Service,
+				&service.Nom,
+				&service.Description,
+				&competence,
+				&service.Statut,
+			)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur Scan service", http.StatusInternalServerError)
+				return
+			}
+
+			if competence.Valid {
+				service.Competence = competence.String
+			} else {
+				service.Competence = "Aucune compétence requise"
+			}
+
+			services_List = append(services_List, service)
+		}
+
+		rowsCompetences, competenceErr := database.Query(`SELECT id_competence, nom FROM competence`)
+		if competenceErr != nil {
+			fmt.Printf("Erreur : %v", competenceErr)
+			http.Error(response, "Erreur récupération de compétences", http.StatusInternalServerError)
+			return
+		}
+		defer rowsCompetences.Close()
+
+		var competences_List []models.Competence
+
+		for rowsCompetences.Next() {
+			var competence models.Competence
+
+			errQuery := rowsCompetences.Scan(&competence.IDCompetence, &competence.Nom)
+			if errQuery != nil {
+				fmt.Printf("Erreur : %v", errQuery)
+				http.Error(response, "Erreur scan compétence", http.StatusInternalServerError)
+				return
+			}
+
+			competences_List = append(competences_List, competence)
+		}
+
+		data := AdminAgenceDashboardServicesAfficher{
+			Services:    services_List,
+			Competences: competences_List,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/services.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", 500)
+			return
+		}
+
+		tmpl.Execute(response, data)
+
+	}, "ADMIN_GENERAL")
+}
+
+func StatistiquesAdministrateurGenerals(database *sql.DB) http.HandlerFunc {
+	return middleware.AuthRole(func(response http.ResponseWriter, request *http.Request) {
+
+		sess, sessErr := session.Store.Get(request, "nmw-session")
+		if sessErr != nil {
+			http.Error(response, "Erreur lors de la récupération de la session", http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := sess.Values["id_utilisateur"].(int)
+		if !ok {
+			http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+			return
+		}
+
+		var administrateur, collecte, stock, tournee, benevole, commercant, adherent, service int
+
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM utilisateur WHERE id_role = 2`).Scan(&administrateur)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM collecte`).Scan(&collecte)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM stock`).Scan(&stock)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM tournee`).Scan(&tournee)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM benevole`).Scan(&benevole)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM commercant`).Scan(&commercant)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM adherent`).Scan(&adherent)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM service`).Scan(&service)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v", errExec)
+			http.Error(response, "Erreur récupération ", 500)
+			return
+		}
+
+		data := AdminDashboardStatistique{
+			Administrateur: administrateur,
+			Collecte:       collecte,
+			Stock:          stock,
+			Tournee:        tournee,
+			Benevole:       benevole,
+			Commercant:     commercant,
+			Adherent:       adherent,
+			Service:        service,
+		}
+
+		tmpl, errTmpl := template.ParseFiles("./templates/admin_general/adminGeneral_accueil.html")
+		if errTmpl != nil {
+			fmt.Printf("Erreur : %v", errTmpl)
+			http.Error(response, "Erreur parsefiles html", 500)
+			return
+		}
+
+		tmpl.Execute(response, data)
 
 	}, "ADMIN_GENERAL")
 }

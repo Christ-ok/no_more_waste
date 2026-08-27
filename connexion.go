@@ -84,22 +84,19 @@ func Login(database *sql.DB) http.HandlerFunc {
 func RedirectionSelonRole(roleNom string) string {
 	switch roleNom {
 	case "ADMIN_GENERAL":
-		return "/admin"
+		return "/admin/statistiques"
 
 	case "ADMIN_AGENCE":
-		return "/admin-agence"
+		return "/admin-agence/statistiques"
 
 	case "COMMERCANT":
-		return "/commercant"
+		return "/commercant/statistiques"
 
 	case "BENEVOLE":
-		return "/benevole"
+		return "/benevole/statistiques"
 
 	case "ADHERENT":
-		return "/adherent"
-
-	case "ASSOCIATION":
-		return "/association"
+		return "/adherent/statistiques"
 
 	default:
 		return "/"
@@ -108,8 +105,6 @@ func RedirectionSelonRole(roleNom string) string {
 
 func PageConnexion(response http.ResponseWriter, request *http.Request) {
 	language := middleware.GetLanguage(request)
-	fmt.Println("LANGUE ACTUELLE :", language)
-	fmt.Println("TRADUCTION TEST :", i18n.Traduction(language, "login.title"))
 
 	tmpl, err := template.New("connexion.html").Funcs(template.FuncMap{
 		"t": func(key string) string {

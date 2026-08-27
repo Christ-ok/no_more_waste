@@ -1,92 +1,157 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Back-office — Agence — NO MORE WASTE</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/admin_agence/adminAgence.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Back-office — Agence — NO MORE WASTE</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/admin_agence/adminAgence.css">
 </head>
+
 <body class="dash-body">
 
-<div class="dash-shell">
+  <div class="dash-shell">
 
-  <aside class="sidebar">
-    <a href="#" class="sidebar-logo">
-      <span class="sidebar-logo-mark">NMW</span>
-      <span class="sidebar-logo-text">NO MORE WASTE</span>
-    </a>
+    <aside class="sidebar">
 
-    <span class="sidebar-space">Back-office — Agence</span>
+      <a href="#" class="sidebar-logo">
+        <span class="sidebar-logo-mark">NMW</span>
+        <span class="sidebar-logo-text">NO MORE WASTE</span>
+      </a>
 
-    <nav class="sidebar-nav">
-      <a href="/admin-agence" class="nav-item is-active">Tableau de bord</a>
-      <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
-      <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
-      <a href="/admin-agence/tournees" class="nav-item">Tournées de distribution</a>
-      <a href="/admin-agence/recapitulatifs" class="nav-item">Récapitulatifs Livraison</a>
-      <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
-      <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
-      <a href="/admin-agence/planning" class="nav-item">Plannings</a>
-      <a href="#" class="nav-item">Commerçants</a>
-      <a href="/admin-agence/services" class="nav-item">Services</a>
-      <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
-      <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
-      <a href="#" class="nav-item">Statistiques</a>
-    </nav>
+      <span class="sidebar-space">Back-office — Agence</span>
 
-    <form action="/logout" method="POST" class="logout-form">
+      <nav class="sidebar-nav">
+        <a href="/admin-agence/statistiques" class="nav-item is-active">Statistiques</a>
+        <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
+        <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
+        <a href="/admin-agence/tournees" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/recapitulatifs" class="nav-item">Récapitulatifs Livraison</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="/admin-agence/commercants" class="nav-item">Commerçants</a>
+        <a href="/admin-agence/adherents" class="nav-item">Adhérents</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
+        <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
+        <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
+      </nav>
+
+      <form action="/logout" method="POST" class="logout-form">
         <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
-    </form>
-  </aside>
+      </form>
 
-  <div class="dash-main">
-    <header class="dash-topbar">
-      <div>
-        <span class="tag">Administration agence</span>
-        <h1>Tableau de bord de l'agence</h1>
-      </div>
-      <div class="topbar-user">
-        <span>Bonjour !</span>
-      </div>
-    </header>
+    </aside>
 
-    <main class="dash-content">
-      <p class="dash-subtitle">Pilotez les collectes, les stocks, les tournées et les bénévoles de votre agence.</p>
+    <div class="dash-main">
 
-      <div class="stat-grid">
-        <div class="stat-card">
-          <span class="stat-label">Collectes du jour</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Camions en tournée de collecte</span>
+      <header class="dash-topbar">
+        <div>
+          <span class="tag">Administration agence</span>
+          <h1>Tableau de bord de l'agence</h1>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Produits en stock</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Référencés dans l'entrepôt</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Tournées planifiées</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Distribution vers associations et particuliers</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Bénévoles actifs</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Sur votre agence</span>
-        </div>
-      </div>
 
-      <div class="panel">
-        <h2>Candidatures bénévoles en attente</h2>
-        <p>Les nouvelles candidatures de bénévoles apparaîtront ici, jusqu'à leur validation et leur affectation à un service.</p>
-      </div>
-    </main>
+        <div class="topbar-user">
+          <span>Bonjour !</span>
+        </div>
+      </header>
+
+      <main class="dash-content">
+
+        <p class="dash-subtitle">Pilotez les collectes, les stocks, les tournées et les bénévoles de votre agence.</p>
+
+        <div class="stat-grid">
+
+          <div class="stat-card">
+            <span class="stat-label">Collectes</span>
+            <span class="stat-value">{{.Collecte}}</span>
+            <span class="stat-hint">Collectes enregistrées dans l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Produits en stock</span>
+            <span class="stat-value">{{.Stock}}</span>
+            <span class="stat-hint">Stocks référencés dans l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Tournées</span>
+            <span class="stat-value">{{.Tournee}}</span>
+            <span class="stat-hint">Tournées de distribution enregistrées</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Services</span>
+            <span class="stat-value">{{.Service}}</span>
+            <span class="stat-hint">Services proposés par l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Récapitulatifs</span>
+            <span class="stat-value">_</span>
+            <span class="stat-hint">Récapitulatifs enregistrés</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Bénévoles</span>
+            <span class="stat-value">{{.Benevole}}</span>
+            <span class="stat-hint">Bénévoles rattachés à l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Documents Bénévoles</span>
+            <span class="stat-value">{{.Document}}</span>
+            <span class="stat-hint">Documents enregistrés</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Plannings</span>
+            <span class="stat-value">{{.Planning}}</span>
+            <span class="stat-hint">Plannings créés dans l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Commerçants</span>
+            <span class="stat-value">{{.Commercant}}</span>
+            <span class="stat-hint">Commerçants associés à l'agence</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Adhérents</span>
+            <span class="stat-value">{{.Adherent}}</span>
+            <span class="stat-hint">Adhérents rattachés à l'agence</span>
+          </div>
+
+        </div>
+
+        <div class="panel">
+          <h2>Vue d'ensemble de l'agence</h2>
+          <p>Cette page présente les principaux éléments enregistrés pour votre agence : collectes, stocks, tournées, services, bénévoles, documents, plannings, commerçants et adhérents.</p>
+        </div>
+
+        <div class="panel">
+          <h2>Accès rapides</h2>
+
+          <div class="quick-links">
+            <a href="/admin-agence/collectes" class="btn btn-primary">Gérer les collectes</a>
+            <a href="/admin-agence/stocks" class="btn btn-primary">Gérer les stocks</a>
+            <a href="/admin-agence/tournees" class="btn btn-primary">Gérer les tournées</a>
+            <a href="/admin-agence/benevoles" class="btn btn-primary">Gérer les bénévoles</a>
+            <a href="/admin-agence/planning" class="btn btn-primary">Gérer les plannings</a>
+            <a href="/admin-agence/services" class="btn btn-primary">Gérer les services</a>
+          </div>
+        </div>
+
+      </main>
+
+    </div>
+
   </div>
-
-</div>
 
 </body>
 </html>

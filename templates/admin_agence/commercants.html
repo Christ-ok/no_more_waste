@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commerçants — NO MORE WASTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/admin_general/adminGeneral.css">
+</head>
+
+<body class="dash-body">
+
+  <div class="dash-shell">
+
+    <aside class="sidebar">
+
+      <a href="#" class="sidebar-logo">
+        <span class="sidebar-logo-mark">NMW</span>
+        <span class="sidebar-logo-text">NO MORE WASTE</span>
+      </a>
+
+      <span class="sidebar-space">Back-office — Agence</span>
+
+      <nav class="sidebar-nav">
+        <a href="/admin-agence/statistiques" class="nav-item">Statistiques</a>
+        <a href="/admin-agence/collectes" class="nav-item">Collectes</a>
+        <a href="/admin-agence/stocks" class="nav-item">Stocks</a>
+        <a href="/admin-agence/tournees" class="nav-item">Tournées de distribution</a>
+        <a href="/admin-agence/recapitulatifs" class="nav-item">Récapitulatifs Livraison</a>
+        <a href="/admin-agence/benevoles" class="nav-item">Bénévoles</a>
+        <a href="/admin-agence/benevoles/documents" class="nav-item">Documents bénévoles</a>
+        <a href="/admin-agence/planning" class="nav-item">Plannings</a>
+        <a href="/admin-agence/commercants" class="nav-item is-active">Commerçants</a>
+        <a href="/admin-agence/adherents" class="nav-item">Adhérents</a>
+        <a href="/admin-agence/services" class="nav-item">Services</a>
+        <a href="/admin-agence/demande-services" class="nav-item">Demandes pour services</a>
+        <a href="/admin-agence/services/historique" class="nav-item">Historique services</a>
+      </nav>
+
+      <form action="/logout" method="POST" class="logout-form">
+        <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+      </form>
+
+    </aside>
+
+    <div class="dash-main">
+
+      <header class="dash-topbar">
+        <div>
+          <span class="tag">Administration agence</span>
+          <h1>Commerçants</h1>
+        </div>
+
+        <div class="topbar-user">
+          <span>Bonjour !</span>
+        </div>
+      </header>
+
+      <main class="dash-content">
+
+        <p class="dash-subtitle">Consultez les commerçants rattachés à votre agence.</p>
+
+        <form class="table-toolbar" action="/admin-agence/commercants" method="GET">
+          <input type="text" name="recherche" class="table-search" placeholder="Rechercher un commercant..." value="{{.CommercantRecherche}}">
+          <button type="submit" class="btn btn-primary">Rechercher</button>
+        </form>
+
+        {{if .CommercantRecherche}}
+          <a href="/admin-agence/commercants" class="btn btn-primary">X</a>
+        {{end}}
+
+        <div class="panel panel-table">
+
+          <table class="data-table">
+
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Adresse</th>
+                <th>Entreprise</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {{if .Commercant}}
+                {{range .Commercant}}
+                  <tr>
+                    <td>{{.IDUtilisateur}}</td>
+                    <td class="cell-strong">{{.Nom}}</td>
+                    <td>{{.Prenom}}</td>
+                    <td>{{.Email}}</td>
+                    <td>{{.Adresse}}</td>
+                    <td class="cell-strong">{{.NomEntreprise}}</td>
+                  </tr>
+                {{end}}
+              {{else}}
+                <tr>
+                  <td colspan="6" class="table-empty">
+                    Aucun commerçant n'est actuellement rattaché à votre agence.
+                  </td>
+                </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>

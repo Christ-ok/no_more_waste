@@ -22,9 +22,8 @@
     <span class="sidebar-space">Espace commerçant</span>
 
     <nav class="sidebar-nav">
-      <a href="/commercant" class="nav-item is-active">Tableau de bord</a>
+      <a href="/commercant/statistiques" class="nav-item is-active">Tableau de bord</a>
       <a href="/commercant/collectes/" class="nav-item">Mes collectes</a>
-      <a href="#" class="nav-item">Mon adhésion</a>
       <a href="/commercant/recapitulatifs" class="nav-item">Récapitulatifs de livraison</a>
       <a href="/commercant/profil" class="nav-item">Mon profil</a>
     </nav>
@@ -41,7 +40,7 @@
     <header class="dash-topbar">
       <div>
         <span class="tag">Espace commerçant</span>
-        <h1>Bienvenue sur votre espace</h1>
+        <h1>Bienvenue, <strong>{{.Nom_Commerce}}</strong></h1>
       </div>
       <div class="topbar-user">
         <span>Bonjour !</span>
@@ -52,32 +51,41 @@
       <p class="dash-subtitle">Gérez votre adhésion, vos informations et suivez vos collectes d'invendus.</p>
 
       <div class="stat-grid">
+
         <div class="stat-card">
-          <span class="stat-label">Statut d'adhésion</span>
-          <span class="stat-value">Actif</span>
-          <span class="stat-hint">Renouvellement suivi automatiquement</span>
+          <span class="stat-label">Type de commerce</span>
+          <span class="stat-value">{{.Type_Commerce}}</span>
+          <span class="stat-hint">Catégorie déclarée lors de l'inscription</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-label">Prochaine collecte</span>
-          <span class="stat-value">—</span>
-          <span class="stat-hint">Demandez une collecte à tout moment</span>
-        </div>
+
         <div class="stat-card">
           <span class="stat-label">Collectes réalisées</span>
-          <span class="stat-value">—</span>
+          <span class="stat-value">{{.Collecte}}</span>
           <span class="stat-hint">Depuis votre adhésion</span>
         </div>
+
         <div class="stat-card">
           <span class="stat-label">Récapitulatifs PDF</span>
-          <span class="stat-value">—</span>
+          <span class="stat-value">{{.Recapitulatif}}</span>
           <span class="stat-hint">Disponibles après chaque livraison</span>
         </div>
+
       </div>
 
       <div class="panel">
         <h2>Demander une collecte</h2>
         <p>Programmez le passage d'un camion NO MORE WASTE pour récupérer vos invendus ou produits proches de leur date limite.</p>
       </div>
+
+      <div class="panel">
+        <h2>Accès rapides</h2>
+        <div class="quick-links">
+          <a href="/commercant/collectes/" class="btn btn-primary">Voir mes collectes</a>
+          <a href="/commercant/recapitulatifs" class="btn btn-primary">Voir mes récapitulatifs</a>
+          <a href="/commercant/profil" class="btn btn-primary">Modifier mon profil</a>
+        </div>
+      </div>
+
     </main>
   </div>
 

@@ -23,17 +23,15 @@
     <span class="sidebar-space">Back-office — Général</span>
 
     <nav class="sidebar-nav">
-      <a href="/admin" class="nav-item">Tableau de bord</a>
+      <a href="/admin/statistiques" class="nav-item">Tableau de bord</a>
       <a href="/admin/administrateurs" class="nav-item">Administrateurs Agences</a>
-      <a href="#" class="nav-item">Collectes</a>
-      <a href="#" class="nav-item">Stocks</a>
-      <a href="#" class="nav-item">Tournées de distribution</a>
+      <a href="/admin/collectes" class="nav-item">Collectes</a>
+      <a href="/admin/stock" class="nav-item">Stocks</a>
+      <a href="/admin/tournees" class="nav-item">Tournées de distribution</a>
       <a href="/admin/benevoles" class="nav-item">Bénévoles</a>
       <a href="/admin/commercants" class="nav-item is-active">Commerçants</a>
-      <a href="#" class="nav-item">Adhérents</a>
-      <a href="#" class="nav-item">Associations bénéficiaires</a>
-      <a href="#" class="nav-item">Services</a>
-      <a href="#" class="nav-item">Statistiques</a>
+      <a href="/admin/adherents" class="nav-item">Adhérents</a>
+      <a href="/admin/services" class="nav-item">Services</a>
     </nav>
 
     <form action="/logout" method="POST" class="logout-form">
@@ -56,15 +54,13 @@
       <p class="dash-subtitle">Retrouvez l'ensemble des commerçants inscrits sur toutes les agences, et leur statut d'adhésion.</p>
 
       <form class="table-toolbar" action="/admin/commercants" method="GET">
-        <input
-          type="text"
-          name="searchCommercant"
-          class="table-search"
-          placeholder="Rechercher un commerçant par nom..."
-          value="{{.CommercantRecherce}}"
-        >
+        <input type="text" name="recherche" class="table-search" placeholder="Rechercher un commerçant par nom..." value="{{.CommercantRecherche}}">
         <button type="submit" class="btn btn-primary">Rechercher</button>
       </form>
+
+      {{if .CommercantRecherche}}
+        <a href="/admin/commercants" class="btn btn-primary">X</a>
+      {{end}}
 
       <a href="/admin/commercants/creer" class="btn btn-success">
         <i class="fa-solid fa-plus">
