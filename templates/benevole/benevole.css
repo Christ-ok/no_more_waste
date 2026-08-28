@@ -329,7 +329,7 @@ h1, h2, h3 {
   text-transform: uppercase;
   letter-spacing: .06em;
   color: var(--green-deep);
-  background: var(--white);
+  background: var(--sage);
   padding: 16px 20px;
   font-weight: 700;
   border-bottom: 2px solid var(--sage-line);
@@ -339,7 +339,7 @@ h1, h2, h3 {
   font-size: .9rem;
   color: var(--ink);
 }
-.data-table tbody tr:nth-child(even) { background: var(--sage); }
+.data-table tbody tr { background: var(--white); }
 .table-empty {
   padding: 40px 20px;
   text-align: center;

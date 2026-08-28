@@ -85,6 +85,8 @@ func main() {
 	http.HandleFunc("GET /admin/commercants/creer", routes.PageCreerCommercant)
 	http.HandleFunc("GET /benevole/planning", routes.PagePlanningBenevole)
 	http.HandleFunc("GET /benevole/dashboard", routes.PageDashboardBenevole)
+	http.HandleFunc("GET /attente", PageAttente)
+	http.HandleFunc("GET /refus", PageRefus)
 
 	http.HandleFunc("GET /admin/benevoles", routes.DashboardAdministrateurBenevoles(db.DB))
 	http.HandleFunc("POST /admin/benevoles/creer", routes.CreateBenevole(db.DB))

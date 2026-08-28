@@ -15,6 +15,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func PageAttente(response http.ResponseWriter, request *http.Request) {
+	http.ServeFile(response, request, "templates/attente.html")
+}
+
+func PageRefus(response http.ResponseWriter, request *http.Request) {
+	http.ServeFile(response, request, "templates/refus.html")
+}
+
 func Login(database *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		var user models.Utilisateur
@@ -75,6 +83,26 @@ func Login(database *sql.DB) http.HandlerFunc {
 			fmt.Printf("Erreur lors de la sauvegarde la session : %v", err)
 			http.Error(response, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
 			return
+		}
+
+		if roleUser == "BENEVOLE" {
+			var statut_benevole string
+			errExec := database.QueryRow(`SELECT statut FROM benevole WHERE id_utilisateur = $1`, user.IDUtilisateur).Scan(&statut_benevole)
+			if errExec != nil {
+				fmt.Printf("Erreur : %v", errExec)
+				http.Error(response, "Erreur récupération statut bénévole", http.StatusInternalServerError)
+				return
+			}
+
+			switch statut_benevole {
+			case "EN_ATTENTE":
+				http.Redirect(response, request, "/attente", 303)
+				return
+			case "REFUSE":
+				http.Redirect(response, request, "/refus", 303)
+				return
+			default:
+			}
 		}
 
 		http.Redirect(response, request, RedirectionSelonRole(roleUser), http.StatusFound)

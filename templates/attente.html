@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte en attente — NO MORE WASTE</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f1e8;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #25251f;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 45px 40px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            margin-bottom: 25px;
+            border-radius: 50%;
+            background: #e8efe5;
+            color: #4f6f52;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #2f4031;
+        }
+
+        .message {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #66665f;
+            margin-bottom: 25px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 9px 18px;
+            border-radius: 30px;
+            background: #fff3cd;
+            color: #856404;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .info {
+            background: #f7f7f3;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #77776f;
+            margin-bottom: 25px;
+        }
+
+        .logout {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: #2f4031;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .logout:hover {
+            background: #405743;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #999991;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="logo">NMW</div>
+
+    <h1>Votre compte est en attente</h1>
+
+    <span class="status">EN ATTENTE DE VALIDATION</span>
+
+    <p class="message">
+        Merci pour votre inscription en tant que bénévole auprès de
+        <strong>NO MORE WASTE</strong>.
+    </p>
+
+    <div class="info">
+        Votre inscription a bien été enregistrée. 
+        Un administrateur doit maintenant vérifier et valider votre profil
+        avant que vous puissiez accéder aux fonctionnalités réservées aux bénévoles.
+    </div>
+
+    <p class="message">Nous vous invitons à patienter jusqu'à la validation de votre compte.</p>
+
+    <a href="/connexion" class="logout">Retour à la connexion</a>
+
+    <div class="footer">NO MORE WASTE — Ensemble contre le gaspillage</div>
+
+</div>
+
+
+</body>
+</html>
