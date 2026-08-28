@@ -326,6 +326,7 @@ type TourneeDashboardAffectation struct {
 }
 
 type RecapitulatifTournee struct {
-	ID_Tournee   int       `json:"id_tournee" db:"id_tournee"`
-	Date_Tournee time.Time `json:"date_tournee" db:"date_tournee"`
+	ID_Tournee     int       `json:"id_tournee" db:"id_tournee"`
+	Date_Tournee   time.Time `json:"date_tournee" db:"date_tournee"`
+	Statut_Tournee string    `json:"statut_tournee" db:"statut_tournee"`
 }

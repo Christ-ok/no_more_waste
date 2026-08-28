@@ -8,11 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="/admin_general/adminGeneral.css">
+<link rel="stylesheet" href="/admin_agence/adminAgence.css">
 <style>
-    /* ============================================
-       Liste des récapitulatifs PDF téléchargeables
-       ============================================ */
     .recaps-panel {
         padding: 24px 26px 30px;
     }
@@ -172,6 +169,13 @@
       <span class="sidebar-logo-text">NO MORE WASTE</span>
     </a>
 
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox">
+    <label for="menu-toggle" class="menu-toggle-btn" aria-label="Ouvrir le menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+
     <span class="sidebar-space">Back-office — Agence</span>
 
     <nav class="sidebar-nav">
@@ -227,7 +231,7 @@
                 <p class="recap-titre">Tournee n°{{.ID_Tournee}}</p>
                 <div class="recap-meta">
                   <span>📅 {{.Date_Tournee.Format "02-01-2006"}}</span>
-                  <span class="recap-badge">Tournée effectuée</span>
+                  <span class="recap-badge">{{.Statut_Tournee}}</span>
                 </div>
               </div>
             </div>

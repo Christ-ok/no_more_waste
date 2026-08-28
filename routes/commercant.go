@@ -400,7 +400,7 @@ func StatistiquesCommercant(database *sql.DB) http.HandlerFunc {
 		var collecte, recapitulatif int
 		var nom_commerce, type_commerce string
 
-		errExec := database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_commercant = $1`, idCommercant).Scan(&collecte)
+		errExec := database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_commercant = $1 AND statut = 'effectuee'`, idCommercant).Scan(&collecte)
 		if errExec != nil {
 			fmt.Printf("Erreur : %v", errExec)
 			http.Error(response, "Erreur récupération collecte", http.StatusInternalServerError)

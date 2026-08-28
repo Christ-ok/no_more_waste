@@ -225,6 +225,36 @@
 
 @media (max-width: 520px) {
   .auth-main { padding: 32px 0 56px; }
-  .auth-wrap { margin: 0 20px; }
   .header-hint { display: none; }
+
+  .auth-wrap {
+    margin: 0 12px;
+    padding: 0;              /* supprime le padding en double */
+    border-radius: 16px;
+    min-width: 0;
+  }
+
+  .auth-side,
+  .auth-card {
+    min-width: 0;             /* empêche les colonnes de grid de forcer une largeur trop grande */
+  }
+
+  .auth-card {
+    padding: 24px 20px;       /* on réduit ce padding au lieu de le cumuler */
+  }
+
+  .auth-side { min-height: 160px; }
+  .auth-side-copy { padding: 24px; }
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+.field,
+.field input,
+.field select,
+.auth-form {
+  min-width: 0;
+  max-width: 100%;
 }

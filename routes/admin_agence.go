@@ -1290,12 +1290,14 @@ func PageAffectationBenevoleService(database *sql.DB) http.HandlerFunc {
 		rowsBenevoleDispo, errBenevole := database.Query(`SELECT b.id_benevole, u.nom, u.prenom, p.id_planning, p.date, p.heure_debut, p.heure_fin, p.statut FROM benevole b
 														  	JOIN utilisateur u ON u.id_utilisateur = b.id_utilisateur
 														  	JOIN planning p ON p.id_benevole = b.id_benevole
+															JOIN demande_service ds ON ds.id_demande_service = $3
 														  WHERE u.id_agence = $1
 														  	AND b.id_competence = $2
 															AND b.statut = 'VALIDE'
 															AND p.statut = 'PLANIFIE'
+															AND p.date = ds.date_demande
 														  ORDER BY p.date, p.heure_debut
-		`, idAgence, idCompetenceRequise)
+		`, idAgence, idCompetenceRequise, idDemande)
 		if errBenevole != nil {
 			fmt.Printf("Erreur : %v", errBenevole)
 			http.Error(response, "Erreur récupération bénévoles disponibles", http.StatusInternalServerError)
@@ -2906,7 +2908,7 @@ func DashboardAdminAgenceRecapitulatifs(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		rows, err := database.Query(`SELECT id_tournee, date_tournee FROM tournee
+		rows, err := database.Query(`SELECT id_tournee, date_tournee, statut FROM tournee
 									 WHERE id_agence = $1
 		`, idAgence)
 		if err != nil {
@@ -2921,7 +2923,7 @@ func DashboardAdminAgenceRecapitulatifs(database *sql.DB) http.HandlerFunc {
 		for rows.Next() {
 			var recapitulatif models.RecapitulatifTournee
 
-			if errScan := rows.Scan(&recapitulatif.ID_Tournee, &recapitulatif.Date_Tournee); errScan != nil {
+			if errScan := rows.Scan(&recapitulatif.ID_Tournee, &recapitulatif.Date_Tournee, &recapitulatif.Statut_Tournee); errScan != nil {
 				http.Error(response, "Erreur scan récapitulatif", http.StatusInternalServerError)
 				return
 			}

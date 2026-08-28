@@ -344,14 +344,110 @@
     color: var(--green-deep);
   }
 
-  /* Responsive */
-  @media (max-width: 900px) {
-    .dash-shell { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-    .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
-    .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+/* ============================================
+   Burger menu (mobile)
+   ============================================ */
+.menu-toggle-checkbox {
+  display: none;
+}
+
+.menu-toggle-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  position: absolute;
+  top: 28px;
+  right: 20px;
+}
+.menu-toggle-btn span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--white);
+  border-radius: 2px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 900px) {
+  .dash-shell { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
+    z-index: 100;          /* passe au-dessus du contenu */
   }
+
+  .menu-toggle-btn { display: flex; }
+
+  .sidebar-logo { margin-bottom: 0; }
+  .sidebar-space { display: none; }
+
+  /* Nav + déconnexion en overlay, repliés par défaut */
+  .sidebar-nav,
+  .logout-form {
+    position: absolute;
+    top: 100%;               /* juste sous la barre du logo/burger */
+    left: 0;
+    width: 100%;
+    background: var(--green-deep);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    transition: max-height .25s ease, opacity .2s ease, padding .25s ease;
+    z-index: 99;
+  }
+  .sidebar-nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .logout-form {
+    top: calc(100% + 1px);   /* évite un flash de superposition avec la nav */
+  }
+
+  /* Déploiement au clic sur le burger */
+  .menu-toggle-checkbox:checked ~ .sidebar-nav {
+    max-height: 600px;
+    opacity: 1;
+    padding: 16px 20px;
+  }
+  .menu-toggle-checkbox:checked ~ .logout-form {
+    max-height: 100px;
+    opacity: 1;
+    padding: 16px 20px;
+    top: auto;                /* la déconnexion suit juste après la nav */
+    position: relative;
+    margin-top: 0;
+  }
+
+  /* Animation du burger en croix quand ouvert */
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .dash-main { position: relative; z-index: 1; }
+
+  .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+  .slot-summary { flex-direction: column; }
+  .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
+  .slot-item:last-child { border-bottom: none; }
+}
 </style>
 </head>
 <body>
@@ -363,6 +459,13 @@
       <span class="sidebar-logo-mark">NMW</span>
       <span class="sidebar-logo-text">NO MORE WASTE</span>
     </a>
+
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox">
+    <label for="menu-toggle" class="menu-toggle-btn" aria-label="Ouvrir le menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
 
     <span class="sidebar-space">Espace adhérent</span>
 

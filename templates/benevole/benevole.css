@@ -1193,17 +1193,6 @@ h1, h2, h3 {
 }
 
 /* ============================================
-   Responsive
-   ============================================ */
-@media (max-width: 900px) {
-  .dash-shell { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-  .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
-  .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
-}
-
-/* ============================================
    Ajouts pour la page "Mon profil"
    À coller à la fin de benevole.css — ne modifie
    aucune règle existante, réutilise les tokens déjà
@@ -1365,3 +1354,689 @@ h1, h2, h3 {
   }
   .panel { padding: 22px 20px; }
 }
+
+/* ============================================
+   NO MORE WASTE — Dashboards
+   Réutilise les tokens de couleur/typo du site public.
+   ============================================ */
+:root {
+  --white:        #FFFFFF;
+  --cream:        #FBFAF7;
+  --sage:         #EEF4E6;
+  --sage-line:    #DCE7CE;
+  --green-deep:   #33553A;
+  --green-mid:    #5A8A5F;
+  --green-bright: #7CA982;
+  --ink:          #22281F;
+  --ink-soft:     #5C6459;
+
+  --font-display: "Fraunces", serif;
+  --font-body:    "Work Sans", sans-serif;
+
+  --radius: 16px;
+  --sidebar-width: 264px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--green-deep);
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+/* ============================================
+   Étiquette signature (reprise du site public)
+   ============================================ */
+.tag {
+  display: inline-block;
+  position: relative;
+  background: var(--green-deep);
+  color: var(--white);
+  font-weight: 600;
+  font-size: .7rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 6px 14px 6px 20px;
+  border-radius: 3px 10px 10px 3px;
+  margin-bottom: 10px;
+}
+.tag::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--white);
+  opacity: .85;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: .9rem;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--white);
+  border-color: rgba(255,255,255,.25);
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,.6); }
+.btn-block { width: 100%; }
+
+/* ============================================
+   Boutons pleins (utilisés dans les tableaux et formulaires)
+   ============================================ */
+.btn-primary {
+  background: var(--green-deep);
+  color: var(--white);
+  border-color: var(--green-deep);
+}
+.btn-primary:hover {
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+}
+.btn-secondary {
+  background: var(--white);
+  color: var(--ink);
+  border-color: var(--sage-line);
+}
+.btn-secondary:hover { background: var(--sage); }
+.btn-success {
+  background: var(--green-bright);
+  color: var(--white);
+  border-color: var(--green-bright);
+}
+.btn-success:hover { background: var(--green-mid); }
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .82rem;
+}
+.btn-success {
+  background: var(--green-bright);
+  color: var(--white);
+  border-color: var(--green-bright);
+}
+.btn-success:hover { background: var(--green-mid); }
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .82rem;
+}
+
+/* ============================================
+   Structure générale : sidebar + contenu
+   ============================================ */
+.dash-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--green-deep);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
+.sidebar-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--green-deep);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .68rem;
+}
+.sidebar-logo-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .95rem;
+  letter-spacing: .01em;
+}
+
+.sidebar-space {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.55);
+  padding: 0 8px;
+  margin: 22px 0 10px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.78);
+}
+.nav-item::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .5;
+  flex-shrink: 0;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,.08);
+  color: var(--white);
+}
+.nav-item.is-active {
+  background: var(--white);
+  color: var(--green-deep);
+  font-weight: 600;
+}
+.nav-item.is-active::before { opacity: 0; }
+
+.sidebar-footer {
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+/* ============================================
+   Contenu principal
+   ============================================ */
+.dash-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 32px 40px 0;
+}
+
+.dash-topbar h1 {
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .88rem;
+  color: var(--ink-soft);
+  background: var(--white);
+  border: 1px solid var(--sage-line);
+  padding: 8px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.topbar-user strong { color: var(--green-deep); }
+
+.dash-content {
+  padding: 20px 40px 48px;
+}
+
+.dash-subtitle {
+  color: var(--ink-soft);
+  max-width: 60ch;
+  margin: 0 0 32px;
+}
+
+/* ============================================
+   Cartes de statistiques / accès rapide
+   ============================================ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--sage-line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-label {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+.stat-hint {
+  font-size: .78rem;
+  color: var(--green-mid);
+}
+
+/* ============================================
+   Bloc placeholder de contenu
+   ============================================ */
+.panel {
+  background: var(--white);
+  border: 1px solid var(--sage-line);
+  border-radius: var(--radius);
+  padding: 28px 30px;
+}
+.panel h2 { font-size: 1.15rem; margin-bottom: 8px; }
+.panel p { color: var(--ink-soft); margin: 0; font-size: .92rem; }
+.panel-form { max-width: 520px; }
+
+/* ============================================
+   Barre de recherche au-dessus des tableaux
+   (utilisée par benevoles.html)
+   ============================================ */
+.table-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+.table-search {
+  flex: 1;
+  max-width: 360px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--sage-line);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  color: var(--ink);
+  background: var(--white);
+}
+.table-search:focus {
+  outline: none;
+  border-color: var(--green-mid);
+}
+
+.btn-clear-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--ink-soft);
+  border: 1.5px solid var(--sage-line);
+  font-weight: 700;
+  font-size: .85rem;
+  flex-shrink: 0;
+  transition: background .15s ease, color .15s ease;
+}
+.btn-clear-search:hover {
+  background: var(--sage-line);
+  color: var(--green-deep);
+}
+
+/* ============================================
+   Tableaux de données
+   ============================================ */
+.panel-table {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--sage-line);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  text-align: left;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--green-deep);
+  background: var(--sage);
+  padding: 16px 20px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--sage-line);
+}
+.data-table tbody td {
+  padding: 15px 20px;
+  font-size: .9rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--sage-line);
+}
+.data-table tbody tr { 
+  background: var(--white); 
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover { 
+  background: rgba(124, 169, 130, .16);
+ }
+
+.cell-strong { font-weight: 600; color: var(--green-deep); }
+
+/* Statut affiché en texte coloré, sans fond plein */
+.cell-statut { font-weight: 600; font-size: .85rem; }
+.cell-statut.statut-disponible,
+.cell-statut.statut-planifie   { color: var(--green-mid); }
+.cell-statut.statut-reserve,
+.cell-statut.statut-termine    { color: var(--green-deep); }
+.cell-statut.statut-absent,
+.cell-statut.statut-annule     { color: var(--ink-soft); }
+
+.table-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: .9rem;
+  margin: 0;
+  background: var(--white);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+.icon-btn:hover {
+  background: var(--white);
+  color: var(--green-deep);
+}
+
+/* ============================================
+   Formulaires (ex: création de planning)
+   ============================================ */
+.panel-form {
+  max-width: 480px;
+  border-top: 3px solid var(--green-deep);
+}
+/* Variante "modification" : accent plus doux que la création,
+   pour signaler visuellement une action différente (édition vs nouveau) */
+.panel-form-edit {
+  border-top-color: var(--green-mid);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.form-group label {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 2px solid var(--sage-line);
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  color: var(--ink);
+  background: var(--sage);
+  width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-bottom-color: var(--green-deep);
+}
+.form-group input[readonly] {
+  background: transparent;
+  border-bottom-style: dashed;
+  color: var(--ink-soft);
+}
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Résumé d'un créneau en lecture seule (date/heure) */
+.slot-summary {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border: 1px solid var(--sage-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.slot-item {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--sage-line);
+}
+.slot-item:last-child { border-right: none; }
+.slot-label {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.slot-value {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+/* ============================================
+   Statuts des demandes de services
+   ============================================ */
+
+.cell-statut.statut-EN_ATTENTE {
+  color: #B8860B;
+}
+
+.cell-statut.statut-ATTRIBUE {
+  color: var(--green-mid);
+}
+
+.cell-statut.statut-TERMINE {
+  color: var(--green-deep);
+}
+
+.cell-statut.statut-ANNULE {
+  color: var(--ink-soft);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--green-deep);
+  border-color: var(--sage-line);
+}
+
+.btn-outline:hover {
+  background: var(--sage);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.panel-table {
+  padding:0;
+  overflow-x:auto;
+}
+
+tr[data-demande-id] {
+  transition: background .15s ease;
+}
+
+tr[data-demande-id]:hover {
+  background: rgba(124,169,130,.12);
+}
+
+.logout-form { margin: 0; }
+
+
+/* ============================================
+   Burger menu (mobile)
+   ============================================ */
+.menu-toggle-checkbox {
+  display: none;
+}
+
+.menu-toggle-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  position: absolute;
+  top: 28px;
+  right: 20px;
+}
+.menu-toggle-btn span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--white);
+  border-radius: 2px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 900px) {
+  .dash-shell { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
+    z-index: 100;          /* passe au-dessus du contenu */
+  }
+
+  .menu-toggle-btn { display: flex; }
+
+  .sidebar-logo { margin-bottom: 0; }
+  .sidebar-space { display: none; }
+
+  /* Nav + déconnexion en overlay, repliés par défaut */
+  .sidebar-nav,
+  .logout-form {
+    position: absolute;
+    top: 100%;               /* juste sous la barre du logo/burger */
+    left: 0;
+    width: 100%;
+    background: var(--green-deep);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    transition: max-height .25s ease, opacity .2s ease, padding .25s ease;
+    z-index: 99;
+  }
+  .sidebar-nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .logout-form {
+    top: calc(100% + 1px);   /* évite un flash de superposition avec la nav */
+  }
+
+  /* Déploiement au clic sur le burger */
+  .menu-toggle-checkbox:checked ~ .sidebar-nav {
+    max-height: 600px;
+    opacity: 1;
+    padding: 16px 20px;
+  }
+  .menu-toggle-checkbox:checked ~ .logout-form {
+    max-height: 100px;
+    opacity: 1;
+    padding: 16px 20px;
+    top: auto;                /* la déconnexion suit juste après la nav */
+    position: relative;
+    margin-top: 0;
+  }
+
+  /* Animation du burger en croix quand ouvert */
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .dash-main { position: relative; z-index: 1; }
+
+  .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+  .slot-summary { flex-direction: column; }
+  .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
+  .slot-item:last-child { border-bottom: none; }
+} 

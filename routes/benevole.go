@@ -1459,7 +1459,7 @@ func StatistiquesGeneralsBenevole(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		errExec = database.QueryRow(`SELECT COUNT(*) FROM disponibilite WHERE id_benevole = $1 AND date_disponibilite >= NOW()`, idBenevole).Scan(&disponibilite)
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM disponibilite WHERE id_benevole = $1 AND date_disponibilite >= NOW() AND statut = 'RESERVE'`, idBenevole).Scan(&disponibilite)
 		if errExec != nil {
 			fmt.Printf("Erreur : %v", errExec)
 			http.Error(response, "Erreur récupération disponibilite", http.StatusInternalServerError)

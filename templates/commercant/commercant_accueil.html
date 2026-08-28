@@ -19,6 +19,13 @@
       <span class="sidebar-logo-text">NO MORE WASTE</span>
     </a>
 
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox">
+    <label for="menu-toggle" class="menu-toggle-btn" aria-label="Ouvrir le menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </label>
+
     <span class="sidebar-space">Espace commerçant</span>
 
     <nav class="sidebar-nav">
@@ -28,12 +35,9 @@
       <a href="/commercant/profil" class="nav-item">Mon profil</a>
     </nav>
 
-      <div class="sidebar-footer">
-        <form action="/logout" method="POST">
-          <button type="submit" class="btn btn-ghost btn-block">Se déconnecter</button>
-        </form>
-      </div>
-      
+    <form action="/logout" method="POST" class="logout-form">
+            <button type="submit" class="btn btn-ghost btn-block">Déconnexion</button>
+    </form>  
   </aside>
 
   <div class="dash-main">

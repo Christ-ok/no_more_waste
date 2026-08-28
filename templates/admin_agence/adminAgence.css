@@ -329,6 +329,7 @@ h1, h2, h3 {
   display: flex;
   gap: 10px;
   margin-bottom: 18px;
+  align-items: center;
 }
 .table-search {
   flex: 1;
@@ -344,6 +345,26 @@ h1, h2, h3 {
 .table-search:focus {
   outline: none;
   border-color: var(--green-mid);
+}
+
+.btn-clear-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--ink-soft);
+  border: 1.5px solid var(--sage-line);
+  font-weight: 700;
+  font-size: .85rem;
+  flex-shrink: 0;
+  transition: background .15s ease, color .15s ease;
+}
+.btn-clear-search:hover {
+  background: var(--sage-line);
+  color: var(--green-deep);
 }
 
 /* ============================================
@@ -365,7 +386,7 @@ h1, h2, h3 {
   text-transform: uppercase;
   letter-spacing: .06em;
   color: var(--green-deep);
-  background: var(--white);
+  background: var(--sage);
   padding: 16px 20px;
   font-weight: 700;
   border-bottom: 2px solid var(--sage-line);
@@ -374,9 +395,17 @@ h1, h2, h3 {
   padding: 15px 20px;
   font-size: .9rem;
   color: var(--ink);
+  border-bottom: 1px solid var(--sage-line);
 }
-.data-table tbody tr:nth-child(even) { background: var(--sage); }
-.data-table tbody tr:hover { background: rgba(124, 169, 130, .16); }
+.data-table tbody tr { 
+  background: var(--white); 
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover { 
+  background: rgba(124, 169, 130, .16);
+ }
 
 .cell-strong { font-weight: 600; color: var(--green-deep); }
 
@@ -499,20 +528,6 @@ h1, h2, h3 {
 }
 
 /* ============================================
-   Responsive
-   ============================================ */
-@media (max-width: 900px) {
-  .dash-shell { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-  .sidebar-footer { margin-left: auto; border-top: none; padding-top: 0; }
-  .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
-  .slot-summary { flex-direction: column; }
-  .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
-  .slot-item:last-child { border-bottom: none; }
-}
-
-/* ============================================
    Statuts des demandes de services
    ============================================ */
 
@@ -562,3 +577,109 @@ tr[data-demande-id]:hover {
 }
 
 .logout-form { margin: 0; }
+
+
+/* ============================================
+   Burger menu (mobile)
+   ============================================ */
+.menu-toggle-checkbox {
+  display: none;
+}
+
+.menu-toggle-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  position: absolute;
+  top: 28px;
+  right: 20px;
+}
+.menu-toggle-btn span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--white);
+  border-radius: 2px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 900px) {
+  .dash-shell { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
+    z-index: 100;          /* passe au-dessus du contenu */
+  }
+
+  .menu-toggle-btn { display: flex; }
+
+  .sidebar-logo { margin-bottom: 0; }
+  .sidebar-space { display: none; }
+
+  /* Nav + déconnexion en overlay, repliés par défaut */
+  .sidebar-nav,
+  .logout-form {
+    position: absolute;
+    top: 100%;               /* juste sous la barre du logo/burger */
+    left: 0;
+    width: 100%;
+    background: var(--green-deep);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    transition: max-height .25s ease, opacity .2s ease, padding .25s ease;
+    z-index: 99;
+  }
+  .sidebar-nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .logout-form {
+    top: calc(100% + 1px);   /* évite un flash de superposition avec la nav */
+  }
+
+  /* Déploiement au clic sur le burger */
+  .menu-toggle-checkbox:checked ~ .sidebar-nav {
+    max-height: 600px;
+    opacity: 1;
+    padding: 16px 20px;
+  }
+  .menu-toggle-checkbox:checked ~ .logout-form {
+    max-height: 100px;
+    opacity: 1;
+    padding: 16px 20px;
+    top: auto;                /* la déconnexion suit juste après la nav */
+    position: relative;
+    margin-top: 0;
+  }
+
+  /* Animation du burger en croix quand ouvert */
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle-checkbox:checked ~ .menu-toggle-btn span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .dash-main { position: relative; z-index: 1; }
+
+  .dash-topbar, .dash-content { padding-left: 20px; padding-right: 20px; }
+  .slot-summary { flex-direction: column; }
+  .slot-item { border-right: none; border-bottom: 1px solid var(--sage-line); }
+  .slot-item:last-child { border-bottom: none; }
+} 
