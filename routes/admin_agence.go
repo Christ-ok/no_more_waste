@@ -61,7 +61,8 @@ type AdminAgenceBenevolesDisponibilitesCollect struct {
 }
 
 type AdminAgenceStockDashboard struct {
-	Stock []models.StockDashboard
+	Stock          []models.StockDashboard
+	StockRecherche string
 }
 
 type AdminAgenceTourneeData struct {
@@ -2240,11 +2241,17 @@ func DashboardAdminAgenceStocks(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		recherche := request.URL.Query().Get("recherche")
+
 		rowsStocks, errStock := database.Query(`SELECT s.id_stock, pc.libelle, pc.code_barre, s.quantite_disponible, s.date_entree FROM stock s
 													JOIN produit_collecte pc ON pc.id_stock = s.id_stock
 												WHERE s.id_agence = $1
+												AND (
+													LOWER(pc.libelle) LIKE LOWER($2) OR
+													LOWER(pc.code_barre) LIKE LOWER($2)
+												)
 												ORDER BY s.date_entree DESC
-		`, idAgence)
+		`, idAgence, "%"+recherche+"%")
 		if errStock != nil {
 			fmt.Printf("Erreur : %v", errStock)
 			http.Error(response, "Erreur récupération produits", http.StatusInternalServerError)
@@ -2273,7 +2280,8 @@ func DashboardAdminAgenceStocks(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminAgenceStockDashboard{
-			Stock: stock_List,
+			Stock:          stock_List,
+			StockRecherche: recherche,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/stocks.html")

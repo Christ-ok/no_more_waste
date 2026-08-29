@@ -64,6 +64,15 @@
     <main class="dash-content">
       <p class="dash-subtitle">Retrouvez ici tous les produits actuellement disponibles dans l'entrepôt de votre agence.</p>
 
+      <form class="table-toolbar" action="/admin-agence/stocks" method="GET">
+        <input type="text" name="recherche" class="table-search" placeholder="Rechercher un produit..." value="{{.StockRecherche}}">
+        <button type="submit" class="btn btn-primary">Rechercher</button>
+      </form>
+
+      {{if .StockRecherche}}
+        <a href="/admin-agence/stocks" class="btn-clear-search">X</a>
+      {{end}}
+
       <div class="panel panel-table">
         <table class="data-table">
           <thead>
