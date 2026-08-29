@@ -3001,7 +3001,7 @@ func StatistiquesGenerales(database *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var collecte, stock, tournee, benevole, document, planning, commercant, adherent, service int
+		var collecte, stock, tournee, benevole, document, planning, commercant, adherent, service, recapitulatif int
 
 		errExec := database.QueryRow(`SELECT COUNT(*) FROM collecte WHERE id_agence = $1`, idAgence).Scan(&collecte)
 		if errExec != nil {
@@ -3021,6 +3021,13 @@ func StatistiquesGenerales(database *sql.DB) http.HandlerFunc {
 		if errExec != nil {
 			fmt.Printf("Erreur : %v\n", errExec)
 			http.Error(response, "Erreur récupération tournee", http.StatusInternalServerError)
+			return
+		}
+
+		errExec = database.QueryRow(`SELECT COUNT(*) FROM tournee WHERE id_agence = $1 AND pdf_recapitulatif IS NOT NULL`, idAgence).Scan(&recapitulatif)
+		if errExec != nil {
+			fmt.Printf("Erreur : %v\n", errExec)
+			http.Error(response, "Erreur récupération récapitulatif", http.StatusInternalServerError)
 			return
 		}
 
@@ -3072,15 +3079,16 @@ func StatistiquesGenerales(database *sql.DB) http.HandlerFunc {
 		}
 
 		data := AdminAgenceStatistiqueData{
-			Collecte:   collecte,
-			Stock:      stock,
-			Tournee:    tournee,
-			Benevole:   benevole,
-			Document:   document,
-			Planning:   planning,
-			Commercant: commercant,
-			Adherent:   adherent,
-			Service:    service,
+			Collecte:      collecte,
+			Stock:         stock,
+			Tournee:       tournee,
+			Recapitulatif: recapitulatif,
+			Benevole:      benevole,
+			Document:      document,
+			Planning:      planning,
+			Commercant:    commercant,
+			Adherent:      adherent,
+			Service:       service,
 		}
 
 		tmpl, errTmpl := template.ParseFiles("./templates/admin_agence/adminAgence_accueil.html")
