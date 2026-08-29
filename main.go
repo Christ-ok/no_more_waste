@@ -190,6 +190,10 @@ func main() {
 	http.HandleFunc("GET /commercant/recapitulatifs/telecharger", routes.TelechargerRecapitulatifCollecte(db.DB))
 	http.HandleFunc("GET /commercant/statistiques", routes.StatistiquesCommercant(db.DB))
 
+	http.HandleFunc("GET /test-500", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Erreur de test", http.StatusInternalServerError)
+	})
+
 	uploadsFs := http.FileServer(http.Dir("./uploads"))
 	http.Handle("GET /uploads/", http.StripPrefix("/uploads/", uploadsFs))
 
