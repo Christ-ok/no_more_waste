@@ -61,7 +61,7 @@ func main() {
 		http.ServeFile(response, request, "./templates/adherent/adherent.css")
 	})
 
-	http.HandleFunc("GET /", PageAccueil)
+	http.HandleFunc("GET /{$}", PageAccueil)
 
 	if err := os.MkdirAll("./stockage/plannings", 0755); err != nil {
 		fmt.Println("Erreur création dossier plannings :", err)
